@@ -47,7 +47,7 @@ type Product = {
 
 type TransferOrder = Awaited<ReturnType<typeof createTransferOrder>>;
 
-const skillPrice = 52000;
+const skillPriceUsd = 1.99;
 const paymentRecipient = {
   bankName: "Techcombank",
   accountNumber: "8663 7696 68",
@@ -215,7 +215,7 @@ function Landing() {
   const [transferOrder, setTransferOrder] = useState<TransferOrder | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const add = (id: string) => setCart((c) => (c.includes(id) ? c : [...c, id]));
-  const total = cart.length * skillPrice;
+  const total = cart.length * skillPriceUsd;
   const visibleCategories = categories.filter(
     (category) =>
       category.visible !== false && category.products.some((product) => product.visible !== false),
@@ -248,7 +248,7 @@ function Landing() {
           </div>
           <div className="flex shrink-0 items-center gap-2 text-sm">
             <span className="hidden text-muted-foreground sm:inline">
-              {cart.length} skill · {formatVnd(total)}
+              {cart.length} skill · US${total.toFixed(2)}
             </span>
             <a
               href="#combo"
@@ -396,7 +396,7 @@ function Landing() {
       {cart.length > 0 && (
         <div className="fixed inset-x-0 bottom-4 z-40 mx-auto flex max-w-sm items-center justify-between rounded-full bg-foreground px-5 py-3 text-background shadow-brand">
           <span className="text-sm">
-            ⚡ {cart.length} skill · <strong>{formatVnd(total)}</strong>
+            ⚡ {cart.length} skill · <strong>US${total.toFixed(2)}</strong>
           </span>
           <button className="rounded-full bg-brand-gradient px-4 py-1.5 text-sm font-semibold text-primary-foreground">
             Kích hoạt →
@@ -499,7 +499,7 @@ function ProductCard({
           {product.tag}
         </span>
         <span className="absolute right-2 top-2 rounded-full bg-brand-gradient px-2 py-0.5 text-[10px] font-bold text-primary-foreground shadow-brand">
-          52K
+          US$1.99
         </span>
       </div>
       <div className="space-y-2 p-3">
@@ -516,7 +516,7 @@ function ProductCard({
           onClick={onChoose}
           className="w-full rounded-full bg-foreground px-3 py-2 text-xs font-semibold text-background transition hover:opacity-90"
         >
-          {inCart ? "Mở thanh toán · 52.000đ" : "Chọn Skill · 52.000đ"}
+          {inCart ? "Mở thanh toán · US$1.99" : "Chọn Skill · US$1.99"}
         </button>
       </div>
     </article>

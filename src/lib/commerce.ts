@@ -23,7 +23,7 @@ export const createTransferOrder = createServerFn({ method: "POST" })
 
     const orderCode = `SC${Date.now().toString().slice(-8)}`;
     const configured = Object.values(paymentSettings).every(Boolean);
-    const amount = 52000;
+    const amount = 51000;
     const transferNote = `${orderCode} ${data.productId}`.toUpperCase();
     const qrUrl = configured
       ? `https://img.vietqr.io/image/${paymentSettings.bankCode}-${paymentSettings.accountNumber}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(transferNote)}&accountName=${encodeURIComponent(paymentSettings.accountName)}`
