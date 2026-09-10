@@ -36,7 +36,7 @@ function SkillDetail() {
             ← Tất cả Skill
           </Link>
           <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-            $2 / Skill
+            52.000đ / Skill
           </span>
         </div>
       </header>
@@ -65,7 +65,7 @@ function SkillDetail() {
             hash="danh-muc-1"
             className="mt-8 inline-block rounded-full bg-brand-gradient px-6 py-3 text-sm font-semibold text-primary-foreground shadow-brand transition hover:opacity-90"
           >
-            Chọn Skill · $2
+            Chọn Skill · 52.000đ
           </Link>
         </div>
       </section>

@@ -8,6 +8,7 @@ import tueLamHall3 from "@/assets/tue-lam-hall-3-video-studio.png";
 import tueLamHall4 from "@/assets/tue-lam-hall-4-enterprise-office.png";
 import tueLamHall5 from "@/assets/tue-lam-hall-5-learning-studio.png";
 import sanCongCuLogo from "@/assets/sancongcu-logo-cropped.png";
+import techcombankPaymentQr from "@/assets/techcombank-payment-qr.jpg";
 import { getProductContent } from "@/lib/product-content";
 import { createTransferOrder } from "@/lib/commerce";
 
@@ -45,6 +46,14 @@ type Product = {
 };
 
 type TransferOrder = Awaited<ReturnType<typeof createTransferOrder>>;
+
+const skillPrice = 52000;
+const paymentRecipient = {
+  bankName: "Techcombank",
+  accountNumber: "8663 7696 68",
+  accountName: "HỘ KINH DOANH SUMOI",
+  zaloUrl: "https://zalo.me/0938069668",
+};
 
 type Category = {
   id: string;
@@ -206,7 +215,7 @@ function Landing() {
   const [transferOrder, setTransferOrder] = useState<TransferOrder | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const add = (id: string) => setCart((c) => (c.includes(id) ? c : [...c, id]));
-  const total = cart.length * 2;
+  const total = cart.length * skillPrice;
   const visibleCategories = categories.filter(
     (category) =>
       category.visible !== false && category.products.some((product) => product.visible !== false),
@@ -239,7 +248,7 @@ function Landing() {
           </div>
           <div className="flex shrink-0 items-center gap-2 text-sm">
             <span className="hidden text-muted-foreground sm:inline">
-              {cart.length} skill · ${total}
+              {cart.length} skill · {formatVnd(total)}
             </span>
             <a
               href="#combo"
@@ -387,7 +396,7 @@ function Landing() {
       {cart.length > 0 && (
         <div className="fixed inset-x-0 bottom-4 z-40 mx-auto flex max-w-sm items-center justify-between rounded-full bg-foreground px-5 py-3 text-background shadow-brand">
           <span className="text-sm">
-            ⚡ {cart.length} skill · <strong>${total}</strong>
+            ⚡ {cart.length} skill · <strong>{formatVnd(total)}</strong>
           </span>
           <button className="rounded-full bg-brand-gradient px-4 py-1.5 text-sm font-semibold text-primary-foreground">
             Kích hoạt →
@@ -490,7 +499,7 @@ function ProductCard({
           {product.tag}
         </span>
         <span className="absolute right-2 top-2 rounded-full bg-brand-gradient px-2 py-0.5 text-[10px] font-bold text-primary-foreground shadow-brand">
-          $2
+          52K
         </span>
       </div>
       <div className="space-y-2 p-3">
@@ -507,7 +516,7 @@ function ProductCard({
           onClick={onChoose}
           className="w-full rounded-full bg-foreground px-3 py-2 text-xs font-semibold text-background transition hover:opacity-90"
         >
-          {inCart ? "Mở thanh toán · $2" : "Chọn Skill · $2"}
+          {inCart ? "Mở thanh toán · 52.000đ" : "Chọn Skill · 52.000đ"}
         </button>
       </div>
     </article>
@@ -560,23 +569,30 @@ function PaymentDialog({
           <p className="mt-6 rounded-2xl bg-secondary p-4 text-sm text-muted-foreground">
             Đang tạo hướng dẫn chuyển khoản…
           </p>
-        ) : order.configured ? (
+        ) : (
           <div className="mt-6 space-y-5">
             <img
-              src={order.payment.qrUrl ?? ""}
+              src={order.payment.qrUrl ?? techcombankPaymentQr}
               alt="Mã QR thanh toán chuyển khoản"
               className="mx-auto w-52 rounded-2xl border border-border"
             />
             <TransferInstructions order={order} />
           </div>
-        ) : (
-          <div className="mt-6 rounded-2xl border border-primary/20 bg-primary/5 p-5 text-sm leading-6 text-muted-foreground">
-            <p className="font-semibold text-foreground">QR thanh toán đang chờ cấu hình</p>
-            <p className="mt-2">
-              Thêm thông tin ngân hàng vào tệp cấu hình máy chủ để hiển thị mã QR và hướng dẫn
-              chuyển khoản thật.
-            </p>
-          </div>
+        )}
+        {order && (
+          <a
+            href={paymentRecipient.zaloUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-5 block w-full rounded-full bg-brand-gradient px-4 py-3 text-center text-sm font-semibold text-primary-foreground shadow-brand transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          >
+            Gửi bill qua Zalo 0938 069 668 →
+          </a>
+        )}
+        {order && (
+          <p className="mt-3 text-center text-xs leading-5 text-muted-foreground">
+            Sau khi gửi bill và được xác nhận, bạn sẽ nhận link tải Skill riêng qua Zalo.
+          </p>
         )}
         <button
           onClick={onClose}
@@ -594,23 +610,33 @@ function TransferInstructions({ order }: { order: TransferOrder }) {
     <div className="space-y-3 rounded-2xl bg-secondary p-5 text-sm">
       <p className="flex justify-between gap-4">
         <span className="text-muted-foreground">Số tiền</span>
-        <strong>${order.amount}</strong>
+        <strong>{formatVnd(order.amount)}</strong>
       </p>
       <p className="flex justify-between gap-4">
         <span className="text-muted-foreground">Ngân hàng</span>
-        <strong className="text-right">{order.payment.bankName}</strong>
+        <strong className="text-right">
+          {order.payment.bankName || paymentRecipient.bankName}
+        </strong>
       </p>
       <p className="flex justify-between gap-4">
         <span className="text-muted-foreground">Số tài khoản</span>
-        <strong className="text-right">{order.payment.accountNumber}</strong>
+        <strong className="text-right">
+          {order.payment.accountNumber || paymentRecipient.accountNumber}
+        </strong>
       </p>
       <p className="flex justify-between gap-4">
         <span className="text-muted-foreground">Chủ tài khoản</span>
-        <strong className="text-right">{order.payment.accountName}</strong>
+        <strong className="text-right">
+          {order.payment.accountName || paymentRecipient.accountName}
+        </strong>
       </p>
       <p className="border-t border-border pt-3 text-xs text-muted-foreground">
         Nội dung chuyển khoản: <strong className="text-foreground">{order.transferNote}</strong>
       </p>
     </div>
   );
+}
+
+function formatVnd(amount: number) {
+  return `${new Intl.NumberFormat("vi-VN").format(amount)}đ`;
 }
