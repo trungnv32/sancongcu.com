@@ -10,7 +10,11 @@ import tueLamHall5 from "@/assets/tue-lam-hall-5-learning-studio.png";
 import sanCongCuLogo from "@/assets/sancongcu-logo-cropped.png";
 import techcombankPaymentQr from "@/assets/techcombank-payment-qr.jpg";
 import { getProductContent } from "@/lib/product-content";
-import { createTransferOrder } from "@/lib/commerce";
+import {
+  createFallbackTransferOrder,
+  createTransferOrder,
+  type TransferOrder,
+} from "@/lib/commerce";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -44,8 +48,6 @@ type Product = {
   emoji?: string;
   visible?: boolean;
 };
-
-type TransferOrder = Awaited<ReturnType<typeof createTransferOrder>>;
 
 const skillPriceUsd = 1.99;
 const paymentZaloUrl = "https://zalo.me/0938069668";
@@ -208,7 +210,6 @@ function Landing() {
   const [cart, setCart] = useState<string[]>([]);
   const [checkoutTitle, setCheckoutTitle] = useState<string | null>(null);
   const [transferOrder, setTransferOrder] = useState<TransferOrder | null>(null);
-  const [paymentError, setPaymentError] = useState<string | null>(null);
   const add = (id: string) => setCart((c) => (c.includes(id) ? c : [...c, id]));
   const total = cart.length * skillPriceUsd;
   const visibleCategories = categories.filter(
@@ -221,7 +222,6 @@ function Landing() {
       products.length === 1 ? products[0].title : `${products.length} Skill đã chọn`,
     );
     setTransferOrder(null);
-    setPaymentError(null);
 
     try {
       const order = await createTransferOrder({
@@ -229,7 +229,9 @@ function Landing() {
       });
       setTransferOrder(order);
     } catch {
-      setPaymentError("Chưa thể tạo hướng dẫn chuyển khoản. Vui lòng thử lại sau.");
+      // The transfer instructions are deterministic, so checkout remains usable
+      // even when the server request is interrupted on a mobile connection.
+      setTransferOrder(createFallbackTransferOrder(products.map((product) => product.id)));
     }
   };
   const handleChooseSkill = async (product: Product) => {
@@ -420,7 +422,6 @@ function Landing() {
       <PaymentDialog
         title={checkoutTitle}
         order={transferOrder}
-        error={paymentError}
         onClose={() => setCheckoutTitle(null)}
       />
     </main>
@@ -540,12 +541,10 @@ function ProductCard({
 function PaymentDialog({
   title,
   order,
-  error,
   onClose,
 }: {
   title: string | null;
   order: TransferOrder | null;
-  error: string | null;
   onClose: () => void;
 }) {
   if (!title) return null;
@@ -577,9 +576,7 @@ function PaymentDialog({
             ×
           </button>
         </div>
-        {error ? (
-          <p className="mt-6 rounded-2xl bg-destructive/10 p-4 text-sm text-destructive">{error}</p>
-        ) : !order ? (
+        {!order ? (
           <p className="mt-6 rounded-2xl bg-secondary p-4 text-sm text-muted-foreground">
             Đang tạo hướng dẫn chuyển khoản…
           </p>
