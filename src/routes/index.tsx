@@ -206,7 +206,7 @@ const categories: Category[] = [
 
 function Landing() {
   const [cart, setCart] = useState<string[]>([]);
-  const [checkoutProduct, setCheckoutProduct] = useState<Product | null>(null);
+  const [checkoutTitle, setCheckoutTitle] = useState<string | null>(null);
   const [transferOrder, setTransferOrder] = useState<TransferOrder | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const add = (id: string) => setCart((c) => (c.includes(id) ? c : [...c, id]));
@@ -215,20 +215,36 @@ function Landing() {
     (category) =>
       category.visible !== false && category.products.some((product) => product.visible !== false),
   );
-  const handleChooseSkill = async (product: Product) => {
-    add(product.id);
-    setCheckoutProduct(product);
+  const startCheckout = async (products: Product[]) => {
+    if (products.length === 0) return;
+    setCheckoutTitle(
+      products.length === 1 ? products[0].title : `${products.length} Skill đã chọn`,
+    );
     setTransferOrder(null);
     setPaymentError(null);
 
     try {
       const order = await createTransferOrder({
-        data: { productId: product.id, productTitle: product.title },
+        data: { productIds: products.map((product) => product.id) },
       });
       setTransferOrder(order);
     } catch {
       setPaymentError("Chưa thể tạo hướng dẫn chuyển khoản. Vui lòng thử lại sau.");
     }
+  };
+  const handleChooseSkill = async (product: Product) => {
+    const nextCart = cart.some((id) => id === product.id) ? cart : [...cart, product.id];
+    add(product.id);
+    const selectedProducts = categories
+      .flatMap((category) => category.products)
+      .filter((item) => nextCart.includes(item.id));
+    await startCheckout(selectedProducts);
+  };
+  const handleCartCheckout = async () => {
+    const selectedProducts = categories
+      .flatMap((category) => category.products)
+      .filter((product) => cart.includes(product.id));
+    await startCheckout(selectedProducts);
   };
 
   return (
@@ -393,16 +409,19 @@ function Landing() {
           <span className="text-sm">
             ⚡ {cart.length} skill · <strong>{total.toFixed(2)}$</strong>
           </span>
-          <button className="rounded-full bg-brand-gradient px-4 py-1.5 text-sm font-semibold text-primary-foreground">
-            Kích hoạt →
+          <button
+            onClick={handleCartCheckout}
+            className="rounded-full bg-brand-gradient px-4 py-1.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground"
+          >
+            Thanh toán →
           </button>
         </div>
       )}
       <PaymentDialog
-        product={checkoutProduct}
+        title={checkoutTitle}
         order={transferOrder}
         error={paymentError}
-        onClose={() => setCheckoutProduct(null)}
+        onClose={() => setCheckoutTitle(null)}
       />
     </main>
   );
@@ -519,17 +538,17 @@ function ProductCard({
 }
 
 function PaymentDialog({
-  product,
+  title,
   order,
   error,
   onClose,
 }: {
-  product: Product | null;
+  title: string | null;
   order: TransferOrder | null;
   error: string | null;
   onClose: () => void;
 }) {
-  if (!product) return null;
+  if (!title) return null;
   return (
     <div
       className="fixed inset-0 z-50 grid place-items-center bg-foreground/60 p-4 backdrop-blur-sm"
@@ -547,7 +566,7 @@ function PaymentDialog({
               Thanh toán Skill
             </p>
             <h2 id="payment-title" className="mt-2 text-2xl">
-              {product.title}
+              {title}
             </h2>
           </div>
           <button
