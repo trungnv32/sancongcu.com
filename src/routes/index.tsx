@@ -234,13 +234,11 @@ function Landing() {
       setTransferOrder(createFallbackTransferOrder(products.map((product) => product.id)));
     }
   };
-  const handleChooseSkill = async (product: Product) => {
-    const nextCart = cart.some((id) => id === product.id) ? cart : [...cart, product.id];
+  const handleChooseSkill = (product: Product) => {
     add(product.id);
-    const selectedProducts = categories
-      .flatMap((category) => category.products)
-      .filter((item) => nextCart.includes(item.id));
-    await startCheckout(selectedProducts);
+  };
+  const handleSingleSkillCheckout = async (product: Product) => {
+    await startCheckout([product]);
   };
   const handleCartCheckout = async () => {
     const selectedProducts = categories
@@ -297,6 +295,7 @@ function Landing() {
             category={cat}
             cart={cart}
             onChoose={handleChooseSkill}
+            onActivate={handleSingleSkillCheckout}
           />
         ))}
       </div>
@@ -415,7 +414,7 @@ function Landing() {
             onClick={handleCartCheckout}
             className="rounded-full bg-brand-gradient px-4 py-1.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground"
           >
-            Thanh toán →
+            Kích hoạt →
           </button>
         </div>
       )}
@@ -433,11 +432,13 @@ function CategoryRow({
   category,
   cart,
   onChoose,
+  onActivate,
 }: {
   anchorId: string;
   category: Category;
   cart: string[];
   onChoose: (product: Product) => void;
+  onActivate: (product: Product) => void;
 }) {
   const visibleProducts = category.products.filter((product) => product.visible !== false);
 
@@ -468,6 +469,7 @@ function CategoryRow({
             product={{ ...p, image: category.poster }}
             inCart={cart.includes(p.id)}
             onChoose={() => onChoose({ ...p, image: category.poster })}
+            onActivate={() => onActivate({ ...p, image: category.poster })}
           />
         ))}
       </div>
@@ -479,10 +481,12 @@ function ProductCard({
   product,
   inCart,
   onChoose,
+  onActivate,
 }: {
   product: Product;
   inCart: boolean;
   onChoose: () => void;
+  onActivate: () => void;
 }) {
   const description = getProductContent(product.id)?.summary;
   return (
@@ -529,9 +533,16 @@ function ProductCard({
         </Link>
         <button
           onClick={onChoose}
-          className="w-full rounded-full bg-foreground px-3 py-2 text-xs font-semibold text-background transition hover:opacity-90"
+          disabled={inCart}
+          className="w-full rounded-full bg-foreground px-3 py-2 text-xs font-semibold text-background transition hover:opacity-90 disabled:cursor-default disabled:opacity-60"
         >
-          {inCart ? "Mở thanh toán · 1.99$" : "Chọn Skill · 1.99$"}
+          {inCart ? "Đã chọn · 1.99$" : "Chọn Skill · 1.99$"}
+        </button>
+        <button
+          onClick={onActivate}
+          className="w-full rounded-full bg-brand-gradient px-3 py-2 text-xs font-semibold text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        >
+          Kích hoạt · 1.99$
         </button>
       </div>
     </article>
