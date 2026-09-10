@@ -573,7 +573,7 @@ function PaymentDialog({
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-              Thanh toán Skill
+              Phí kích hoạt Skill
             </p>
             <h2 id="payment-title" className="mt-2 text-2xl">
               {title}
@@ -613,7 +613,7 @@ function PaymentDialog({
         )}
         {order && (
           <p className="mt-3 text-center text-xs leading-5 text-muted-foreground">
-            Sau khi gửi bill và được xác nhận, bạn sẽ nhận link tải Skill riêng qua Zalo.
+            Sau khi gửi bill và được xác nhận, bạn sẽ nhận link tải Skill và hướng dẫn sử dụng riêng qua Zalo.
           </p>
         )}
         <button
