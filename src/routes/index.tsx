@@ -243,7 +243,7 @@ function Landing() {
           </div>
           <div className="flex shrink-0 items-center gap-2 text-sm">
             <span className="hidden text-muted-foreground sm:inline">
-              {cart.length} skill · US${total.toFixed(2)}
+              {cart.length} skill · {total.toFixed(2)}$
             </span>
             <a
               href="#combo"
@@ -391,7 +391,7 @@ function Landing() {
       {cart.length > 0 && (
         <div className="fixed inset-x-0 bottom-4 z-40 mx-auto flex max-w-sm items-center justify-between rounded-full bg-foreground px-5 py-3 text-background shadow-brand">
           <span className="text-sm">
-            ⚡ {cart.length} skill · <strong>US${total.toFixed(2)}</strong>
+            ⚡ {cart.length} skill · <strong>{total.toFixed(2)}$</strong>
           </span>
           <button className="rounded-full bg-brand-gradient px-4 py-1.5 text-sm font-semibold text-primary-foreground">
             Kích hoạt →
@@ -494,7 +494,7 @@ function ProductCard({
           {product.tag}
         </span>
         <span className="absolute right-2 top-2 rounded-full bg-brand-gradient px-2 py-0.5 text-[10px] font-bold text-primary-foreground shadow-brand">
-          US$1.99
+          1.99$
         </span>
       </div>
       <div className="space-y-2 p-3">
@@ -511,7 +511,7 @@ function ProductCard({
           onClick={onChoose}
           className="w-full rounded-full bg-foreground px-3 py-2 text-xs font-semibold text-background transition hover:opacity-90"
         >
-          {inCart ? "Mở thanh toán · US$1.99" : "Chọn Skill · US$1.99"}
+          {inCart ? "Mở thanh toán · 1.99$" : "Chọn Skill · 1.99$"}
         </button>
       </div>
     </article>
