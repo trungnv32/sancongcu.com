@@ -48,12 +48,7 @@ type Product = {
 type TransferOrder = Awaited<ReturnType<typeof createTransferOrder>>;
 
 const skillPriceUsd = 1.99;
-const paymentRecipient = {
-  bankName: "Techcombank",
-  accountNumber: "8663 7696 68",
-  accountName: "HỘ KINH DOANH SUMOI",
-  zaloUrl: "https://zalo.me/0938069668",
-};
+const paymentZaloUrl = "https://zalo.me/0938069668";
 
 type Category = {
   id: string;
@@ -581,7 +576,7 @@ function PaymentDialog({
         )}
         {order && (
           <a
-            href={paymentRecipient.zaloUrl}
+            href={paymentZaloUrl}
             target="_blank"
             rel="noreferrer"
             className="mt-5 block w-full rounded-full bg-brand-gradient px-4 py-3 text-center text-sm font-semibold text-primary-foreground shadow-brand transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
@@ -611,24 +606,6 @@ function TransferInstructions({ order }: { order: TransferOrder }) {
       <p className="flex justify-between gap-4">
         <span className="text-muted-foreground">Số tiền</span>
         <strong>{formatVnd(order.amount)}</strong>
-      </p>
-      <p className="flex justify-between gap-4">
-        <span className="text-muted-foreground">Ngân hàng</span>
-        <strong className="text-right">
-          {order.payment.bankName || paymentRecipient.bankName}
-        </strong>
-      </p>
-      <p className="flex justify-between gap-4">
-        <span className="text-muted-foreground">Số tài khoản</span>
-        <strong className="text-right">
-          {order.payment.accountNumber || paymentRecipient.accountNumber}
-        </strong>
-      </p>
-      <p className="flex justify-between gap-4">
-        <span className="text-muted-foreground">Chủ tài khoản</span>
-        <strong className="text-right">
-          {order.payment.accountName || paymentRecipient.accountName}
-        </strong>
       </p>
       <p className="border-t border-border pt-3 text-xs text-muted-foreground">
         Nội dung chuyển khoản: <strong className="text-foreground">{order.transferNote}</strong>
