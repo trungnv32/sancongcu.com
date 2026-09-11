@@ -7,7 +7,7 @@ import tueLamStraight from "@/assets/tue-lam-04-straigh.jpg";
 import tueLamHall3 from "@/assets/tue-lam-hall-3-video-studio.png";
 import tueLamHall4 from "@/assets/tue-lam-hall-4-enterprise-office.png";
 import tueLamHall5 from "@/assets/tue-lam-hall-5-learning-studio.png";
-import sanCongCuLogo from "@/assets/sancongcu-logo-cropped.png";
+import sanCongCuLogo from "@/assets/sancongcu-logo-transparent.png";
 import techcombankPaymentQr from "@/assets/techcombank-payment-qr.jpg";
 import { getProductContent } from "@/lib/product-content";
 import {
