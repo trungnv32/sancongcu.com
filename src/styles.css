@@ -53,6 +53,12 @@
 }
 
 @layer base {
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+  }
   * {
     border-color: var(--color-border);
   }
@@ -99,6 +105,42 @@
   min-width: 0;
   max-width: 100%;
   overflow-wrap: anywhere;
+}
+
+/* The admin holds long URLs, wide tables and media carousels. Keep their
+   horizontal scrolling local to those controls, never the whole phone page. */
+.admin-page,
+.admin-layout,
+.admin-content,
+.admin-editor,
+.admin-card,
+.admin-poster-card {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.admin-poster-preview {
+  width: 100%;
+  max-width: 100%;
+}
+
+.admin-poster-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 639px) {
+  .admin-page {
+    overflow-x: clip;
+  }
+
+  .admin-content :is(input, textarea, select) {
+    min-width: 0;
+    max-width: 100%;
+  }
 }
 
 .input:hover {

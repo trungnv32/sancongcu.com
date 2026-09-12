@@ -691,7 +691,7 @@ function AdminPage() {
     );
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#f6f8fc] text-foreground">
+    <main className="admin-page min-h-screen overflow-x-hidden bg-[#f6f8fc] text-foreground">
       <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
@@ -718,8 +718,8 @@ function AdminPage() {
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-[1600px] gap-5 p-4 sm:p-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="rounded-2xl border border-border bg-card p-3 shadow-sm lg:sticky lg:top-24 lg:h-[calc(100vh-7rem)] lg:overflow-y-auto">
+      <div className="admin-layout mx-auto grid max-w-[1600px] gap-5 p-4 sm:p-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <aside className="min-w-0 rounded-2xl border border-border bg-card p-3 shadow-sm lg:sticky lg:top-24 lg:h-[calc(100vh-7rem)] lg:overflow-y-auto">
           <div className="flex items-center justify-between px-2 py-2">
             <h2 className="font-bold">Danh mục</h2>
             <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold">
@@ -767,7 +767,7 @@ function AdminPage() {
           </form>
         </aside>
 
-        <section className="min-w-0 space-y-5">
+        <section className="admin-content min-w-0 space-y-5">
           {error && <Alert tone="error" text={error} onClose={() => setError(null)} />}
           {notice && <Alert tone="success" text={notice} onClose={() => setNotice(null)} />}
           <OrdersPanel
@@ -879,7 +879,7 @@ function AdminPage() {
                 Tạo Skill
               </button>
             </div>
-            <div className="flex gap-3 overflow-x-auto p-4 sm:p-5">
+            <div className="flex min-w-0 max-w-full gap-3 overflow-x-auto p-4 sm:p-5">
               {skills
                 .filter((skill) => !selectedHallId || skill.hall_id === selectedHallId)
                 .map((skill) => (
@@ -974,7 +974,10 @@ function OrdersPanel({
   onInstallLink: (order: Order, item: OrderItem) => Promise<void>;
 }) {
   return (
-    <section id="orders" className="rounded-2xl border border-border bg-card shadow-sm">
+    <section
+      id="orders"
+      className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
+    >
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4 sm:p-5">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
@@ -992,7 +995,7 @@ function OrdersPanel({
       {orders.length === 0 ? (
         <p className="p-5 text-sm text-muted-foreground">Chưa có đơn kích hoạt nào.</p>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="min-w-0 max-w-full overflow-x-auto">
           <table className="min-w-[1080px] w-full text-left text-sm">
             <thead className="bg-muted/60 text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
@@ -1121,8 +1124,8 @@ function SkillEditor({
   const [packageVersion, setPackageVersion] = useState("1.0.0");
   const activePackage = packages.find((itemPackage) => itemPackage.is_active);
   return (
-    <form onSubmit={(event) => void onSave(event)} className="space-y-5">
-      <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
+    <form onSubmit={(event) => void onSave(event)} className="admin-editor min-w-0 space-y-5">
+      <section className="admin-card min-w-0 overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
@@ -1288,8 +1291,8 @@ function SkillEditor({
           )}
         </div>
       </section>
-      <section className="grid min-w-0 gap-5 xl:grid-cols-2">
-        <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
+      <section className="grid min-w-0 max-w-full gap-5 xl:grid-cols-2">
+        <section className="admin-poster-card min-w-0 max-w-full overflow-hidden rounded-2xl border border-border bg-card p-4 sm:p-6">
           <h3 className="font-bold">Poster đại diện Skill</h3>
           <p className="mt-1 text-sm text-muted-foreground">
             Dùng cho thẻ Skill và ảnh Hero trên trang chi tiết. Bấm “Tải poster đại diện” ở đầu form
@@ -1297,7 +1300,7 @@ function SkillEditor({
           </p>
           <div className="mt-4 grid min-w-0 gap-4 sm:grid-cols-[180px_minmax(0,1fr)]">
             <div className="min-w-0 space-y-3">
-              <div className="aspect-[4/3] overflow-hidden rounded-xl bg-muted">
+              <div className="admin-poster-preview aspect-[4/3] overflow-hidden rounded-xl bg-muted">
                 {skill.thumbnail_path ? (
                   <img
                     src={skill.thumbnail_path}
@@ -1350,7 +1353,7 @@ function SkillEditor({
             </div>
           </div>
         </section>
-        <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
+        <section className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-border bg-card p-4 sm:p-6">
           <h3 className="font-bold">Gallery đầu vào / đầu ra</h3>
           <p className="mt-1 text-sm text-muted-foreground">
             Chọn loại ảnh và tải nhiều ảnh cùng lúc; các ảnh sẽ có thể lướt trên trang chi tiết.
