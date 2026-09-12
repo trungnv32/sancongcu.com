@@ -1027,22 +1027,41 @@ function OrdersPanel({
                         const entitlement = entitlements.find(
                           (entry) => entry.order_item_id === item.id && !entry.revoked_at,
                         );
+                        const installLink = entitlement
+                          ? installUrl(entitlement.install_token)
+                          : null;
                         return (
-                          <button
-                            key={item.id}
-                            type="button"
-                            onClick={() => void onInstallLink(order, item)}
-                            disabled={!order.confirmed_at}
-                            title={
-                              !order.confirmed_at
-                                ? "Xác nhận thanh toán trước khi tạo link"
-                                : undefined
-                            }
-                            className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-xs font-bold transition ${order.confirmed_at ? "bg-primary text-primary-foreground hover:opacity-90" : "cursor-not-allowed bg-muted text-muted-foreground"}`}
-                          >
-                            <Copy className="size-3.5" />
-                            {entitlement ? "Sao chép link" : "Tạo link"}
-                          </button>
+                          <div key={item.id} className="min-w-56 space-y-2">
+                            <button
+                              type="button"
+                              onClick={() => void onInstallLink(order, item)}
+                              disabled={!order.confirmed_at}
+                              title={
+                                !order.confirmed_at
+                                  ? "Tick “Đã thanh toán” trước khi tạo link"
+                                  : undefined
+                              }
+                              className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-xs font-bold transition ${order.confirmed_at ? "bg-primary text-primary-foreground hover:opacity-90" : "cursor-not-allowed bg-muted text-muted-foreground"}`}
+                            >
+                              <Copy className="size-3.5" />
+                              {entitlement ? "Sao chép link" : "Tạo link"}
+                            </button>
+                            {installLink ? (
+                              <input
+                                aria-label={`Link cài đặt ${item.skill_title}`}
+                                value={installLink}
+                                readOnly
+                                onFocus={(event) => event.currentTarget.select()}
+                                className="input h-9 min-w-56 px-2 py-1 text-[11px] font-normal"
+                              />
+                            ) : (
+                              <p className="text-xs text-muted-foreground">
+                                {order.confirmed_at
+                                  ? "Tạo link để gửi cho khách."
+                                  : "Chờ xác nhận thanh toán."}
+                              </p>
+                            )}
+                          </div>
                         );
                       })}
                     </div>
