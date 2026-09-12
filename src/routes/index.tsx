@@ -10,12 +10,7 @@ import tueLamHall5 from "@/assets/tue-lam-hall-5-learning-studio.png";
 import sanCongCuLogo from "@/assets/sancongcu-logo-transparent.png";
 import techcombankPaymentQr from "@/assets/techcombank-payment-qr.jpg";
 import { getProductContent } from "@/lib/product-content";
-import {
-  createFallbackTransferOrder,
-  createSavedTransferOrder,
-  createTransferOrder,
-  type TransferOrder,
-} from "@/lib/commerce";
+import { createSavedTransferOrder, type TransferOrder } from "@/lib/commerce";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/")({
@@ -212,18 +207,33 @@ const categories: Category[] = [
 function Landing() {
   const [cart, setCart] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
-    try { return JSON.parse(window.localStorage.getItem("sancongcu-cart") || "[]") as string[]; } catch { return []; }
+    try {
+      return JSON.parse(window.localStorage.getItem("sancongcu-cart") || "[]") as string[];
+    } catch {
+      return [];
+    }
   });
   const [checkoutTitle, setCheckoutTitle] = useState<string | null>(null);
   const [transferOrder, setTransferOrder] = useState<TransferOrder | null>(null);
-  useEffect(() => { window.localStorage.setItem("sancongcu-cart", JSON.stringify(cart)); }, [cart]);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  useEffect(() => {
+    window.localStorage.setItem("sancongcu-cart", JSON.stringify(cart));
+  }, [cart]);
   const [catalog, setCatalog] = useState<Category[] | null>(null);
   useEffect(() => {
     if (!supabase) return;
     void (async () => {
       const [hallResult, skillResult] = await Promise.all([
-        supabase.from("halls").select("id, slug, name, description, poster_path, is_visible, sort_order").eq("is_visible", true).order("sort_order"),
-        supabase.from("skills").select("id, hall_id, slug, title, short_description, thumbnail_path, status, sort_order").eq("status", "published").order("sort_order"),
+        supabase
+          .from("halls")
+          .select("id, slug, name, description, poster_path, is_visible, sort_order")
+          .eq("is_visible", true)
+          .order("sort_order"),
+        supabase
+          .from("skills")
+          .select("id, hall_id, slug, title, short_description, thumbnail_path, status, sort_order")
+          .eq("status", "published")
+          .order("sort_order"),
       ]);
       if (hallResult.error || skillResult.error || !skillResult.data?.length) return;
       const dynamicCatalog = hallResult.data.map((hall) => ({
@@ -232,14 +242,16 @@ function Landing() {
         subtitle: hall.description,
         poster: hall.poster_path || tueLamStanding,
         visible: hall.is_visible,
-        products: skillResult.data.filter((skill) => skill.hall_id === hall.id).map((skill) => ({
-          id: skill.slug,
-          title: skill.title,
-          description: skill.short_description,
-          tag: "AI Skill",
-          image: skill.thumbnail_path || hall.poster_path || tueLamStanding,
-          visible: skill.status === "published",
-        })),
+        products: skillResult.data
+          .filter((skill) => skill.hall_id === hall.id)
+          .map((skill) => ({
+            id: skill.slug,
+            title: skill.title,
+            description: skill.short_description,
+            tag: "AI Skill",
+            image: skill.thumbnail_path || hall.poster_path || tueLamStanding,
+            visible: skill.status === "published",
+          })),
       }));
       setCatalog(dynamicCatalog);
     })();
@@ -257,31 +269,29 @@ function Landing() {
       products.length === 1 ? products[0].title : `${products.length} Skill đã chọn`,
     );
     setTransferOrder(null);
+    setCheckoutError(null);
 
     try {
-      if (supabase) {
-        const { data, error } = await supabase.rpc("create_pending_order", {
-          p_skill_slugs: products.map((product) => product.id),
-        });
-        const savedOrder = data?.[0];
-        if (!error && savedOrder) {
-          setTransferOrder(createSavedTransferOrder({
-            orderCode: savedOrder.order_code,
-            amount: savedOrder.total_amount,
-            transferNote: savedOrder.transfer_note,
-            productCount: savedOrder.product_count,
-          }));
-          return;
-        }
+      if (!supabase) {
+        throw new Error("Kết nối đặt hàng chưa sẵn sàng.");
       }
-      const order = await createTransferOrder({
-        data: { productIds: products.map((product) => product.id) },
+      const { data, error } = await supabase.rpc("create_pending_order", {
+        p_skill_slugs: products.map((product) => product.id),
       });
-      setTransferOrder(order);
-    } catch {
-      // The transfer instructions are deterministic, so checkout remains usable
-      // even when the server request is interrupted on a mobile connection.
-      setTransferOrder(createFallbackTransferOrder(products.map((product) => product.id)));
+      const savedOrder = data?.[0];
+      if (error) throw error;
+      if (!savedOrder) throw new Error("Không thể tạo mã đơn.");
+      setTransferOrder(
+        createSavedTransferOrder({
+          orderCode: savedOrder.order_code,
+          amount: savedOrder.total_amount,
+          transferNote: savedOrder.transfer_note,
+          productCount: savedOrder.product_count,
+        }),
+      );
+    } catch (error) {
+      console.error("Không thể tạo đơn kích hoạt", error);
+      setCheckoutError("Chưa thể tạo mã đơn. Vui lòng thử lại trước khi chuyển khoản.");
     }
   };
   const handleChooseSkill = (product: Product) => {
@@ -299,7 +309,9 @@ function Landing() {
   useEffect(() => {
     const activateId = new URLSearchParams(window.location.search).get("activate");
     if (!activateId || checkoutTitle) return;
-    const product = activeCategories.flatMap((category) => category.products).find((item) => item.id === activateId);
+    const product = activeCategories
+      .flatMap((category) => category.products)
+      .find((item) => item.id === activateId);
     if (product) {
       window.history.replaceState({}, "", window.location.pathname + window.location.hash);
       void startCheckout([product]);
@@ -480,7 +492,11 @@ function Landing() {
       <PaymentDialog
         title={checkoutTitle}
         order={transferOrder}
-        onClose={() => setCheckoutTitle(null)}
+        error={checkoutError}
+        onClose={() => {
+          setCheckoutTitle(null);
+          setCheckoutError(null);
+        }}
       />
     </main>
   );
@@ -547,7 +563,10 @@ function ProductCard({
   onChoose: () => void;
   onActivate: () => void;
 }) {
-  const description = product.description || getProductContent(product.id)?.summary || "Thông tin Skill đang được cập nhật.";
+  const description =
+    product.description ||
+    getProductContent(product.id)?.summary ||
+    "Thông tin Skill đang được cập nhật.";
   return (
     <article className="group w-[220px] shrink-0 snap-start overflow-hidden rounded-2xl border border-border bg-card shadow-card transition hover:-translate-y-1 hover:shadow-brand sm:w-auto">
       <Link
@@ -587,7 +606,9 @@ function ProductCard({
       </Link>
       <div className="space-y-2 p-3">
         <h3 className="skill-card__title font-display">{product.title}</h3>
-        <p className="skill-card__description text-xs leading-5 text-muted-foreground">{description}</p>
+        <p className="skill-card__description text-xs leading-5 text-muted-foreground">
+          {description}
+        </p>
         <Link
           to="/skill/$skillId"
           params={{ skillId: product.id }}
@@ -616,10 +637,12 @@ function ProductCard({
 function PaymentDialog({
   title,
   order,
+  error,
   onClose,
 }: {
   title: string | null;
   order: TransferOrder | null;
+  error: string | null;
   onClose: () => void;
 }) {
   if (!title) return null;
@@ -651,7 +674,11 @@ function PaymentDialog({
             ×
           </button>
         </div>
-        {!order ? (
+        {error ? (
+          <p className="mt-6 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+            {error}
+          </p>
+        ) : !order ? (
           <p className="mt-6 rounded-2xl bg-secondary p-4 text-sm text-muted-foreground">
             Đang tạo hướng dẫn chuyển khoản…
           </p>
@@ -677,7 +704,8 @@ function PaymentDialog({
         )}
         {order && (
           <p className="mt-3 text-center text-xs leading-5 text-muted-foreground">
-            Sau khi gửi bill và được xác nhận, bạn sẽ nhận link tải Skill và hướng dẫn sử dụng riêng qua Zalo.
+            Sau khi gửi bill và được xác nhận, bạn sẽ nhận link tải Skill và hướng dẫn sử dụng riêng
+            qua Zalo.
           </p>
         )}
         <button
