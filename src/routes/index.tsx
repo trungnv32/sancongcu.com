@@ -17,6 +17,13 @@ import {
   type TransferOrder,
 } from "@/lib/commerce";
 import { supabase } from "@/lib/supabase";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -226,6 +233,7 @@ function Landing() {
     }
   });
   const [comboSize, setComboSize] = useState<ComboSize | null>(getSavedComboSize);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [checkoutTitle, setCheckoutTitle] = useState<string | null>(null);
   const [transferOrder, setTransferOrder] = useState<TransferOrder | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
@@ -240,6 +248,9 @@ function Landing() {
   useEffect(() => {
     if (comboSize && cart.length > comboSize) setComboSize(null);
   }, [cart.length, comboSize]);
+  useEffect(() => {
+    if (cart.length === 0) setIsCartOpen(false);
+  }, [cart.length]);
   const [catalog, setCatalog] = useState<Category[] | null>(null);
   useEffect(() => {
     if (!supabase) return;
@@ -528,55 +539,89 @@ function Landing() {
 
       {/* Cart sticky */}
       {cart.length > 0 && (
-        <aside className="fixed inset-x-3 bottom-3 z-40 mx-auto w-auto max-w-xl rounded-3xl bg-foreground p-3 text-background shadow-brand sm:inset-x-4 sm:bottom-4">
-          <div className="flex items-center justify-between gap-3 px-2">
-            <p className="min-w-0 text-sm">
+        <div className="fixed inset-x-0 bottom-4 z-40 mx-auto flex max-w-sm items-center justify-between rounded-full bg-foreground px-5 py-3 text-background shadow-brand">
+          <button
+            type="button"
+            onClick={() => setIsCartOpen(true)}
+            aria-haspopup="dialog"
+            className="min-h-10 min-w-0 text-left text-sm transition hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            <span className="block">
+              ⚡{" "}
               {comboSize
                 ? `Combo ${comboSize} · ${cart.length}/${comboSize} Skill`
-                : `${cart.length} Skill`}{" "}
+                : `${cart.length} skill`}{" "}
               · <strong>{total.toFixed(2)}$</strong>
-              {comboGift && (
-                <span className="ml-1 text-xs text-background/75">+ ChatGPT Plus 1 tháng</span>
-              )}
-            </p>
-            <button
-              type="button"
-              onClick={clearCart}
-              className="min-h-10 shrink-0 rounded-full px-3 text-xs font-semibold text-background/75 transition hover:bg-background/10 hover:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            >
-              Xóa tất cả
-            </button>
-          </div>
-          <div
-            className="mt-2 flex max-w-full gap-2 overflow-x-auto px-2 pb-1"
-            aria-label="Skill trong giỏ hàng"
+            </span>
+            {comboGift && (
+              <span className="block text-xs text-background/75">+ ChatGPT Plus 1 tháng</span>
+            )}
+          </button>
+          <button
+            onClick={handleCartCheckout}
+            disabled={!comboReady}
+            className="rounded-full bg-brand-gradient px-4 py-1.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
           >
+            {comboReady ? "Kích hoạt →" : `Chọn thêm ${comboSize! - cart.length} Skill`}
+          </button>
+        </div>
+      )}
+      <Dialog open={isCartOpen} onOpenChange={setIsCartOpen}>
+        <DialogContent className="max-h-[80dvh] max-w-md overflow-y-auto rounded-3xl p-5 sm:p-6">
+          <DialogHeader>
+            <DialogTitle>Giỏ Skill đã chọn</DialogTitle>
+            <DialogDescription>
+              {comboSize
+                ? `Combo ${comboSize}: ${cart.length}/${comboSize} Skill · ${total.toFixed(2)}$`
+                : `${cart.length} Skill · ${total.toFixed(2)}$`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
             {cartItems.map((item) => (
               <div
                 key={item.id}
-                className="flex min-h-10 shrink-0 items-center gap-1 rounded-full bg-background/10 pl-3 pr-1 text-xs"
+                className="flex items-center gap-3 rounded-xl border border-border p-3"
               >
-                <span className="max-w-36 truncate">{item.title}</span>
+                <p className="min-w-0 flex-1 truncate text-sm font-semibold">{item.title}</p>
                 <button
                   type="button"
                   onClick={() => remove(item.id)}
                   aria-label={`Xóa ${item.title} khỏi giỏ hàng`}
-                  className="grid size-9 place-items-center rounded-full text-background/75 transition hover:bg-background/15 hover:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  className="grid size-10 shrink-0 place-items-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   <X aria-hidden="true" className="size-4" />
                 </button>
               </div>
             ))}
+            {comboGift && (
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm font-semibold text-primary">
+                Quà tặng: ChatGPT Plus 1 tháng
+              </div>
+            )}
+          </div>
+          <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
+            <button
+              type="button"
+              onClick={clearCart}
+              className="min-h-11 rounded-full px-3 text-sm font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              Xóa tất cả
+            </button>
+            <p className="text-right text-sm font-bold">Tổng: {total.toFixed(2)}$</p>
           </div>
           <button
-            onClick={handleCartCheckout}
+            type="button"
+            onClick={() => {
+              setIsCartOpen(false);
+              void handleCartCheckout();
+            }}
             disabled={!comboReady}
-            className="mt-2 min-h-12 w-full rounded-full bg-brand-gradient px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            className="min-h-12 w-full rounded-full bg-brand-gradient px-4 py-3 text-sm font-bold text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {comboReady ? "Kích hoạt →" : `Chọn thêm ${comboSize! - cart.length} Skill`}
+            {comboReady ? "Kích hoạt đơn hàng →" : `Chọn thêm ${comboSize! - cart.length} Skill`}
           </button>
-        </aside>
-      )}
+        </DialogContent>
+      </Dialog>
       <PaymentDialog
         title={checkoutTitle}
         order={transferOrder}
