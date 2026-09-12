@@ -110,3 +110,16 @@ textarea.input { min-height: 12rem; }
   background-clip: text;
   color: transparent;
 }
+
+/* Keep the product page in one column on phones; widen only on desktop. */
+.skill-detail__hero,
+.skill-detail__actions {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 1024px) {
+  .skill-detail__hero,
+  .skill-detail__actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
