@@ -281,7 +281,7 @@ function AdminPage() {
     }
   }
 
-  async function createOrCopyInstallLink(order: Order, item: OrderItem) {
+  async function createOrCopyInstallLink(order: Order, item: OrderItem, regenerate = false) {
     if (!supabase) return;
     if (!order.confirmed_at) {
       setError("Hãy tick “Đã thanh toán” trước khi tạo link cài đặt cho khách.");
@@ -303,26 +303,50 @@ function AdminPage() {
     const existing = entitlements.find(
       (entitlement) => entitlement.order_item_id === item.id && !entitlement.revoked_at,
     );
-    if (existing) {
+    if (existing && !regenerate) {
       await copyInstallLink(existing.install_token);
       return;
     }
     setIsSaving(true);
     setError(null);
-    const { data, error: createError } = await supabase
-      .from("skill_entitlements")
-      .insert({
-        order_item_id: item.id,
-        skill_package_id: activePackage.id,
-        install_token: createInstallToken(),
-      })
-      .select()
-      .single();
+    const nextToken = createInstallToken();
+    const request = existing
+      ? supabase
+          .from("skill_entitlements")
+          .update({
+            skill_package_id: activePackage.id,
+            install_token: nextToken,
+            install_count: 0,
+            last_installed_at: null,
+            revoked_at: null,
+          })
+          .eq("id", existing.id)
+          .select()
+          .single()
+      : supabase
+          .from("skill_entitlements")
+          .insert({
+            order_item_id: item.id,
+            skill_package_id: activePackage.id,
+            install_token: nextToken,
+          })
+          .select()
+          .single();
+    const { data, error: createError } = await request;
     setIsSaving(false);
     if (createError) setError(createError.message);
     else if (data) {
       const entitlement = data as SkillEntitlement;
-      setEntitlements((current) => [...current, entitlement]);
+      setEntitlements((current) =>
+        existing
+          ? current.map((itemEntitlement) =>
+              itemEntitlement.id === entitlement.id ? entitlement : itemEntitlement,
+            )
+          : [...current, entitlement],
+      );
+      if (regenerate) {
+        setNotice("Đã tạo link mới với phiên bản Skill hiện hành. Link cũ không còn sử dụng được.");
+      }
       await copyInstallLink(entitlement.install_token);
     }
   }
@@ -775,6 +799,7 @@ function AdminPage() {
             entitlements={entitlements}
             onStatusChange={updateOrderStatus}
             onInstallLink={createOrCopyInstallLink}
+            onRegenerateInstallLink={(order, item) => createOrCopyInstallLink(order, item, true)}
           />
           {selectedHall && (
             <form
@@ -963,6 +988,7 @@ function OrdersPanel({
   entitlements,
   onStatusChange,
   onInstallLink,
+  onRegenerateInstallLink,
 }: {
   orders: Order[];
   entitlements: SkillEntitlement[];
@@ -972,6 +998,7 @@ function OrdersPanel({
     checked: boolean,
   ) => Promise<void>;
   onInstallLink: (order: Order, item: OrderItem) => Promise<void>;
+  onRegenerateInstallLink: (order: Order, item: OrderItem) => Promise<void>;
 }) {
   return (
     <section
@@ -1046,6 +1073,15 @@ function OrdersPanel({
                               <Copy className="size-3.5" />
                               {entitlement ? "Sao chép link" : "Tạo link"}
                             </button>
+                            {entitlement && (
+                              <button
+                                type="button"
+                                onClick={() => void onRegenerateInstallLink(order, item)}
+                                className="ml-2 inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-xs font-bold transition hover:bg-muted"
+                              >
+                                Tạo lại link
+                              </button>
+                            )}
                             {installLink ? (
                               <input
                                 aria-label={`Link cài đặt ${item.skill_title}`}
