@@ -274,6 +274,15 @@ function Landing() {
       .filter((product) => cart.includes(product.id));
     await startCheckout(selectedProducts);
   };
+  useEffect(() => {
+    const activateId = new URLSearchParams(window.location.search).get("activate");
+    if (!activateId || checkoutTitle) return;
+    const product = activeCategories.flatMap((category) => category.products).find((item) => item.id === activateId);
+    if (product) {
+      window.history.replaceState({}, "", window.location.pathname + window.location.hash);
+      void startCheckout([product]);
+    }
+  }, [activeCategories, checkoutTitle]);
 
   return (
     <main className="min-h-screen bg-soft-gradient">
