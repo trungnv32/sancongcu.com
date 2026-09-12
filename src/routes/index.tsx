@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import kolGraduation from "@/assets/kol-graduation.asset.json";
 import kolGymVideo from "@/assets/kol-gym-video.mp4.asset.json";
 import tueLamStanding from "@/assets/tue-lam-03-standing.jpg";
@@ -15,6 +15,7 @@ import {
   createTransferOrder,
   type TransferOrder,
 } from "@/lib/commerce";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -210,9 +211,36 @@ function Landing() {
   const [cart, setCart] = useState<string[]>([]);
   const [checkoutTitle, setCheckoutTitle] = useState<string | null>(null);
   const [transferOrder, setTransferOrder] = useState<TransferOrder | null>(null);
+  const [catalog, setCatalog] = useState<Category[] | null>(null);
+  useEffect(() => {
+    if (!supabase) return;
+    void (async () => {
+      const [hallResult, skillResult] = await Promise.all([
+        supabase.from("halls").select("id, slug, name, description, poster_path, is_visible, sort_order").eq("is_visible", true).order("sort_order"),
+        supabase.from("skills").select("id, hall_id, slug, title, short_description, thumbnail_path, status, sort_order").eq("status", "published").order("sort_order"),
+      ]);
+      if (hallResult.error || skillResult.error || !skillResult.data?.length) return;
+      const dynamicCatalog = hallResult.data.map((hall) => ({
+        id: hall.slug,
+        title: hall.name,
+        subtitle: hall.description,
+        poster: hall.poster_path || tueLamStanding,
+        visible: hall.is_visible,
+        products: skillResult.data.filter((skill) => skill.hall_id === hall.id).map((skill) => ({
+          id: skill.slug,
+          title: skill.title,
+          tag: "AI Skill",
+          image: skill.thumbnail_path || hall.poster_path || tueLamStanding,
+          visible: skill.status === "published",
+        })),
+      }));
+      setCatalog(dynamicCatalog);
+    })();
+  }, []);
+  const activeCategories = catalog ?? categories;
   const add = (id: string) => setCart((c) => (c.includes(id) ? c : [...c, id]));
   const total = cart.length * skillPriceUsd;
-  const visibleCategories = categories.filter(
+  const visibleCategories = activeCategories.filter(
     (category) =>
       category.visible !== false && category.products.some((product) => product.visible !== false),
   );
@@ -241,7 +269,7 @@ function Landing() {
     await startCheckout([product]);
   };
   const handleCartCheckout = async () => {
-    const selectedProducts = categories
+    const selectedProducts = activeCategories
       .flatMap((category) => category.products)
       .filter((product) => cart.includes(product.id));
     await startCheckout(selectedProducts);
@@ -491,7 +519,12 @@ function ProductCard({
   const description = getProductContent(product.id)?.summary;
   return (
     <article className="group w-[220px] shrink-0 snap-start overflow-hidden rounded-2xl border border-border bg-card shadow-card transition hover:-translate-y-1 hover:shadow-brand sm:w-auto">
-      <div className="relative aspect-[3/4] overflow-hidden bg-muted">
+      <Link
+        to="/skill/$skillId"
+        params={{ skillId: product.id }}
+        aria-label={`Xem chi tiết ${product.title}`}
+        className="relative block aspect-[3/4] overflow-hidden bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
+      >
         {product.video ? (
           <video
             src={product.video}
@@ -520,7 +553,7 @@ function ProductCard({
         <span className="absolute right-2 top-2 rounded-full bg-brand-gradient px-2 py-0.5 text-[10px] font-bold text-primary-foreground shadow-brand">
           1.99$
         </span>
-      </div>
+      </Link>
       <div className="space-y-2 p-3">
         <h3 className="truncate font-display text-lg leading-tight">{product.title}</h3>
         <p className="min-h-[4.5rem] text-xs leading-5 text-muted-foreground">{description}</p>

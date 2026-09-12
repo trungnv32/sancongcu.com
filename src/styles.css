@@ -71,6 +71,27 @@
   }
 }
 
+/* Shared admin form controls: a clear border and generous editing space. */
+.input {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  min-height: 3rem;
+  border: 1px solid #a1a1aa;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  padding: 0.75rem 0.875rem;
+  color: var(--foreground);
+  font: inherit;
+  line-height: 1.5;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.input:hover { border-color: #71717a; }
+.input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgb(39 108 243 / 18%); outline: none; }
+.input:disabled { cursor: not-allowed; background: var(--muted); color: var(--muted-foreground); }
+textarea.input { min-height: 12rem; }
+
 @utility bg-brand-gradient {
   background-image: var(--gradient-brand);
 }
