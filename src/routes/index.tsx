@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import kolGraduation from "@/assets/kol-graduation.asset.json";
 import kolGymVideo from "@/assets/kol-gym-video.mp4.asset.json";
@@ -278,9 +279,20 @@ function Landing() {
   }, []);
   const activeCategories = catalog ?? categories;
   const add = (id: string) => setCart((c) => (c.includes(id) ? c : [...c, id]));
+  const remove = (id: string) => setCart((current) => current.filter((item) => item !== id));
+  const clearCart = () => {
+    setCart([]);
+    setComboSize(null);
+  };
   const total = comboSize === 5 ? 8 : comboSize === 10 ? 25 : cart.length * skillPriceUsd;
   const comboReady = !comboSize || cart.length === comboSize;
   const comboGift = comboSize === 10;
+  const cartItems = cart.map((id) => ({
+    id,
+    title:
+      activeCategories.flatMap((category) => category.products).find((product) => product.id === id)
+        ?.title ?? "Skill đã chọn",
+  }));
   const visibleCategories = activeCategories.filter(
     (category) =>
       category.visible !== false && category.products.some((product) => product.visible !== false),
@@ -516,25 +528,54 @@ function Landing() {
 
       {/* Cart sticky */}
       {cart.length > 0 && (
-        <div className="fixed inset-x-0 bottom-4 z-40 mx-auto flex max-w-sm items-center justify-between rounded-full bg-foreground px-5 py-3 text-background shadow-brand">
-          <span className="text-sm">
-            ⚡{" "}
-            {comboSize
-              ? `Combo ${comboSize} · ${cart.length}/${comboSize} Skill`
-              : `${cart.length} skill`}{" "}
-            · <strong>{total.toFixed(2)}$</strong>
-            {comboGift && (
-              <span className="block text-xs text-background/75">+ ChatGPT Plus 1 tháng</span>
-            )}
-          </span>
+        <aside className="fixed inset-x-3 bottom-3 z-40 mx-auto w-auto max-w-xl rounded-3xl bg-foreground p-3 text-background shadow-brand sm:inset-x-4 sm:bottom-4">
+          <div className="flex items-center justify-between gap-3 px-2">
+            <p className="min-w-0 text-sm">
+              {comboSize
+                ? `Combo ${comboSize} · ${cart.length}/${comboSize} Skill`
+                : `${cart.length} Skill`}{" "}
+              · <strong>{total.toFixed(2)}$</strong>
+              {comboGift && (
+                <span className="ml-1 text-xs text-background/75">+ ChatGPT Plus 1 tháng</span>
+              )}
+            </p>
+            <button
+              type="button"
+              onClick={clearCart}
+              className="min-h-10 shrink-0 rounded-full px-3 text-xs font-semibold text-background/75 transition hover:bg-background/10 hover:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              Xóa tất cả
+            </button>
+          </div>
+          <div
+            className="mt-2 flex max-w-full gap-2 overflow-x-auto px-2 pb-1"
+            aria-label="Skill trong giỏ hàng"
+          >
+            {cartItems.map((item) => (
+              <div
+                key={item.id}
+                className="flex min-h-10 shrink-0 items-center gap-1 rounded-full bg-background/10 pl-3 pr-1 text-xs"
+              >
+                <span className="max-w-36 truncate">{item.title}</span>
+                <button
+                  type="button"
+                  onClick={() => remove(item.id)}
+                  aria-label={`Xóa ${item.title} khỏi giỏ hàng`}
+                  className="grid size-9 place-items-center rounded-full text-background/75 transition hover:bg-background/15 hover:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  <X aria-hidden="true" className="size-4" />
+                </button>
+              </div>
+            ))}
+          </div>
           <button
             onClick={handleCartCheckout}
             disabled={!comboReady}
-            className="rounded-full bg-brand-gradient px-4 py-1.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-2 min-h-12 w-full rounded-full bg-brand-gradient px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
           >
             {comboReady ? "Kích hoạt →" : `Chọn thêm ${comboSize! - cart.length} Skill`}
           </button>
-        </div>
+        </aside>
       )}
       <PaymentDialog
         title={checkoutTitle}
