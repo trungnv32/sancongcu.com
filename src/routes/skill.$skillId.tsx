@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/skill/$skillId")({ component: Detail });
 
-type Skill = { id: string; title: string; introduction: string; benefits: string[]; usage_steps: string[]; payment_note: string; thumbnail_path: string | null; price_usd: number; activation_price_vnd: number };
+type Skill = { id: string; title: string; introduction: string; benefits: string[]; audience: string[]; usage_steps: string[]; payment_note: string; thumbnail_path: string | null; price_usd: number; activation_price_vnd: number };
 type Media = { id: string; path: string; alt: string; media_type: "input" | "output" | "other"; sort_order: number };
 
 const defaultUsage = ["Chuẩn bị thông tin đầu vào.", "Dán câu lệnh và kiểm tra kết quả.", "Lưu và áp dụng kết quả."];
@@ -27,7 +27,7 @@ function Detail() {
   useEffect(() => {
     if (!supabase) return;
     void (async () => {
-      const { data } = await supabase.from("skills").select("id,title,introduction,benefits,usage_steps,payment_note,thumbnail_path,price_usd,activation_price_vnd").eq("slug", skillId).eq("status", "published").maybeSingle();
+      const { data } = await supabase.from("skills").select("id,title,introduction,benefits,audience,usage_steps,payment_note,thumbnail_path,price_usd,activation_price_vnd").eq("slug", skillId).eq("status", "published").maybeSingle();
       if (data) {
         setSkill(data as Skill);
         const { data: gallery } = await supabase.from("skill_media").select("id,path,alt,media_type,sort_order").eq("skill_id", data.id).order("sort_order");
@@ -43,6 +43,7 @@ function Detail() {
   const title = skill?.title ?? productTitles[skillId];
   const intro = skill?.introduction ?? local?.introduction;
   const benefits = skill?.benefits ?? local?.includes ?? [];
+  const audience = skill?.audience?.filter(Boolean) ?? [];
   if (!title || !intro) return <main className="grid min-h-screen place-items-center p-6 text-center"><Link to="/" className="rounded-full bg-black px-6 py-3 font-bold text-white">Không tìm thấy Skill — Về trang chủ</Link></main>;
 
   const priority: Record<Media["media_type"], number> = { input: 0, output: 1, other: 2 };
@@ -64,7 +65,7 @@ function Detail() {
     <header className="border-b border-border bg-background"><div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6"><Link to="/" className="shrink-0 text-sm sm:text-base">← Tất cả Skill</Link><span className="shrink-0 text-sm sm:text-base">{(skill?.price_usd ?? 1.99).toFixed(2)}$ / Skill</span></div></header>
     <section className="skill-detail__hero mx-auto grid w-full max-w-6xl gap-8 px-4 py-8 sm:px-6 sm:py-12">
       <div className="min-w-0"><div className="aspect-square w-full overflow-hidden rounded-2xl bg-card shadow-card sm:rounded-3xl"><img src={activeImage.path} alt={activeImage.alt} className="size-full object-contain" /></div><div className="mt-3 flex max-w-full gap-3 overflow-x-auto pb-2" aria-label="Ảnh minh họa Skill">{images.map((image, index) => <button key={image.id} type="button" onClick={() => setActiveImageId(image.id)} aria-label={`Xem ảnh ${mediaLabel(image.media_type)} ${index + 1}`} aria-pressed={activeImageId === image.id} className={`w-20 shrink-0 overflow-hidden rounded-xl border-2 bg-card text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${activeImageId === image.id ? "border-primary" : "border-transparent"}`}><img src={image.path} alt="" className="aspect-square w-full bg-muted object-contain" /><span className="block truncate p-1 text-center text-[10px]">{mediaLabel(image.media_type)}</span></button>)}</div></div>
-      <div className="min-w-0"><h1 className="break-words text-3xl leading-tight sm:text-4xl">{title}</h1><p className="mt-5 break-words text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">{intro}</p><section className="mt-8 rounded-2xl border border-border bg-card p-5 sm:p-6"><h2 className="text-2xl">Bạn nhận được gì</h2><ul className="mt-4 space-y-3 break-words text-base leading-7">{benefits.map((benefit, index) => <li key={`${benefit}-${index}`}>• {benefit}</li>)}</ul></section></div>
+      <div className="min-w-0"><h1 className="break-words text-3xl leading-tight sm:text-4xl">{title}</h1><p className="mt-5 break-words text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">{intro}</p><section className="mt-8 rounded-2xl border border-border bg-card p-5 sm:p-6"><h2 className="text-2xl">Bạn nhận được gì</h2><ul className="mt-4 space-y-3 break-words text-base leading-7">{benefits.map((benefit, index) => <li key={`${benefit}-${index}`}>• {benefit}</li>)}</ul></section>{audience.length > 0 && <section className="mt-6 rounded-2xl border border-border bg-card p-5 sm:p-6"><h2 className="text-2xl">Sản phẩm này phù hợp với ai</h2><ul className="mt-4 space-y-3 break-words text-base leading-7">{audience.map((item, index) => <li key={`${item}-${index}`}>• {item}</li>)}</ul></section>}</div>
     </section>
     <section className="skill-detail__actions mx-auto grid w-full max-w-6xl gap-6 px-4 pb-16 sm:px-6 sm:pb-20">
       <section className="min-w-0 rounded-2xl border border-border bg-card p-5 sm:rounded-3xl sm:p-7"><h2 className="text-2xl">Hướng dẫn sử dụng</h2><ol className="mt-5 space-y-3 break-words text-base leading-7">{usageSteps.map((step, index) => <li key={`${step}-${index}`}>{index + 1}. {step}</li>)}</ol></section>
