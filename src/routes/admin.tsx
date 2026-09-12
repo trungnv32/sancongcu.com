@@ -14,7 +14,14 @@ import {
   Trash2,
   Upload,
 } from "lucide-react";
-import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/admin")({ component: AdminPage });
@@ -61,13 +68,15 @@ const adminEmails = new Set(["sancongcu@gmail.com", "trungnv32@gmail.com"]);
 const statusLabel = { draft: "Bản nháp", published: "Đang hiển thị", hidden: "Đã ẩn" };
 
 function slugify(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/đ/g, "d")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "") || `skill-${Date.now()}`;
+  return (
+    value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/đ/g, "d")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "") || `skill-${Date.now()}`
+  );
 }
 
 function lines(value: string[]) {
@@ -75,7 +84,10 @@ function lines(value: string[]) {
 }
 
 function toLines(value: string) {
-  return value.split("\n").map((item) => item.trim()).filter(Boolean);
+  return value
+    .split("\n")
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 function AdminPage() {
@@ -102,7 +114,10 @@ function AdminPage() {
     [selectedHallId, halls],
   );
   const selectedMedia = useMemo(
-    () => media.filter((item) => item.skill_id === selectedSkillId).sort((a, b) => a.sort_order - b.sort_order),
+    () =>
+      media
+        .filter((item) => item.skill_id === selectedSkillId)
+        .sort((a, b) => a.sort_order - b.sort_order),
     [media, selectedSkillId],
   );
 
@@ -190,11 +205,18 @@ function AdminPage() {
       status: String(form.get("status")) as Skill["status"],
       sort_order: Number(form.get("sort_order") || 0),
     };
-    const { data, error: saveError } = await supabase.from("skills").update(update).eq("id", selectedSkill.id).select().single();
+    const { data, error: saveError } = await supabase
+      .from("skills")
+      .update(update)
+      .eq("id", selectedSkill.id)
+      .select()
+      .single();
     setIsSaving(false);
     if (saveError) setError(saveError.message);
     else if (data) {
-      setSkills((current) => current.map((skill) => skill.id === data.id ? data as Skill : skill));
+      setSkills((current) =>
+        current.map((skill) => (skill.id === data.id ? (data as Skill) : skill)),
+      );
       setNotice("Đã lưu thay đổi của Skill.");
     }
   }
@@ -204,14 +226,18 @@ function AdminPage() {
     setIsSaving(true);
     setError(null);
     const number = skills.length + 1;
-    const { data, error: createError } = await supabase.from("skills").insert({
-      hall_id: selectedHallId,
-      slug: `skill-moi-${Date.now()}`,
-      title: `Skill mới ${number}`,
-      short_description: "Mô tả ngắn cho Skill.",
-      status: "draft",
-      sort_order: number,
-    }).select().single();
+    const { data, error: createError } = await supabase
+      .from("skills")
+      .insert({
+        hall_id: selectedHallId,
+        slug: `skill-moi-${Date.now()}`,
+        title: `Skill mới ${number}`,
+        short_description: "Mô tả ngắn cho Skill.",
+        status: "draft",
+        sort_order: number,
+      })
+      .select()
+      .single();
     setIsSaving(false);
     if (createError) setError(createError.message);
     else if (data) {
@@ -225,12 +251,16 @@ function AdminPage() {
     event.preventDefault();
     if (!supabase || !newHallName.trim()) return;
     setIsSaving(true);
-    const { data, error: createError } = await supabase.from("halls").insert({
-      name: newHallName.trim(),
-      slug: slugify(newHallName),
-      description: "Mô tả danh mục.",
-      sort_order: halls.length + 1,
-    }).select().single();
+    const { data, error: createError } = await supabase
+      .from("halls")
+      .insert({
+        name: newHallName.trim(),
+        slug: slugify(newHallName),
+        description: "Mô tả danh mục.",
+        sort_order: halls.length + 1,
+      })
+      .select()
+      .single();
     setIsSaving(false);
     if (createError) setError(createError.message);
     else if (data) {
@@ -243,18 +273,32 @@ function AdminPage() {
 
   async function toggleHall(hall: Hall) {
     if (!supabase) return;
-    const { error: toggleError } = await supabase.from("halls").update({ is_visible: !hall.is_visible }).eq("id", hall.id);
+    const { error: toggleError } = await supabase
+      .from("halls")
+      .update({ is_visible: !hall.is_visible })
+      .eq("id", hall.id);
     if (toggleError) setError(toggleError.message);
-    else setHalls((current) => current.map((item) => item.id === hall.id ? { ...item, is_visible: !item.is_visible } : item));
+    else
+      setHalls((current) =>
+        current.map((item) =>
+          item.id === hall.id ? { ...item, is_visible: !item.is_visible } : item,
+        ),
+      );
   }
 
   async function toggleSkillVisibility(skill: Skill) {
     const client = supabase;
     if (!client) return;
     const status: Skill["status"] = skill.status === "published" ? "hidden" : "published";
-    const { data, error: toggleError } = await client.from("skills").update({ status }).eq("id", skill.id).select().single();
+    const { data, error: toggleError } = await client
+      .from("skills")
+      .update({ status })
+      .eq("id", skill.id)
+      .select()
+      .single();
     if (toggleError) setError(toggleError.message);
-    else if (data) setSkills((current) => current.map((item) => item.id === data.id ? data as Skill : item));
+    else if (data)
+      setSkills((current) => current.map((item) => (item.id === data.id ? (data as Skill) : item)));
   }
 
   async function saveHall(event: FormEvent<HTMLFormElement>) {
@@ -269,16 +313,29 @@ function AdminPage() {
       poster_path: String(form.get("hall_poster_path") || "").trim() || null,
       sort_order: Number(form.get("hall_sort_order") || 0),
     };
-    const { data, error: saveError } = await supabase.from("halls").update(update).eq("id", selectedHall.id).select().single();
+    const { data, error: saveError } = await supabase
+      .from("halls")
+      .update(update)
+      .eq("id", selectedHall.id)
+      .select()
+      .single();
     setIsSaving(false);
     if (saveError) setError(saveError.message);
     else if (data) {
-      setHalls((current) => current.map((hall) => hall.id === data.id ? data as Hall : hall).sort((a, b) => a.sort_order - b.sort_order));
+      setHalls((current) =>
+        current
+          .map((hall) => (hall.id === data.id ? (data as Hall) : hall))
+          .sort((a, b) => a.sort_order - b.sort_order),
+      );
       setNotice("Đã lưu tên, mô tả và thứ tự danh mục.");
     }
   }
 
-  async function uploadFile(event: ChangeEvent<HTMLInputElement>, target: "thumbnail" | "gallery", mediaType: Media["media_type"] = "other") {
+  async function uploadFile(
+    event: ChangeEvent<HTMLInputElement>,
+    target: "thumbnail" | "gallery",
+    mediaType: Media["media_type"] = "other",
+  ) {
     const files = Array.from(event.target.files ?? []);
     const client = supabase;
     if (!client || files.length === 0 || !selectedSkill) return;
@@ -291,24 +348,39 @@ function AdminPage() {
     const uploadOne = async (file: File, index: number) => {
       const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
       const path = `${selectedSkill.id}/${target}-${Date.now()}-${index}.${ext}`;
-      const { error: uploadError } = await client.storage.from("skill-media").upload(path, file, { contentType: file.type });
+      const { error: uploadError } = await client.storage
+        .from("skill-media")
+        .upload(path, file, { contentType: file.type });
       if (uploadError) throw uploadError;
       return client.storage.from("skill-media").getPublicUrl(path).data.publicUrl;
     };
     try {
       const urls = await Promise.all(files.map(uploadOne));
       if (target === "thumbnail") {
-        const { data, error: updateError } = await client.from("skills").update({ thumbnail_path: urls[0] }).eq("id", selectedSkill.id).select().single();
+        const { data, error: updateError } = await client
+          .from("skills")
+          .update({ thumbnail_path: urls[0] })
+          .eq("id", selectedSkill.id)
+          .select()
+          .single();
         if (updateError) throw updateError;
-        if (data) setSkills((current) => current.map((skill) => skill.id === data.id ? data as Skill : skill));
+        if (data)
+          setSkills((current) =>
+            current.map((skill) => (skill.id === data.id ? (data as Skill) : skill)),
+          );
       } else {
-        const { data, error: insertError } = await client.from("skill_media").insert(urls.map((path, index) => ({
-          skill_id: selectedSkill.id,
-          path,
-          alt: selectedSkill.title,
-          media_type: mediaType,
-          sort_order: selectedMedia.length + index + 1,
-        }))).select();
+        const { data, error: insertError } = await client
+          .from("skill_media")
+          .insert(
+            urls.map((path, index) => ({
+              skill_id: selectedSkill.id,
+              path,
+              alt: selectedSkill.title,
+              media_type: mediaType,
+              sort_order: selectedMedia.length + index + 1,
+            })),
+          )
+          .select();
         if (insertError) throw insertError;
         if (data) setMedia((current) => [...current, ...(data as Media[])]);
         setNotice(`Đã tải ${urls.length} ảnh vào gallery.`);
@@ -322,9 +394,17 @@ function AdminPage() {
 
   async function updateMedia(item: Media, values: Partial<Media>) {
     if (!supabase) return;
-    const { data, error: updateError } = await supabase.from("skill_media").update(values).eq("id", item.id).select().single();
+    const { data, error: updateError } = await supabase
+      .from("skill_media")
+      .update(values)
+      .eq("id", item.id)
+      .select()
+      .single();
     if (updateError) setError(updateError.message);
-    else if (data) setMedia((current) => current.map((mediaItem) => mediaItem.id === item.id ? data as Media : mediaItem));
+    else if (data)
+      setMedia((current) =>
+        current.map((mediaItem) => (mediaItem.id === item.id ? (data as Media) : mediaItem)),
+      );
   }
 
   async function deleteMedia(item: Media) {
@@ -335,8 +415,16 @@ function AdminPage() {
   }
 
   async function deleteSkill() {
-    if (!supabase || !selectedSkill || !window.confirm(`Xóa “${selectedSkill.title}”? Thao tác này không thể hoàn tác.`)) return;
-    const { error: deleteError } = await supabase.from("skills").delete().eq("id", selectedSkill.id);
+    if (
+      !supabase ||
+      !selectedSkill ||
+      !window.confirm(`Xóa “${selectedSkill.title}”? Thao tác này không thể hoàn tác.`)
+    )
+      return;
+    const { error: deleteError } = await supabase
+      .from("skills")
+      .delete()
+      .eq("id", selectedSkill.id);
     if (deleteError) setError(deleteError.message);
     else {
       setSkills((current) => current.filter((skill) => skill.id !== selectedSkill.id));
@@ -346,68 +434,783 @@ function AdminPage() {
   }
 
   if (!isSupabaseConfigured) {
-    return <SetupMessage title="Chưa có cấu hình Supabase" message="Thêm VITE_SUPABASE_URL và VITE_SUPABASE_PUBLISHABLE_KEY để mở khu vực quản trị." />;
+    return (
+      <SetupMessage
+        title="Chưa có cấu hình Supabase"
+        message="Thêm VITE_SUPABASE_URL và VITE_SUPABASE_PUBLISHABLE_KEY để mở khu vực quản trị."
+      />
+    );
   }
   if (isLoading) return <LoadingPage />;
-  if (!sessionEmail) return <LoginPage email={email} setEmail={setEmail} isSaving={isSaving} sent={sent} error={error} onSubmit={sendMagicLink} />;
-  if (!adminEmails.has(sessionEmail)) return <SetupMessage title="Tài khoản chưa được cấp quyền" message={`Email ${sessionEmail} đã đăng nhập nhưng chưa có quyền quản trị.`} />;
+  if (!sessionEmail)
+    return (
+      <LoginPage
+        email={email}
+        setEmail={setEmail}
+        isSaving={isSaving}
+        sent={sent}
+        error={error}
+        onSubmit={sendMagicLink}
+      />
+    );
+  if (!adminEmails.has(sessionEmail))
+    return (
+      <SetupMessage
+        title="Tài khoản chưa được cấp quyền"
+        message={`Email ${sessionEmail} đã đăng nhập nhưng chưa có quyền quản trị.`}
+      />
+    );
 
   return (
     <main className="min-h-screen bg-[#f6f8fc] text-foreground">
       <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
-            <Link to="/" className="grid size-11 shrink-0 place-items-center rounded-xl border border-border bg-background text-foreground transition hover:border-primary hover:text-primary" aria-label="Về trang chủ"><ArrowLeft className="size-5" /></Link>
-            <div className="min-w-0"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">SanCongCu</p><h1 className="truncate text-lg font-bold">Quản trị nội dung</h1></div>
+            <Link
+              to="/"
+              className="grid size-11 shrink-0 place-items-center rounded-xl border border-border bg-background text-foreground transition hover:border-primary hover:text-primary"
+              aria-label="Về trang chủ"
+            >
+              <ArrowLeft className="size-5" />
+            </Link>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                SanCongCu
+              </p>
+              <h1 className="truncate text-lg font-bold">Quản trị nội dung</h1>
+            </div>
           </div>
-          <button onClick={() => void supabase?.auth.signOut()} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground"><LogOut className="size-4" /> <span className="hidden sm:inline">Đăng xuất</span></button>
+          <button
+            onClick={() => void supabase?.auth.signOut()}
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground"
+          >
+            <LogOut className="size-4" /> <span className="hidden sm:inline">Đăng xuất</span>
+          </button>
         </div>
       </header>
 
       <div className="mx-auto grid max-w-[1600px] gap-5 p-4 sm:p-6 lg:grid-cols-[280px_minmax(0,1fr)]">
         <aside className="rounded-2xl border border-border bg-card p-3 shadow-sm lg:sticky lg:top-24 lg:h-[calc(100vh-7rem)] lg:overflow-y-auto">
-          <div className="flex items-center justify-between px-2 py-2"><h2 className="font-bold">Danh mục</h2><span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold">{halls.length}</span></div>
-          <div className="space-y-1">
-            {halls.map((hall) => <button key={hall.id} onClick={() => { setSelectedHallId(hall.id); setSelectedSkillId(skills.find((skill) => skill.hall_id === hall.id)?.id ?? null); }} className={`flex min-h-12 w-full items-center gap-2 rounded-xl px-3 text-left text-sm transition ${selectedHallId === hall.id ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}><span className={`size-2 shrink-0 rounded-full ${hall.is_visible ? "bg-emerald-400" : "bg-muted-foreground"}`} /><span className="min-w-0 flex-1 truncate font-semibold">{hall.name.replace(/^Danh mục [IVX]+ · /, "")}</span><ChevronRight className="size-4 opacity-70" /></button>)}
+          <div className="flex items-center justify-between px-2 py-2">
+            <h2 className="font-bold">Danh mục</h2>
+            <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold">
+              {halls.length}
+            </span>
           </div>
-          <form onSubmit={createHall} className="mt-4 border-t border-border pt-4"><label className="sr-only" htmlFor="new-hall">Tên danh mục mới</label><input id="new-hall" value={newHallName} onChange={(event) => setNewHallName(event.target.value)} placeholder="Tên danh mục mới" className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm outline-none ring-primary focus:ring-2" /><button disabled={isSaving || !newHallName.trim()} className="mt-2 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-foreground px-3 text-sm font-bold text-background transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"><Plus className="size-4" />Thêm danh mục</button></form>
+          <div className="space-y-1">
+            {halls.map((hall) => (
+              <button
+                key={hall.id}
+                onClick={() => {
+                  setSelectedHallId(hall.id);
+                  setSelectedSkillId(skills.find((skill) => skill.hall_id === hall.id)?.id ?? null);
+                }}
+                className={`flex min-h-12 w-full items-center gap-2 rounded-xl px-3 text-left text-sm transition ${selectedHallId === hall.id ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
+              >
+                <span
+                  className={`size-2 shrink-0 rounded-full ${hall.is_visible ? "bg-emerald-400" : "bg-muted-foreground"}`}
+                />
+                <span className="min-w-0 flex-1 truncate font-semibold">
+                  {hall.name.replace(/^Danh mục [IVX]+ · /, "")}
+                </span>
+                <ChevronRight className="size-4 opacity-70" />
+              </button>
+            ))}
+          </div>
+          <form onSubmit={createHall} className="mt-4 border-t border-border pt-4">
+            <label className="sr-only" htmlFor="new-hall">
+              Tên danh mục mới
+            </label>
+            <input
+              id="new-hall"
+              value={newHallName}
+              onChange={(event) => setNewHallName(event.target.value)}
+              placeholder="Tên danh mục mới"
+              className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm outline-none ring-primary focus:ring-2"
+            />
+            <button
+              disabled={isSaving || !newHallName.trim()}
+              className="mt-2 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-foreground px-3 text-sm font-bold text-background transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Plus className="size-4" />
+              Thêm danh mục
+            </button>
+          </form>
         </aside>
 
         <section className="min-w-0 space-y-5">
           {error && <Alert tone="error" text={error} onClose={() => setError(null)} />}
           {notice && <Alert tone="success" text={notice} onClose={() => setNotice(null)} />}
-          {selectedHall && <form onSubmit={(event) => void saveHall(event)} onChange={(event) => { const input = event.target as unknown as HTMLInputElement; if (input.name === "hall_name") { const slugInput = event.currentTarget.elements.namedItem("hall_slug") as HTMLInputElement | null; if (slugInput) slugInput.value = slugify(input.value); } }} className="rounded-2xl border border-border bg-card p-4 sm:p-5"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Chỉnh sửa sảnh</p><h2 className="mt-1 text-xl font-bold">{selectedHall.name}</h2></div><div className="flex gap-2"><button type="button" onClick={() => void toggleHall(selectedHall)} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-bold transition hover:bg-muted">{selectedHall.is_visible ? <Eye className="size-4" /> : <EyeOff className="size-4" />}{selectedHall.is_visible ? "Đang hiển thị" : "Đang ẩn"}</button><button disabled={isSaving} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"><Save className="size-4" />Lưu sảnh</button></div></div><div className="mt-5 grid gap-4 md:grid-cols-2"><CountInput label="Tên sảnh" name="hall_name" defaultValue={selectedHall.name} maxLength={100} /><CountInput label="Đường dẫn sảnh" name="hall_slug" defaultValue={selectedHall.slug} maxLength={100} /><Field label="Thứ tự hiển thị"><input name="hall_sort_order" inputMode="numeric" type="number" defaultValue={selectedHall.sort_order} className="input" /></Field><Field label="URL poster sảnh"><input name="hall_poster_path" defaultValue={selectedHall.poster_path ?? ""} className="input" /></Field></div><div className="mt-4"><CountInput label="Mô tả sảnh" name="hall_description" defaultValue={selectedHall.description} maxLength={300} multiline rows={4} /></div></form>}
+          {selectedHall && (
+            <form
+              onSubmit={(event) => void saveHall(event)}
+              onChange={(event) => {
+                const input = event.target as unknown as HTMLInputElement;
+                if (input.name === "hall_name") {
+                  const slugInput = event.currentTarget.elements.namedItem(
+                    "hall_slug",
+                  ) as HTMLInputElement | null;
+                  if (slugInput) slugInput.value = slugify(input.value);
+                }
+              }}
+              className="rounded-2xl border border-border bg-card p-4 sm:p-5"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                    Chỉnh sửa sảnh
+                  </p>
+                  <h2 className="mt-1 text-xl font-bold">{selectedHall.name}</h2>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void toggleHall(selectedHall)}
+                    className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-bold transition hover:bg-muted"
+                  >
+                    {selectedHall.is_visible ? (
+                      <Eye className="size-4" />
+                    ) : (
+                      <EyeOff className="size-4" />
+                    )}
+                    {selectedHall.is_visible ? "Đang hiển thị" : "Đang ẩn"}
+                  </button>
+                  <button
+                    disabled={isSaving}
+                    className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
+                  >
+                    <Save className="size-4" />
+                    Lưu sảnh
+                  </button>
+                </div>
+              </div>
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+                <CountInput
+                  label="Tên sảnh"
+                  name="hall_name"
+                  defaultValue={selectedHall.name}
+                  maxLength={100}
+                />
+                <CountInput
+                  label="Đường dẫn sảnh"
+                  name="hall_slug"
+                  defaultValue={selectedHall.slug}
+                  maxLength={100}
+                />
+                <Field label="Thứ tự hiển thị">
+                  <input
+                    name="hall_sort_order"
+                    inputMode="numeric"
+                    type="number"
+                    defaultValue={selectedHall.sort_order}
+                    className="input"
+                  />
+                </Field>
+                <Field label="URL poster sảnh">
+                  <input
+                    name="hall_poster_path"
+                    defaultValue={selectedHall.poster_path ?? ""}
+                    className="input"
+                  />
+                </Field>
+              </div>
+              <div className="mt-4">
+                <CountInput
+                  label="Mô tả sảnh"
+                  name="hall_description"
+                  defaultValue={selectedHall.description}
+                  maxLength={300}
+                  multiline
+                  rows={4}
+                />
+              </div>
+            </form>
+          )}
 
-          <section className="rounded-2xl border border-border bg-card shadow-sm"><div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4 sm:p-5"><div><h2 className="font-bold">Skill trong danh mục</h2><p className="mt-1 text-sm text-muted-foreground">Chọn một Skill để chỉnh sửa toàn bộ nội dung.</p></div><button onClick={() => void createSkill()} disabled={isSaving} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-gradient px-4 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90 disabled:opacity-50"><Plus className="size-4" />Tạo Skill</button></div><div className="flex gap-3 overflow-x-auto p-4 sm:p-5">{skills.filter((skill) => !selectedHallId || skill.hall_id === selectedHallId).map((skill) => <div key={skill.id} className={`w-52 shrink-0 overflow-hidden rounded-xl border text-left transition ${selectedSkillId === skill.id ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/50"}`}><button onClick={() => setSelectedSkillId(skill.id)} className="block w-full text-left"><div className="aspect-[16/9] bg-muted">{skill.thumbnail_path ? <img src={skill.thumbnail_path} alt="" className="size-full object-cover" /> : <div className="grid size-full place-items-center text-xs font-semibold text-muted-foreground">Chưa có ảnh</div>}</div><div className="p-3"><p className="line-clamp-2 text-sm font-bold">{skill.title}</p><p className="mt-2 text-xs text-muted-foreground">{statusLabel[skill.status]}</p></div></button><button onClick={() => void toggleSkillVisibility(skill)} className={`m-3 mt-0 inline-flex min-h-9 w-[calc(100%-1.5rem)] items-center justify-center rounded-lg text-xs font-bold ${skill.status === "published" ? "border border-border hover:bg-muted" : "bg-primary text-primary-foreground"}`}>{skill.status === "published" ? "Ẩn Skill" : "Hiển thị"}</button></div>)}{skills.filter((skill) => !selectedHallId || skill.hall_id === selectedHallId).length === 0 && <p className="py-5 text-sm text-muted-foreground">Chưa có Skill trong danh mục này.</p>}</div></section>
+          <section className="rounded-2xl border border-border bg-card shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4 sm:p-5">
+              <div>
+                <h2 className="font-bold">Skill trong danh mục</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Chọn một Skill để chỉnh sửa toàn bộ nội dung.
+                </p>
+              </div>
+              <button
+                onClick={() => void createSkill()}
+                disabled={isSaving}
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-gradient px-4 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90 disabled:opacity-50"
+              >
+                <Plus className="size-4" />
+                Tạo Skill
+              </button>
+            </div>
+            <div className="flex gap-3 overflow-x-auto p-4 sm:p-5">
+              {skills
+                .filter((skill) => !selectedHallId || skill.hall_id === selectedHallId)
+                .map((skill) => (
+                  <div
+                    key={skill.id}
+                    className={`w-52 shrink-0 overflow-hidden rounded-xl border text-left transition ${selectedSkillId === skill.id ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/50"}`}
+                  >
+                    <button
+                      onClick={() => setSelectedSkillId(skill.id)}
+                      className="block w-full text-left"
+                    >
+                      <div className="aspect-[16/9] bg-muted">
+                        {skill.thumbnail_path ? (
+                          <img
+                            src={skill.thumbnail_path}
+                            alt=""
+                            className="size-full object-cover"
+                          />
+                        ) : (
+                          <div className="grid size-full place-items-center text-xs font-semibold text-muted-foreground">
+                            Chưa có ảnh
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-3">
+                        <p className="line-clamp-2 text-sm font-bold">{skill.title}</p>
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          {statusLabel[skill.status]}
+                        </p>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => void toggleSkillVisibility(skill)}
+                      className={`m-3 mt-0 inline-flex min-h-9 w-[calc(100%-1.5rem)] items-center justify-center rounded-lg text-xs font-bold ${skill.status === "published" ? "border border-border hover:bg-muted" : "bg-primary text-primary-foreground"}`}
+                    >
+                      {skill.status === "published" ? "Ẩn Skill" : "Hiển thị"}
+                    </button>
+                  </div>
+                ))}
+              {skills.filter((skill) => !selectedHallId || skill.hall_id === selectedHallId)
+                .length === 0 && (
+                <p className="py-5 text-sm text-muted-foreground">
+                  Chưa có Skill trong danh mục này.
+                </p>
+              )}
+            </div>
+          </section>
 
-          {selectedSkill ? <SkillEditor skill={selectedSkill} halls={halls} media={selectedMedia} isSaving={isSaving} onSave={saveSkill} onDelete={deleteSkill} onToggleVisibility={toggleSkillVisibility} onUpload={uploadFile} onMediaUpdate={updateMedia} onMediaDelete={deleteMedia} /> : <section className="rounded-2xl border border-dashed border-border bg-card p-10 text-center"><ImagePlus className="mx-auto size-8 text-primary" /><h2 className="mt-4 text-lg font-bold">Chọn hoặc tạo một Skill</h2><p className="mt-2 text-sm text-muted-foreground">Nội dung chi tiết, gallery và hướng dẫn sẽ xuất hiện ở đây.</p></section>}
+          {selectedSkill ? (
+            <SkillEditor
+              skill={selectedSkill}
+              halls={halls}
+              media={selectedMedia}
+              isSaving={isSaving}
+              onSave={saveSkill}
+              onDelete={deleteSkill}
+              onToggleVisibility={toggleSkillVisibility}
+              onUpload={uploadFile}
+              onMediaUpdate={updateMedia}
+              onMediaDelete={deleteMedia}
+            />
+          ) : (
+            <section className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
+              <ImagePlus className="mx-auto size-8 text-primary" />
+              <h2 className="mt-4 text-lg font-bold">Chọn hoặc tạo một Skill</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Nội dung chi tiết, gallery và hướng dẫn sẽ xuất hiện ở đây.
+              </p>
+            </section>
+          )}
         </section>
       </div>
     </main>
   );
 }
 
-function SkillEditor({ skill, halls, media, isSaving, onSave, onDelete, onToggleVisibility, onUpload, onMediaUpdate, onMediaDelete }: { skill: Skill; halls: Hall[]; media: Media[]; isSaving: boolean; onSave: (event: FormEvent<HTMLFormElement>) => Promise<void>; onDelete: () => Promise<void>; onToggleVisibility: (skill: Skill) => Promise<void>; onUpload: (event: ChangeEvent<HTMLInputElement>, target: "thumbnail" | "gallery", mediaType?: Media["media_type"]) => Promise<void>; onMediaUpdate: (item: Media, values: Partial<Media>) => Promise<void>; onMediaDelete: (item: Media) => Promise<void> }) {
+function SkillEditor({
+  skill,
+  halls,
+  media,
+  isSaving,
+  onSave,
+  onDelete,
+  onToggleVisibility,
+  onUpload,
+  onMediaUpdate,
+  onMediaDelete,
+}: {
+  skill: Skill;
+  halls: Hall[];
+  media: Media[];
+  isSaving: boolean;
+  onSave: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+  onDelete: () => Promise<void>;
+  onToggleVisibility: (skill: Skill) => Promise<void>;
+  onUpload: (
+    event: ChangeEvent<HTMLInputElement>,
+    target: "thumbnail" | "gallery",
+    mediaType?: Media["media_type"],
+  ) => Promise<void>;
+  onMediaUpdate: (item: Media, values: Partial<Media>) => Promise<void>;
+  onMediaDelete: (item: Media) => Promise<void>;
+}) {
   const [galleryType, setGalleryType] = useState<Media["media_type"]>("other");
-  return <form onSubmit={(event) => void onSave(event)} className="space-y-5">
-    <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Trình chỉnh sửa</p><h2 className="mt-1 text-2xl font-bold">{skill.title}</h2></div><div className="flex gap-2"><button type="button" onClick={() => void onDelete()} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-destructive/30 px-4 text-sm font-bold text-destructive transition hover:bg-destructive/10"><Trash2 className="size-4" />Xóa</button><button disabled={isSaving} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-gradient px-4 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90 disabled:opacity-60">{isSaving ? <LoaderCircle className="size-4 animate-spin" /> : <Save className="size-4" />}{isSaving ? "Đang lưu" : "Lưu Skill"}</button></div></div>
-      <div className="mt-6 grid gap-5 md:grid-cols-2"><CountInput label="Tên Skill" name="title" defaultValue={skill.title} maxLength={120} required /><CountInput label="Đường dẫn thân thiện" name="slug" defaultValue={skill.slug} maxLength={120} required /><Field label="Thuộc danh mục"><select name="hall_id" defaultValue={skill.hall_id ?? ""} className="input"><option value="">Chưa phân loại</option>{halls.map((hall) => <option key={hall.id} value={hall.id}>{hall.name}</option>)}</select></Field><Field label="Trạng thái"><select name="status" defaultValue={skill.status} className="input"><option value="draft">Bản nháp</option><option value="published">Hiển thị trên web</option><option value="hidden">Ẩn khỏi web</option></select></Field><Field label="Giá hiển thị (USD)"><input name="price_usd" inputMode="decimal" type="number" min="0" step="0.01" defaultValue={skill.price_usd} className="input" /></Field><Field label="Phí kích hoạt (VND)"><input name="activation_price_vnd" inputMode="numeric" type="number" min="0" step="1000" defaultValue={skill.activation_price_vnd} className="input" /></Field><Field label="Thứ tự trong danh mục"><input name="sort_order" inputMode="numeric" type="number" defaultValue={skill.sort_order} className="input" /></Field></div>
-      <div className="mt-5"><CountInput label="Mô tả ngắn — hiển thị trên thẻ Skill" name="short_description" defaultValue={skill.short_description} maxLength={360} multiline rows={6} /></div>
-    </section>
-    <section className="grid gap-5 xl:grid-cols-2"><section className="rounded-2xl border border-border bg-card p-4 sm:p-6"><h3 className="font-bold">Ảnh đại diện</h3><p className="mt-1 text-sm text-muted-foreground">Dùng cho thẻ Skill và ảnh chính trên trang chi tiết.</p><div className="mt-4 grid gap-4 sm:grid-cols-[180px_1fr]"><div className="space-y-3"><div className="aspect-[4/3] overflow-hidden rounded-xl bg-muted">{skill.thumbnail_path ? <img src={skill.thumbnail_path} alt="Ảnh đại diện Skill" className="size-full object-cover" /> : <div className="grid size-full place-items-center text-sm text-muted-foreground">Chưa có ảnh</div>}</div><button type="button" onClick={() => void onToggleVisibility(skill)} className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold transition ${skill.status === "published" ? "border border-border bg-background hover:bg-muted" : "bg-primary text-primary-foreground hover:opacity-90"}`}>{skill.status === "published" ? <><EyeOff className="size-4" />Ẩn Skill</> : <><Eye className="size-4" />Hiển thị</>}</button></div><div className="space-y-3"><Field label="URL ảnh"><input name="thumbnail_path" defaultValue={skill.thumbnail_path ?? ""} placeholder="https://…" className="input" /></Field><label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-border px-4 text-sm font-bold transition hover:bg-muted"><Upload className="size-4" />Tải ảnh lên<input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => void onUpload(event, "thumbnail")} /></label></div></div></section>
-      <section className="rounded-2xl border border-border bg-card p-4 sm:p-6"><h3 className="font-bold">Gallery đầu vào / đầu ra</h3><p className="mt-1 text-sm text-muted-foreground">Chọn loại ảnh và tải nhiều ảnh cùng lúc; các ảnh sẽ có thể lướt trên trang chi tiết.</p><div className="mt-4 flex flex-wrap items-center gap-3"><select aria-label="Loại ảnh sắp tải" value={galleryType} onChange={(event) => setGalleryType(event.target.value as Media["media_type"])} className="h-11 rounded-xl border border-input bg-background px-3 text-sm"><option value="input">Ảnh đầu vào</option><option value="output">Ảnh đầu ra</option><option value="other">Ảnh minh họa khác</option></select><label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:opacity-90"><ImagePlus className="size-4" />Tải nhiều ảnh<input type="file" accept="image/jpeg,image/png,image/webp" multiple className="sr-only" onChange={(event) => void onUpload(event, "gallery", galleryType)} /></label></div><div className="mt-4 flex gap-3 overflow-x-auto pb-2">{media.map((item) => <div key={item.id} className="w-40 shrink-0 overflow-hidden rounded-xl border border-border"><img src={item.path} alt={item.alt} className="aspect-square w-full object-cover" /><div className="space-y-2 p-2"><select aria-label="Loại minh họa" value={item.media_type} onChange={(event) => void onMediaUpdate(item, { media_type: event.target.value as Media["media_type"] })} className="h-9 w-full rounded-lg border border-input bg-background px-2 text-xs"><option value="input">Đầu vào</option><option value="output">Đầu ra</option><option value="other">Khác</option></select><button type="button" onClick={() => void onMediaDelete(item)} className="inline-flex min-h-9 w-full items-center justify-center gap-1 rounded-lg text-xs font-bold text-destructive hover:bg-destructive/10"><Trash2 className="size-3" />Xóa</button></div></div>)}</div></section></section>
-    <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6"><h3 className="font-bold">Trang chi tiết Skill</h3><div className="mt-5 grid gap-5"><CountInput label="Giới thiệu" name="introduction" defaultValue={skill.introduction} maxLength={2200} multiline rows={9} /><CountInput label="Bạn nhận được gì — mỗi dòng là một lợi ích" name="benefits" defaultValue={lines(skill.benefits)} maxLength={1800} multiline rows={8} /><CountInput label="Sản phẩm này phù hợp với ai — mỗi dòng là một nhóm đối tượng" name="audience" defaultValue={lines(skill.audience ?? [])} maxLength={1400} multiline rows={6} /><CountInput label="Hướng dẫn sử dụng — mỗi dòng là một bước" name="usage_steps" defaultValue={lines(skill.usage_steps)} maxLength={2600} multiline rows={10} /><CountInput label="Hướng dẫn thanh toán / lưu ý bàn giao" name="payment_note" defaultValue={skill.payment_note} maxLength={1400} multiline rows={7} /></div></section>
-  </form>;
+  return (
+    <form onSubmit={(event) => void onSave(event)} className="space-y-5">
+      <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+              Trình chỉnh sửa
+            </p>
+            <h2 className="mt-1 text-2xl font-bold">{skill.title}</h2>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90">
+              <Upload className="size-4" />
+              Tải poster đại diện
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="sr-only"
+                onChange={(event) => void onUpload(event, "thumbnail")}
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => void onDelete()}
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-destructive/30 px-4 text-sm font-bold text-destructive transition hover:bg-destructive/10"
+            >
+              <Trash2 className="size-4" />
+              Xóa
+            </button>
+            <button
+              disabled={isSaving}
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-gradient px-4 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90 disabled:opacity-60"
+            >
+              {isSaving ? (
+                <LoaderCircle className="size-4 animate-spin" />
+              ) : (
+                <Save className="size-4" />
+              )}
+              {isSaving ? "Đang lưu" : "Lưu Skill"}
+            </button>
+          </div>
+        </div>
+        <div className="mt-6 grid gap-5 md:grid-cols-2">
+          <CountInput
+            label="Tên Skill"
+            name="title"
+            defaultValue={skill.title}
+            maxLength={120}
+            required
+          />
+          <CountInput
+            label="Đường dẫn thân thiện"
+            name="slug"
+            defaultValue={skill.slug}
+            maxLength={120}
+            required
+          />
+          <Field label="Thuộc danh mục">
+            <select name="hall_id" defaultValue={skill.hall_id ?? ""} className="input">
+              <option value="">Chưa phân loại</option>
+              {halls.map((hall) => (
+                <option key={hall.id} value={hall.id}>
+                  {hall.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Trạng thái">
+            <select name="status" defaultValue={skill.status} className="input">
+              <option value="draft">Bản nháp</option>
+              <option value="published">Hiển thị trên web</option>
+              <option value="hidden">Ẩn khỏi web</option>
+            </select>
+          </Field>
+          <Field label="Giá hiển thị (USD)">
+            <input
+              name="price_usd"
+              inputMode="decimal"
+              type="number"
+              min="0"
+              step="0.01"
+              defaultValue={skill.price_usd}
+              className="input"
+            />
+          </Field>
+          <Field label="Phí kích hoạt (VND)">
+            <input
+              name="activation_price_vnd"
+              inputMode="numeric"
+              type="number"
+              min="0"
+              step="1000"
+              defaultValue={skill.activation_price_vnd}
+              className="input"
+            />
+          </Field>
+          <Field label="Thứ tự trong danh mục">
+            <input
+              name="sort_order"
+              inputMode="numeric"
+              type="number"
+              defaultValue={skill.sort_order}
+              className="input"
+            />
+          </Field>
+        </div>
+        <div className="mt-5">
+          <CountInput
+            label="Mô tả ngắn — hiển thị trên thẻ Skill"
+            name="short_description"
+            defaultValue={skill.short_description}
+            maxLength={360}
+            multiline
+            rows={6}
+          />
+        </div>
+      </section>
+      <section className="grid gap-5 xl:grid-cols-2">
+        <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
+          <h3 className="font-bold">Poster đại diện Skill</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Dùng cho thẻ Skill và ảnh Hero trên trang chi tiết. Bấm “Tải poster đại diện” ở đầu form để thay ảnh.
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-[180px_1fr]">
+            <div className="space-y-3">
+              <div className="aspect-[4/3] overflow-hidden rounded-xl bg-muted">
+                {skill.thumbnail_path ? (
+                  <img
+                    src={skill.thumbnail_path}
+                    alt="Ảnh đại diện Skill"
+                    className="size-full object-cover"
+                  />
+                ) : (
+                  <div className="grid size-full place-items-center text-sm text-muted-foreground">
+                    Chưa có ảnh
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => void onToggleVisibility(skill)}
+                className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold transition ${skill.status === "published" ? "border border-border bg-background hover:bg-muted" : "bg-primary text-primary-foreground hover:opacity-90"}`}
+              >
+                {skill.status === "published" ? (
+                  <>
+                    <EyeOff className="size-4" />
+                    Ẩn Skill
+                  </>
+                ) : (
+                  <>
+                    <Eye className="size-4" />
+                    Hiển thị
+                  </>
+                )}
+              </button>
+            </div>
+            <div className="space-y-3">
+              <Field label="URL ảnh">
+                <input
+                  name="thumbnail_path"
+                  defaultValue={skill.thumbnail_path ?? ""}
+                  placeholder="https://…"
+                  className="input"
+                />
+              </Field>
+              <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-border px-4 text-sm font-bold transition hover:bg-muted">
+                <Upload className="size-4" />
+                Tải ảnh lên
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="sr-only"
+                  onChange={(event) => void onUpload(event, "thumbnail")}
+                />
+              </label>
+            </div>
+          </div>
+        </section>
+        <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
+          <h3 className="font-bold">Gallery đầu vào / đầu ra</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Chọn loại ảnh và tải nhiều ảnh cùng lúc; các ảnh sẽ có thể lướt trên trang chi tiết.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <select
+              aria-label="Loại ảnh sắp tải"
+              value={galleryType}
+              onChange={(event) => setGalleryType(event.target.value as Media["media_type"])}
+              className="h-11 rounded-xl border border-input bg-background px-3 text-sm"
+            >
+              <option value="input">Ảnh đầu vào</option>
+              <option value="output">Ảnh đầu ra</option>
+              <option value="other">Ảnh minh họa khác</option>
+            </select>
+            <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:opacity-90">
+              <ImagePlus className="size-4" />
+              Tải nhiều ảnh
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                className="sr-only"
+                onChange={(event) => void onUpload(event, "gallery", galleryType)}
+              />
+            </label>
+          </div>
+          <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
+            {media.map((item) => (
+              <div
+                key={item.id}
+                className="w-40 shrink-0 overflow-hidden rounded-xl border border-border"
+              >
+                <img src={item.path} alt={item.alt} className="aspect-square w-full object-cover" />
+                <div className="space-y-2 p-2">
+                  <select
+                    aria-label="Loại minh họa"
+                    value={item.media_type}
+                    onChange={(event) =>
+                      void onMediaUpdate(item, {
+                        media_type: event.target.value as Media["media_type"],
+                      })
+                    }
+                    className="h-9 w-full rounded-lg border border-input bg-background px-2 text-xs"
+                  >
+                    <option value="input">Đầu vào</option>
+                    <option value="output">Đầu ra</option>
+                    <option value="other">Khác</option>
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => void onMediaDelete(item)}
+                    className="inline-flex min-h-9 w-full items-center justify-center gap-1 rounded-lg text-xs font-bold text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="size-3" />
+                    Xóa
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </section>
+      <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
+        <h3 className="font-bold">Trang chi tiết Skill</h3>
+        <div className="mt-5 grid gap-5">
+          <CountInput
+            label="Giới thiệu"
+            name="introduction"
+            defaultValue={skill.introduction}
+            maxLength={2200}
+            multiline
+            rows={9}
+          />
+          <CountInput
+            label="Bạn nhận được gì — mỗi dòng là một lợi ích"
+            name="benefits"
+            defaultValue={lines(skill.benefits)}
+            maxLength={1800}
+            multiline
+            rows={8}
+          />
+          <CountInput
+            label="Sản phẩm này phù hợp với ai — mỗi dòng là một nhóm đối tượng"
+            name="audience"
+            defaultValue={lines(skill.audience ?? [])}
+            maxLength={1400}
+            multiline
+            rows={6}
+          />
+          <CountInput
+            label="Hướng dẫn sử dụng — mỗi dòng là một bước"
+            name="usage_steps"
+            defaultValue={lines(skill.usage_steps)}
+            maxLength={2600}
+            multiline
+            rows={10}
+          />
+          <CountInput
+            label="Hướng dẫn thanh toán / lưu ý bàn giao"
+            name="payment_note"
+            defaultValue={skill.payment_note}
+            maxLength={1400}
+            multiline
+            rows={7}
+          />
+        </div>
+      </section>
+    </form>
+  );
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) { return <label className="block text-sm font-semibold text-foreground"><span className="mb-2 block">{label}</span>{children}</label>; }
-function CountInput({ label, name, defaultValue, maxLength, multiline = false, rows = 1, required = false }: { label: string; name: string; defaultValue: string; maxLength: number; multiline?: boolean; rows?: number; required?: boolean }) {
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <label className="block text-sm font-semibold text-foreground">
+      <span className="mb-2 block">{label}</span>
+      {children}
+    </label>
+  );
+}
+function CountInput({
+  label,
+  name,
+  defaultValue,
+  maxLength,
+  multiline = false,
+  rows = 1,
+  required = false,
+}: {
+  label: string;
+  name: string;
+  defaultValue: string;
+  maxLength: number;
+  multiline?: boolean;
+  rows?: number;
+  required?: boolean;
+}) {
   const [value, setValue] = useState(defaultValue);
   useEffect(() => setValue(defaultValue), [defaultValue]);
-  const counter = <p className={`mt-1 text-right text-xs ${value.length > maxLength * 0.9 ? "text-amber-700" : "text-muted-foreground"}`}>{value.length}/{maxLength} ký tự · còn {Math.max(0, maxLength - value.length)}</p>;
-  return <label className="block text-sm font-semibold text-foreground"><span className="mb-2 block">{label}</span>{multiline ? <textarea key={`${name}-${defaultValue}`} name={name} value={value} onChange={(event) => setValue(event.target.value)} maxLength={maxLength} rows={rows} required={required} className="input min-h-36 resize-y leading-7" /> : <input key={`${name}-${defaultValue}`} name={name} value={value} onChange={(event) => setValue(event.target.value)} maxLength={maxLength} required={required} className="input h-12" />}{counter}</label>;
+  const counter = (
+    <p
+      className={`mt-1 text-right text-xs ${value.length > maxLength * 0.9 ? "text-amber-700" : "text-muted-foreground"}`}
+    >
+      {value.length}/{maxLength} ký tự · còn {Math.max(0, maxLength - value.length)}
+    </p>
+  );
+  return (
+    <label className="block text-sm font-semibold text-foreground">
+      <span className="mb-2 block">{label}</span>
+      {multiline ? (
+        <textarea
+          key={`${name}-${defaultValue}`}
+          name={name}
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+          maxLength={maxLength}
+          rows={rows}
+          required={required}
+          className="input min-h-36 resize-y leading-7"
+        />
+      ) : (
+        <input
+          key={`${name}-${defaultValue}`}
+          name={name}
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+          maxLength={maxLength}
+          required={required}
+          className="input h-12"
+        />
+      )}
+      {counter}
+    </label>
+  );
 }
-function Alert({ tone, text, onClose }: { tone: "error" | "success"; text: string; onClose: () => void }) { return <div role="alert" className={`flex items-start gap-3 rounded-xl border p-4 text-sm ${tone === "error" ? "border-destructive/30 bg-destructive/10 text-destructive" : "border-emerald-600/20 bg-emerald-50 text-emerald-800"}`}><CircleAlert className="mt-0.5 size-4 shrink-0" /><p className="flex-1">{text}</p><button onClick={onClose} className="font-bold" aria-label="Đóng thông báo">×</button></div>; }
-function LoadingPage() { return <main className="grid min-h-screen place-items-center bg-soft-gradient"><LoaderCircle className="size-8 animate-spin text-primary" /></main>; }
-function SetupMessage({ title, message }: { title: string; message: string }) { return <main className="grid min-h-screen place-items-center bg-soft-gradient px-5 text-center"><div className="max-w-md rounded-2xl border border-border bg-card p-8 shadow-card"><CircleAlert className="mx-auto size-8 text-primary" /><h1 className="mt-4 text-2xl font-bold">{title}</h1><p className="mt-3 leading-7 text-muted-foreground">{message}</p><Link to="/" className="mt-6 inline-flex min-h-11 items-center rounded-xl bg-foreground px-5 text-sm font-bold text-background">Về trang chủ</Link></div></main>; }
-function LoginPage({ email, setEmail, isSaving, sent, error, onSubmit }: { email: string; setEmail: (value: string) => void; isSaving: boolean; sent: boolean; error: string | null; onSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void> }) { return <main className="grid min-h-screen place-items-center bg-soft-gradient px-5"><section className="w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-card sm:p-8"><p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">SanCongCu</p><h1 className="mt-3 text-3xl font-bold">Đăng nhập quản trị</h1><p className="mt-3 leading-7 text-muted-foreground">Nhập email quản trị. Chúng tôi sẽ gửi một liên kết đăng nhập an toàn, không cần mật khẩu.</p>{error && <div className="mt-5"><Alert tone="error" text={error} onClose={() => {}} /></div>}{sent ? <div className="mt-6 rounded-xl bg-primary/10 p-4 text-sm leading-6 text-primary"><Check className="mb-2 size-5" />Đã gửi liên kết. Hãy mở email và bấm liên kết để quay lại trang quản trị.</div> : <form onSubmit={(event) => void onSubmit(event)} className="mt-6"><Field label="Email quản trị"><input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" required className="input" /></Field><button disabled={isSaving} className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-gradient px-4 font-bold text-primary-foreground shadow-brand transition hover:opacity-90 disabled:opacity-60">{isSaving && <LoaderCircle className="size-4 animate-spin" />}{isSaving ? "Đang gửi" : "Gửi liên kết đăng nhập"}</button></form>}<Link to="/" className="mt-5 inline-flex text-sm font-semibold text-muted-foreground hover:text-primary">← Về trang chủ</Link></section></main>; }
+function Alert({
+  tone,
+  text,
+  onClose,
+}: {
+  tone: "error" | "success";
+  text: string;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      role="alert"
+      className={`flex items-start gap-3 rounded-xl border p-4 text-sm ${tone === "error" ? "border-destructive/30 bg-destructive/10 text-destructive" : "border-emerald-600/20 bg-emerald-50 text-emerald-800"}`}
+    >
+      <CircleAlert className="mt-0.5 size-4 shrink-0" />
+      <p className="flex-1">{text}</p>
+      <button onClick={onClose} className="font-bold" aria-label="Đóng thông báo">
+        ×
+      </button>
+    </div>
+  );
+}
+function LoadingPage() {
+  return (
+    <main className="grid min-h-screen place-items-center bg-soft-gradient">
+      <LoaderCircle className="size-8 animate-spin text-primary" />
+    </main>
+  );
+}
+function SetupMessage({ title, message }: { title: string; message: string }) {
+  return (
+    <main className="grid min-h-screen place-items-center bg-soft-gradient px-5 text-center">
+      <div className="max-w-md rounded-2xl border border-border bg-card p-8 shadow-card">
+        <CircleAlert className="mx-auto size-8 text-primary" />
+        <h1 className="mt-4 text-2xl font-bold">{title}</h1>
+        <p className="mt-3 leading-7 text-muted-foreground">{message}</p>
+        <Link
+          to="/"
+          className="mt-6 inline-flex min-h-11 items-center rounded-xl bg-foreground px-5 text-sm font-bold text-background"
+        >
+          Về trang chủ
+        </Link>
+      </div>
+    </main>
+  );
+}
+function LoginPage({
+  email,
+  setEmail,
+  isSaving,
+  sent,
+  error,
+  onSubmit,
+}: {
+  email: string;
+  setEmail: (value: string) => void;
+  isSaving: boolean;
+  sent: boolean;
+  error: string | null;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+}) {
+  return (
+    <main className="grid min-h-screen place-items-center bg-soft-gradient px-5">
+      <section className="w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-card sm:p-8">
+        <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">SanCongCu</p>
+        <h1 className="mt-3 text-3xl font-bold">Đăng nhập quản trị</h1>
+        <p className="mt-3 leading-7 text-muted-foreground">
+          Nhập email quản trị. Chúng tôi sẽ gửi một liên kết đăng nhập an toàn, không cần mật khẩu.
+        </p>
+        {error && (
+          <div className="mt-5">
+            <Alert tone="error" text={error} onClose={() => {}} />
+          </div>
+        )}
+        {sent ? (
+          <div className="mt-6 rounded-xl bg-primary/10 p-4 text-sm leading-6 text-primary">
+            <Check className="mb-2 size-5" />
+            Đã gửi liên kết. Hãy mở email và bấm liên kết để quay lại trang quản trị.
+          </div>
+        ) : (
+          <form onSubmit={(event) => void onSubmit(event)} className="mt-6">
+            <Field label="Email quản trị">
+              <input
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="you@example.com"
+                required
+                className="input"
+              />
+            </Field>
+            <button
+              disabled={isSaving}
+              className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-gradient px-4 font-bold text-primary-foreground shadow-brand transition hover:opacity-90 disabled:opacity-60"
+            >
+              {isSaving && <LoaderCircle className="size-4 animate-spin" />}
+              {isSaving ? "Đang gửi" : "Gửi liên kết đăng nhập"}
+            </button>
+          </form>
+        )}
+        <Link
+          to="/"
+          className="mt-5 inline-flex text-sm font-semibold text-muted-foreground hover:text-primary"
+        >
+          ← Về trang chủ
+        </Link>
+      </section>
+    </main>
+  );
+}
