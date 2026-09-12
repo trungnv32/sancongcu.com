@@ -208,9 +208,13 @@ const categories: Category[] = [
 ];
 
 function Landing() {
-  const [cart, setCart] = useState<string[]>([]);
+  const [cart, setCart] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    try { return JSON.parse(window.localStorage.getItem("sancongcu-cart") || "[]") as string[]; } catch { return []; }
+  });
   const [checkoutTitle, setCheckoutTitle] = useState<string | null>(null);
   const [transferOrder, setTransferOrder] = useState<TransferOrder | null>(null);
+  useEffect(() => { window.localStorage.setItem("sancongcu-cart", JSON.stringify(cart)); }, [cart]);
   const [catalog, setCatalog] = useState<Category[] | null>(null);
   useEffect(() => {
     if (!supabase) return;
