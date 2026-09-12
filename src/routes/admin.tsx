@@ -691,7 +691,7 @@ function AdminPage() {
     );
 
   return (
-    <main className="min-h-screen bg-[#f6f8fc] text-foreground">
+    <main className="min-h-screen overflow-x-hidden bg-[#f6f8fc] text-foreground">
       <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
@@ -1123,57 +1123,6 @@ function SkillEditor({
   return (
     <form onSubmit={(event) => void onSave(event)} className="space-y-5">
       <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-              Cài đặt cho AI agent
-            </p>
-            <h3 className="mt-1 font-bold">Gói cài đặt Skill</h3>
-            <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Tải SKILL.md nếu Skill chỉ có hướng dẫn; dùng ZIP nếu kèm scripts, references hoặc
-              assets. Link riêng sẽ xuất hiện tại đơn sau khi xác nhận thanh toán.
-            </p>
-          </div>
-          {activePackage && (
-            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
-              Đang dùng: v{activePackage.version}
-            </span>
-          )}
-        </div>
-        <div className="mt-4 grid gap-3 rounded-xl border border-dashed border-primary/30 bg-primary/5 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-          <Field label="Phiên bản gói">
-            <input
-              value={packageVersion}
-              onChange={(event) => setPackageVersion(event.target.value)}
-              maxLength={40}
-              placeholder="Ví dụ: 1.0.0"
-              className="input h-11"
-            />
-          </Field>
-          <label className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:opacity-90">
-            <Upload className="size-4" />
-            Tải gói Skill
-            <input
-              type="file"
-              accept=".md,.zip,text/markdown,application/zip,application/x-zip-compressed"
-              className="sr-only"
-              onChange={(event) => void onUploadPackage(event, packageVersion)}
-            />
-          </label>
-        </div>
-        {activePackage ? (
-          <p className="mt-3 text-sm text-muted-foreground">
-            Tệp hiện hành:{" "}
-            <span className="font-semibold text-foreground">{activePackage.file_name}</span> ·{" "}
-            {Math.max(1, Math.round(activePackage.byte_size / 1024))} KB
-          </p>
-        ) : (
-          <p className="mt-3 text-sm text-amber-700">
-            Chưa có gói cài đặt; đơn hàng chưa thể tạo link bàn giao tự động.
-          </p>
-        )}
-      </section>
-      <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
@@ -1287,22 +1236,73 @@ function SkillEditor({
             rows={6}
           />
         </div>
+        <div className="mt-6 border-t border-border pt-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                Cài đặt cho AI agent
+              </p>
+              <h3 className="mt-1 font-bold">Gói cài đặt Skill</h3>
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
+                Tải SKILL.md nếu Skill chỉ có hướng dẫn; dùng ZIP nếu kèm scripts, references hoặc
+                assets.
+              </p>
+            </div>
+            {activePackage && (
+              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+                Đang dùng: v{activePackage.version}
+              </span>
+            )}
+          </div>
+          <div className="mt-4 grid min-w-0 gap-3 rounded-xl border border-dashed border-primary/30 bg-primary/5 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+            <Field label="Phiên bản gói">
+              <input
+                value={packageVersion}
+                onChange={(event) => setPackageVersion(event.target.value)}
+                maxLength={40}
+                placeholder="Ví dụ: 1.0.0"
+                className="input h-11"
+              />
+            </Field>
+            <label className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:opacity-90">
+              <Upload className="size-4" />
+              Tải gói Skill
+              <input
+                type="file"
+                accept=".md,.zip,text/markdown,application/zip,application/x-zip-compressed"
+                className="sr-only"
+                onChange={(event) => void onUploadPackage(event, packageVersion)}
+              />
+            </label>
+          </div>
+          {activePackage ? (
+            <p className="admin-token mt-3 text-sm text-muted-foreground">
+              Tệp hiện hành:{" "}
+              <span className="font-semibold text-foreground">{activePackage.file_name}</span> ·{" "}
+              {Math.max(1, Math.round(activePackage.byte_size / 1024))} KB
+            </p>
+          ) : (
+            <p className="mt-3 text-sm text-amber-700">
+              Chưa có gói cài đặt; đơn hàng chưa thể tạo link bàn giao tự động.
+            </p>
+          )}
+        </div>
       </section>
-      <section className="grid gap-5 xl:grid-cols-2">
+      <section className="grid min-w-0 gap-5 xl:grid-cols-2">
         <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
           <h3 className="font-bold">Poster đại diện Skill</h3>
           <p className="mt-1 text-sm text-muted-foreground">
             Dùng cho thẻ Skill và ảnh Hero trên trang chi tiết. Bấm “Tải poster đại diện” ở đầu form
             để thay ảnh.
           </p>
-          <div className="mt-4 grid gap-4 sm:grid-cols-[180px_1fr]">
-            <div className="space-y-3">
+          <div className="mt-4 grid min-w-0 gap-4 sm:grid-cols-[180px_minmax(0,1fr)]">
+            <div className="min-w-0 space-y-3">
               <div className="aspect-[4/3] overflow-hidden rounded-xl bg-muted">
                 {skill.thumbnail_path ? (
                   <img
                     src={skill.thumbnail_path}
                     alt="Ảnh đại diện Skill"
-                    className="size-full object-cover"
+                    className="block size-full max-w-full object-cover"
                   />
                 ) : (
                   <div className="grid size-full place-items-center text-sm text-muted-foreground">
@@ -1328,13 +1328,13 @@ function SkillEditor({
                 )}
               </button>
             </div>
-            <div className="space-y-3">
+            <div className="min-w-0 space-y-3">
               <Field label="URL ảnh">
                 <input
                   name="thumbnail_path"
                   defaultValue={skill.thumbnail_path ?? ""}
                   placeholder="https://…"
-                  className="input"
+                  className="input admin-token"
                 />
               </Field>
               <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-border px-4 text-sm font-bold transition hover:bg-muted">
@@ -1378,7 +1378,7 @@ function SkillEditor({
               />
             </label>
           </div>
-          <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
+          <div className="mt-4 flex max-w-full gap-3 overflow-x-auto pb-2">
             {media.map((item) => (
               <div
                 key={item.id}
@@ -1465,7 +1465,7 @@ function SkillEditor({
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <label className="block text-sm font-semibold text-foreground">
+    <label className="block min-w-0 text-sm font-semibold text-foreground">
       <span className="mb-2 block">{label}</span>
       {children}
     </label>
