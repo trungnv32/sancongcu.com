@@ -10,7 +10,11 @@ import tueLamHall5 from "@/assets/tue-lam-hall-5-learning-studio.png";
 import sanCongCuLogo from "@/assets/sancongcu-logo-transparent.png";
 import techcombankPaymentQr from "@/assets/techcombank-payment-qr.jpg";
 import { getProductContent } from "@/lib/product-content";
-import { createSavedTransferOrder, type TransferOrder } from "@/lib/commerce";
+import {
+  createFallbackTransferOrder,
+  createSavedTransferOrder,
+  type TransferOrder,
+} from "@/lib/commerce";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/")({
@@ -216,6 +220,7 @@ function Landing() {
   const [checkoutTitle, setCheckoutTitle] = useState<string | null>(null);
   const [transferOrder, setTransferOrder] = useState<TransferOrder | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
   useEffect(() => {
     window.localStorage.setItem("sancongcu-cart", JSON.stringify(cart));
   }, [cart]);
@@ -268,8 +273,14 @@ function Landing() {
     setCheckoutTitle(
       products.length === 1 ? products[0].title : `${products.length} Skill đã chọn`,
     );
-    setTransferOrder(null);
     setCheckoutError(null);
+    setIsSavingOrder(true);
+
+    // Render a usable QR before waiting for the database. The same code is
+    // passed to Supabase immediately after the first paint.
+    const immediateOrder = createFallbackTransferOrder(products.map((product) => product.id));
+    setTransferOrder(immediateOrder);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
     try {
       if (!supabase) {
@@ -277,6 +288,7 @@ function Landing() {
       }
       const { data, error } = await supabase.rpc("create_pending_order", {
         p_skill_slugs: products.map((product) => product.id),
+        p_order_code: immediateOrder.orderCode,
       });
       const savedOrder = data?.[0];
       if (error) throw error;
@@ -292,6 +304,8 @@ function Landing() {
     } catch (error) {
       console.error("Không thể tạo đơn kích hoạt", error);
       setCheckoutError("Chưa thể tạo mã đơn. Vui lòng thử lại trước khi chuyển khoản.");
+    } finally {
+      setIsSavingOrder(false);
     }
   };
   const handleChooseSkill = (product: Product) => {
@@ -493,9 +507,11 @@ function Landing() {
         title={checkoutTitle}
         order={transferOrder}
         error={checkoutError}
+        isSavingOrder={isSavingOrder}
         onClose={() => {
           setCheckoutTitle(null);
           setCheckoutError(null);
+          setIsSavingOrder(false);
         }}
       />
     </main>
@@ -638,11 +654,13 @@ function PaymentDialog({
   title,
   order,
   error,
+  isSavingOrder,
   onClose,
 }: {
   title: string | null;
   order: TransferOrder | null;
   error: string | null;
+  isSavingOrder: boolean;
   onClose: () => void;
 }) {
   if (!title) return null;
@@ -691,6 +709,9 @@ function PaymentDialog({
             />
             <TransferInstructions order={order} />
           </div>
+        )}
+        {order && isSavingOrder && !error && (
+          <p className="mt-3 text-center text-xs text-muted-foreground">Đang lưu mã đơn…</p>
         )}
         {order && (
           <a
