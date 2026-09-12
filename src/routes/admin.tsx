@@ -4,6 +4,7 @@ import {
   Check,
   ChevronRight,
   CircleAlert,
+  Copy,
   Eye,
   EyeOff,
   ImagePlus,
@@ -22,7 +23,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
-import { isSupabaseConfigured, supabase } from "@/lib/supabase";
+import { isSupabaseConfigured, supabase, supabaseUrl } from "@/lib/supabase";
 
 export const Route = createFileRoute("/admin")({ component: AdminPage });
 
@@ -66,6 +67,7 @@ type Media = {
 
 type OrderItem = {
   id: string;
+  skill_id: string | null;
   skill_title: string;
   unit_amount: number;
 };
@@ -80,6 +82,28 @@ type Order = {
   delivered_at: string | null;
   created_at: string;
   order_items: OrderItem[];
+};
+
+type SkillPackage = {
+  id: string;
+  skill_id: string;
+  version: string;
+  file_path: string;
+  file_name: string;
+  content_type: string;
+  byte_size: number;
+  is_active: boolean;
+  created_at: string;
+};
+
+type SkillEntitlement = {
+  id: string;
+  order_item_id: string;
+  skill_package_id: string;
+  install_token: string;
+  install_count: number;
+  max_installs: number;
+  revoked_at: string | null;
 };
 
 const adminEmails = new Set(["sancongcu@gmail.com", "trungnv32@gmail.com"]);
@@ -108,6 +132,15 @@ function toLines(value: string) {
     .filter(Boolean);
 }
 
+function createInstallToken() {
+  const bytes = crypto.getRandomValues(new Uint8Array(24));
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function installUrl(token: string) {
+  return `${supabaseUrl}/functions/v1/skill-install?token=${encodeURIComponent(token)}`;
+}
+
 function AdminPage() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
@@ -116,6 +149,8 @@ function AdminPage() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [media, setMedia] = useState<Media[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [packages, setPackages] = useState<SkillPackage[]>([]);
+  const [entitlements, setEntitlements] = useState<SkillEntitlement[]>([]);
   const [selectedHallId, setSelectedHallId] = useState<string | null>(null);
   const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -163,13 +198,25 @@ function AdminPage() {
     if (!supabase) return;
     setIsLoading(true);
     setError(null);
-    const [hallResult, skillResult, mediaResult, orderResult] = await Promise.all([
-      supabase.from("halls").select("*").order("sort_order").order("name"),
-      supabase.from("skills").select("*").order("sort_order").order("title"),
-      supabase.from("skill_media").select("*").order("sort_order"),
-      supabase.from("orders").select("*, order_items(id, skill_title, unit_amount)").order("created_at", { ascending: false }),
-    ]);
-    const requestError = hallResult.error ?? skillResult.error ?? mediaResult.error ?? orderResult.error;
+    const [hallResult, skillResult, mediaResult, orderResult, packageResult, entitlementResult] =
+      await Promise.all([
+        supabase.from("halls").select("*").order("sort_order").order("name"),
+        supabase.from("skills").select("*").order("sort_order").order("title"),
+        supabase.from("skill_media").select("*").order("sort_order"),
+        supabase
+          .from("orders")
+          .select("*, order_items(id, skill_id, skill_title, unit_amount)")
+          .order("created_at", { ascending: false }),
+        supabase.from("skill_packages").select("*").order("created_at", { ascending: false }),
+        supabase.from("skill_entitlements").select("*"),
+      ]);
+    const requestError =
+      hallResult.error ??
+      skillResult.error ??
+      mediaResult.error ??
+      orderResult.error ??
+      packageResult.error ??
+      entitlementResult.error;
     if (requestError) {
       setError(`Không thể tải dữ liệu: ${requestError.message}`);
     } else {
@@ -179,22 +226,105 @@ function AdminPage() {
       setSkills(nextSkills);
       setMedia((mediaResult.data ?? []) as Media[]);
       setOrders((orderResult.data ?? []) as Order[]);
+      setPackages((packageResult.data ?? []) as SkillPackage[]);
+      setEntitlements((entitlementResult.data ?? []) as SkillEntitlement[]);
       setSelectedHallId((current) => current ?? nextHalls[0]?.id ?? null);
       setSelectedSkillId((current) => current ?? nextSkills[0]?.id ?? null);
     }
     setIsLoading(false);
   }
 
-  async function updateOrderStatus(order: Order, field: "confirmed" | "delivered", checked: boolean) {
+  async function updateOrderStatus(
+    order: Order,
+    field: "confirmed" | "delivered",
+    checked: boolean,
+  ) {
     if (!supabase) return;
     setError(null);
-    const status: Order["status"] = checked ? (field === "confirmed" ? "confirmed" : "delivered") : field === "confirmed" ? "pending" : order.confirmed_at ? "confirmed" : "pending";
-    const update = field === "confirmed"
-      ? { status, confirmed_at: checked ? new Date().toISOString() : null, delivered_at: checked ? order.delivered_at : null }
-      : { status, delivered_at: checked ? new Date().toISOString() : null };
-    const { data, error: updateError } = await supabase.from("orders").update(update).eq("id", order.id).select("*, order_items(id, skill_title, unit_amount)").single();
+    const status: Order["status"] = checked
+      ? field === "confirmed"
+        ? "confirmed"
+        : "delivered"
+      : field === "confirmed"
+        ? "pending"
+        : order.confirmed_at
+          ? "confirmed"
+          : "pending";
+    const update =
+      field === "confirmed"
+        ? {
+            status,
+            confirmed_at: checked ? new Date().toISOString() : null,
+            delivered_at: checked ? order.delivered_at : null,
+          }
+        : { status, delivered_at: checked ? new Date().toISOString() : null };
+    const { data, error: updateError } = await supabase
+      .from("orders")
+      .update(update)
+      .eq("id", order.id)
+      .select("*, order_items(id, skill_id, skill_title, unit_amount)")
+      .single();
     if (updateError) setError(updateError.message);
-    else if (data) setOrders((current) => current.map((item) => item.id === data.id ? data as Order : item));
+    else if (data)
+      setOrders((current) => current.map((item) => (item.id === data.id ? (data as Order) : item)));
+  }
+
+  async function copyInstallLink(token: string) {
+    const url = installUrl(token);
+    try {
+      await navigator.clipboard.writeText(url);
+      setNotice(
+        "Đã sao chép link cài đặt Skill. Gửi link này kèm lời nhắn “Hãy cài Skill từ link này” cho khách.",
+      );
+    } catch {
+      setError("Không thể tự sao chép. Hãy thử lại trên kết nối HTTPS.");
+    }
+  }
+
+  async function createOrCopyInstallLink(order: Order, item: OrderItem) {
+    if (!supabase) return;
+    if (!order.confirmed_at) {
+      setError("Hãy tick “Đã thanh toán” trước khi tạo link cài đặt cho khách.");
+      return;
+    }
+    if (!item.skill_id) {
+      setError(`Không xác định được Skill cho mục “${item.skill_title}”.`);
+      return;
+    }
+    const activePackage = packages.find(
+      (itemPackage) => itemPackage.skill_id === item.skill_id && itemPackage.is_active,
+    );
+    if (!activePackage) {
+      setError(
+        `Skill “${item.skill_title}” chưa có gói cài đặt. Hãy tải SKILL.md hoặc ZIP trong trang chỉnh sửa Skill.`,
+      );
+      return;
+    }
+    const existing = entitlements.find(
+      (entitlement) => entitlement.order_item_id === item.id && !entitlement.revoked_at,
+    );
+    if (existing) {
+      await copyInstallLink(existing.install_token);
+      return;
+    }
+    setIsSaving(true);
+    setError(null);
+    const { data, error: createError } = await supabase
+      .from("skill_entitlements")
+      .insert({
+        order_item_id: item.id,
+        skill_package_id: activePackage.id,
+        install_token: createInstallToken(),
+      })
+      .select()
+      .single();
+    setIsSaving(false);
+    if (createError) setError(createError.message);
+    else if (data) {
+      const entitlement = data as SkillEntitlement;
+      setEntitlements((current) => [...current, entitlement]);
+      await copyInstallLink(entitlement.install_token);
+    }
   }
 
   async function sendMagicLink(event: FormEvent<HTMLFormElement>) {
@@ -425,6 +555,72 @@ function AdminPage() {
     setIsSaving(false);
   }
 
+  async function uploadSkillPackage(event: ChangeEvent<HTMLInputElement>, version: string) {
+    const file = event.target.files?.[0];
+    const client = supabase;
+    if (!client || !file || !selectedSkill) return;
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    const isMarkdown = extension === "md" || file.type === "text/markdown";
+    const isZip =
+      extension === "zip" ||
+      file.type === "application/zip" ||
+      file.type === "application/x-zip-compressed";
+    if (!isMarkdown && !isZip) {
+      setError("Gói cài đặt phải là tệp SKILL.md hoặc tệp ZIP.");
+      return;
+    }
+    if (file.size > 25 * 1024 * 1024) {
+      setError("Gói cài đặt tối đa 25 MB.");
+      return;
+    }
+    const cleanVersion = version.trim() || "1.0.0";
+    const path = `${selectedSkill.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]+/g, "-")}`;
+    const contentType = isMarkdown ? "text/markdown" : "application/zip";
+    setIsSaving(true);
+    setError(null);
+    try {
+      const { error: uploadError } = await client.storage
+        .from("skill-packages")
+        .upload(path, file, { contentType });
+      if (uploadError) throw uploadError;
+      const { error: deactivateError } = await client
+        .from("skill_packages")
+        .update({ is_active: false })
+        .eq("skill_id", selectedSkill.id)
+        .eq("is_active", true);
+      if (deactivateError) throw deactivateError;
+      const { data, error: packageError } = await client
+        .from("skill_packages")
+        .insert({
+          skill_id: selectedSkill.id,
+          version: cleanVersion,
+          file_path: path,
+          file_name: file.name,
+          content_type: contentType,
+          byte_size: file.size,
+          is_active: true,
+        })
+        .select()
+        .single();
+      if (packageError) throw packageError;
+      if (data) {
+        setPackages((current) => [
+          data as SkillPackage,
+          ...current.map((itemPackage) =>
+            itemPackage.skill_id === selectedSkill.id
+              ? { ...itemPackage, is_active: false }
+              : itemPackage,
+          ),
+        ]);
+      }
+      setNotice(`Đã tải gói ${file.name} và đặt làm phiên bản cài đặt hiện hành.`);
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Không thể tải gói Skill lên.");
+    }
+    event.target.value = "";
+    setIsSaving(false);
+  }
+
   async function updateMedia(item: Media, values: Partial<Media>) {
     if (!supabase) return;
     const { data, error: updateError } = await supabase
@@ -574,7 +770,12 @@ function AdminPage() {
         <section className="min-w-0 space-y-5">
           {error && <Alert tone="error" text={error} onClose={() => setError(null)} />}
           {notice && <Alert tone="success" text={notice} onClose={() => setNotice(null)} />}
-          <OrdersPanel orders={orders} onStatusChange={updateOrderStatus} />
+          <OrdersPanel
+            orders={orders}
+            entitlements={entitlements}
+            onStatusChange={updateOrderStatus}
+            onInstallLink={createOrCopyInstallLink}
+          />
           {selectedHall && (
             <form
               onSubmit={(event) => void saveHall(event)}
@@ -737,6 +938,8 @@ function AdminPage() {
               onDelete={deleteSkill}
               onToggleVisibility={toggleSkillVisibility}
               onUpload={uploadFile}
+              packages={packages.filter((itemPackage) => itemPackage.skill_id === selectedSkill.id)}
+              onUploadPackage={uploadSkillPackage}
               onMediaUpdate={updateMedia}
               onMediaDelete={deleteMedia}
             />
@@ -757,26 +960,125 @@ function AdminPage() {
 
 function OrdersPanel({
   orders,
+  entitlements,
   onStatusChange,
+  onInstallLink,
 }: {
   orders: Order[];
-  onStatusChange: (order: Order, field: "confirmed" | "delivered", checked: boolean) => Promise<void>;
+  entitlements: SkillEntitlement[];
+  onStatusChange: (
+    order: Order,
+    field: "confirmed" | "delivered",
+    checked: boolean,
+  ) => Promise<void>;
+  onInstallLink: (order: Order, item: OrderItem) => Promise<void>;
 }) {
   return (
     <section id="orders" className="rounded-2xl border border-border bg-card shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4 sm:p-5">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Quản lý đơn</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+            Quản lý đơn
+          </p>
           <h2 className="mt-1 text-xl font-bold">Đơn kích hoạt Skill</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Đơn được lưu ngay khi khách mở phần thanh toán.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Đơn được lưu ngay khi khách mở phần thanh toán.
+          </p>
         </div>
-        <span className="rounded-full bg-secondary px-3 py-1 text-sm font-bold">{orders.length} đơn</span>
+        <span className="rounded-full bg-secondary px-3 py-1 text-sm font-bold">
+          {orders.length} đơn
+        </span>
       </div>
-      {orders.length === 0 ? <p className="p-5 text-sm text-muted-foreground">Chưa có đơn kích hoạt nào.</p> : (
+      {orders.length === 0 ? (
+        <p className="p-5 text-sm text-muted-foreground">Chưa có đơn kích hoạt nào.</p>
+      ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-[850px] w-full text-left text-sm">
-            <thead className="bg-muted/60 text-xs uppercase tracking-wide text-muted-foreground"><tr><th className="px-5 py-3">Mã đơn</th><th className="px-5 py-3">Skill đặt</th><th className="px-5 py-3">Số tiền</th><th className="px-5 py-3">Nội dung CK</th><th className="px-5 py-3">Thời gian</th><th className="px-5 py-3">Trạng thái</th></tr></thead>
-            <tbody>{orders.map((order) => <tr key={order.id} className="border-t border-border align-top"><td className="px-5 py-4 font-bold">{order.order_code}</td><td className="px-5 py-4"><ul className="space-y-1">{order.order_items.map((item) => <li key={item.id}>{item.skill_title}</li>)}</ul></td><td className="px-5 py-4 font-bold">{new Intl.NumberFormat("vi-VN").format(order.total_amount)}đ</td><td className="px-5 py-4 font-mono text-xs">{order.transfer_note}</td><td className="px-5 py-4 text-muted-foreground">{new Date(order.created_at).toLocaleString("vi-VN")}</td><td className="px-5 py-4"><div className="space-y-2"><label className="flex cursor-pointer items-center gap-2"><input type="checkbox" checked={Boolean(order.confirmed_at)} onChange={(event) => void onStatusChange(order, "confirmed", event.target.checked)} />Đã thanh toán</label><label className="flex cursor-pointer items-center gap-2"><input type="checkbox" checked={Boolean(order.delivered_at)} disabled={!order.confirmed_at} onChange={(event) => void onStatusChange(order, "delivered", event.target.checked)} />Đã gửi Skill</label></div></td></tr>)}</tbody>
+          <table className="min-w-[1080px] w-full text-left text-sm">
+            <thead className="bg-muted/60 text-xs uppercase tracking-wide text-muted-foreground">
+              <tr>
+                <th className="px-5 py-3">Mã đơn</th>
+                <th className="px-5 py-3">Skill đặt</th>
+                <th className="px-5 py-3">Link cài đặt</th>
+                <th className="px-5 py-3">Số tiền</th>
+                <th className="px-5 py-3">Nội dung CK</th>
+                <th className="px-5 py-3">Thời gian</th>
+                <th className="px-5 py-3">Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map((order) => (
+                <tr key={order.id} className="border-t border-border align-top">
+                  <td className="px-5 py-4 font-bold">{order.order_code}</td>
+                  <td className="px-5 py-4">
+                    <ul className="space-y-2">
+                      {order.order_items.map((item) => (
+                        <li key={item.id} className="font-medium">
+                          {item.skill_title}
+                        </li>
+                      ))}
+                    </ul>
+                  </td>
+                  <td className="px-5 py-4">
+                    <div className="space-y-2">
+                      {order.order_items.map((item) => {
+                        const entitlement = entitlements.find(
+                          (entry) => entry.order_item_id === item.id && !entry.revoked_at,
+                        );
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => void onInstallLink(order, item)}
+                            disabled={!order.confirmed_at}
+                            title={
+                              !order.confirmed_at
+                                ? "Xác nhận thanh toán trước khi tạo link"
+                                : undefined
+                            }
+                            className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-xs font-bold transition ${order.confirmed_at ? "bg-primary text-primary-foreground hover:opacity-90" : "cursor-not-allowed bg-muted text-muted-foreground"}`}
+                          >
+                            <Copy className="size-3.5" />
+                            {entitlement ? "Sao chép link" : "Tạo link"}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </td>
+                  <td className="px-5 py-4 font-bold">
+                    {new Intl.NumberFormat("vi-VN").format(order.total_amount)}đ
+                  </td>
+                  <td className="px-5 py-4 font-mono text-xs">{order.transfer_note}</td>
+                  <td className="px-5 py-4 text-muted-foreground">
+                    {new Date(order.created_at).toLocaleString("vi-VN")}
+                  </td>
+                  <td className="px-5 py-4">
+                    <div className="space-y-2">
+                      <label className="flex cursor-pointer items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(order.confirmed_at)}
+                          onChange={(event) =>
+                            void onStatusChange(order, "confirmed", event.target.checked)
+                          }
+                        />
+                        Đã thanh toán
+                      </label>
+                      <label className="flex cursor-pointer items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(order.delivered_at)}
+                          disabled={!order.confirmed_at}
+                          onChange={(event) =>
+                            void onStatusChange(order, "delivered", event.target.checked)
+                          }
+                        />
+                        Đã gửi Skill
+                      </label>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
           </table>
         </div>
       )}
@@ -793,6 +1095,8 @@ function SkillEditor({
   onDelete,
   onToggleVisibility,
   onUpload,
+  packages,
+  onUploadPackage,
   onMediaUpdate,
   onMediaDelete,
 }: {
@@ -808,12 +1112,67 @@ function SkillEditor({
     target: "thumbnail" | "gallery",
     mediaType?: Media["media_type"],
   ) => Promise<void>;
+  packages: SkillPackage[];
+  onUploadPackage: (event: ChangeEvent<HTMLInputElement>, version: string) => Promise<void>;
   onMediaUpdate: (item: Media, values: Partial<Media>) => Promise<void>;
   onMediaDelete: (item: Media) => Promise<void>;
 }) {
   const [galleryType, setGalleryType] = useState<Media["media_type"]>("other");
+  const [packageVersion, setPackageVersion] = useState("1.0.0");
+  const activePackage = packages.find((itemPackage) => itemPackage.is_active);
   return (
     <form onSubmit={(event) => void onSave(event)} className="space-y-5">
+      <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+              Cài đặt cho AI agent
+            </p>
+            <h3 className="mt-1 font-bold">Gói cài đặt Skill</h3>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
+              Tải SKILL.md nếu Skill chỉ có hướng dẫn; dùng ZIP nếu kèm scripts, references hoặc
+              assets. Link riêng sẽ xuất hiện tại đơn sau khi xác nhận thanh toán.
+            </p>
+          </div>
+          {activePackage && (
+            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+              Đang dùng: v{activePackage.version}
+            </span>
+          )}
+        </div>
+        <div className="mt-4 grid gap-3 rounded-xl border border-dashed border-primary/30 bg-primary/5 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+          <Field label="Phiên bản gói">
+            <input
+              value={packageVersion}
+              onChange={(event) => setPackageVersion(event.target.value)}
+              maxLength={40}
+              placeholder="Ví dụ: 1.0.0"
+              className="input h-11"
+            />
+          </Field>
+          <label className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:opacity-90">
+            <Upload className="size-4" />
+            Tải gói Skill
+            <input
+              type="file"
+              accept=".md,.zip,text/markdown,application/zip,application/x-zip-compressed"
+              className="sr-only"
+              onChange={(event) => void onUploadPackage(event, packageVersion)}
+            />
+          </label>
+        </div>
+        {activePackage ? (
+          <p className="mt-3 text-sm text-muted-foreground">
+            Tệp hiện hành:{" "}
+            <span className="font-semibold text-foreground">{activePackage.file_name}</span> ·{" "}
+            {Math.max(1, Math.round(activePackage.byte_size / 1024))} KB
+          </p>
+        ) : (
+          <p className="mt-3 text-sm text-amber-700">
+            Chưa có gói cài đặt; đơn hàng chưa thể tạo link bàn giao tự động.
+          </p>
+        )}
+      </section>
       <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -933,7 +1292,8 @@ function SkillEditor({
         <section className="rounded-2xl border border-border bg-card p-4 sm:p-6">
           <h3 className="font-bold">Poster đại diện Skill</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Dùng cho thẻ Skill và ảnh Hero trên trang chi tiết. Bấm “Tải poster đại diện” ở đầu form để thay ảnh.
+            Dùng cho thẻ Skill và ảnh Hero trên trang chi tiết. Bấm “Tải poster đại diện” ở đầu form
+            để thay ảnh.
           </p>
           <div className="mt-4 grid gap-4 sm:grid-cols-[180px_1fr]">
             <div className="space-y-3">
