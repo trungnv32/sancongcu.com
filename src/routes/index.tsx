@@ -43,6 +43,7 @@ export const Route = createFileRoute("/")({
 type Product = {
   id: string;
   title: string;
+  description?: string;
   tag: string;
   image?: string;
   video?: string;
@@ -233,6 +234,7 @@ function Landing() {
         products: skillResult.data.filter((skill) => skill.hall_id === hall.id).map((skill) => ({
           id: skill.slug,
           title: skill.title,
+          description: skill.short_description,
           tag: "AI Skill",
           image: skill.thumbnail_path || hall.poster_path || tueLamStanding,
           visible: skill.status === "published",
@@ -487,13 +489,13 @@ function CategoryRow({
 
   return (
     <section id={anchorId}>
-      <div className="mb-5 flex items-end justify-between gap-4">
+      <div className="mb-5 flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary/80">
             AI SKILL
           </p>
-          <h2 className="mt-1 truncate text-2xl sm:text-3xl">{category.title}</h2>
-          <p className="mt-1 truncate text-sm text-muted-foreground">{category.subtitle}</p>
+          <h2 className="hall-card__title mt-1">{category.title}</h2>
+          <p className="hall-card__subtitle mt-1 text-muted-foreground">{category.subtitle}</p>
         </div>
         <a
           href="#faq"
@@ -529,7 +531,7 @@ function ProductCard({
   onChoose: () => void;
   onActivate: () => void;
 }) {
-  const description = getProductContent(product.id)?.summary;
+  const description = product.description || getProductContent(product.id)?.summary || "Thông tin Skill đang được cập nhật.";
   return (
     <article className="group w-[220px] shrink-0 snap-start overflow-hidden rounded-2xl border border-border bg-card shadow-card transition hover:-translate-y-1 hover:shadow-brand sm:w-auto">
       <Link
@@ -569,7 +571,7 @@ function ProductCard({
       </Link>
       <div className="space-y-2 p-3">
         <h3 className="skill-card__title font-display">{product.title}</h3>
-        <p className="min-h-[4.5rem] text-xs leading-5 text-muted-foreground">{description}</p>
+        <p className="skill-card__description text-xs leading-5 text-muted-foreground">{description}</p>
         <Link
           to="/skill/$skillId"
           params={{ skillId: product.id }}

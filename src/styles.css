@@ -135,6 +135,41 @@ textarea.input { min-height: 12rem; }
   line-height: 1.25rem;
 }
 
+.skill-card__description {
+  display: -webkit-box;
+  min-height: 4.5rem;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.hall-card__title,
+.hall-card__subtitle {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.hall-card__title {
+  min-height: 2.75rem;
+  font-size: 1.25rem;
+  line-height: 1.35rem;
+}
+
+.hall-card__subtitle {
+  min-height: 2.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .hall-card__title {
+    font-size: 1.875rem;
+    line-height: 2.1rem;
+  }
+}
+
 @media (min-width: 640px) {
   .skill-card__title {
     font-size: 1.125rem;
