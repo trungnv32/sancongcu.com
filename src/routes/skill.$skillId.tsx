@@ -21,7 +21,7 @@ function Detail() {
   const local = getProductContent(skillId);
   const [skill, setSkill] = useState<Skill | null>(null);
   const [media, setMedia] = useState<Media[]>([]);
-  const [active, setActive] = useState(0);
+  const [activeImageId, setActiveImageId] = useState("main");
   const [loaded, setLoaded] = useState(!supabase);
 
   useEffect(() => {
@@ -45,8 +45,11 @@ function Detail() {
   const benefits = skill?.benefits ?? local?.includes ?? [];
   if (!title || !intro) return <main className="grid min-h-screen place-items-center p-6 text-center"><Link to="/" className="rounded-full bg-black px-6 py-3 font-bold text-white">Không tìm thấy Skill — Về trang chủ</Link></main>;
 
-  const images: Media[] = [{ id: "main", path: skill?.thumbnail_path || fallback, alt: title, media_type: "other", sort_order: -1 }, ...media];
-  const activeImage = images[active] ?? images[0];
+  const priority: Record<Media["media_type"], number> = { input: 0, output: 1, other: 2 };
+  const hero: Media = { id: "main", path: skill?.thumbnail_path || fallback, alt: title, media_type: "output", sort_order: -1 };
+  const images: Media[] = [hero, ...media]
+    .sort((a, b) => priority[a.media_type] - priority[b.media_type] || a.sort_order - b.sort_order);
+  const activeImage = images.find((image) => image.id === activeImageId) ?? images[0];
   const usageSteps = skill?.usage_steps?.filter(Boolean).length ? skill.usage_steps : defaultUsage;
   const paymentLines = (skill?.payment_note || defaultPaymentNote).split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
   const choose = () => {
@@ -60,7 +63,7 @@ function Detail() {
   return <main className="skill-detail min-h-screen overflow-x-hidden bg-soft-gradient">
     <header className="border-b border-border bg-background"><div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6"><Link to="/" className="shrink-0 text-sm sm:text-base">← Tất cả Skill</Link><span className="shrink-0 text-sm sm:text-base">{(skill?.price_usd ?? 1.99).toFixed(2)}$ / Skill</span></div></header>
     <section className="skill-detail__hero mx-auto grid w-full max-w-6xl gap-8 px-4 py-8 sm:px-6 sm:py-12">
-      <div className="min-w-0"><div className="aspect-square w-full overflow-hidden rounded-2xl bg-card shadow-card sm:rounded-3xl"><img src={activeImage.path} alt={activeImage.alt} className="size-full object-contain" /></div><div className="mt-3 flex max-w-full gap-3 overflow-x-auto pb-2" aria-label="Ảnh minh họa Skill">{images.map((image, index) => <button key={image.id} type="button" onClick={() => setActive(index)} aria-label={`Xem ảnh ${mediaLabel(image.media_type)} ${index + 1}`} aria-pressed={active === index} className={`w-20 shrink-0 overflow-hidden rounded-xl border-2 bg-card text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${active === index ? "border-primary" : "border-transparent"}`}><img src={image.path} alt="" className="aspect-square w-full bg-muted object-contain" /><span className="block truncate p-1 text-center text-[10px]">{mediaLabel(image.media_type)}</span></button>)}</div></div>
+      <div className="min-w-0"><div className="aspect-square w-full overflow-hidden rounded-2xl bg-card shadow-card sm:rounded-3xl"><img src={activeImage.path} alt={activeImage.alt} className="size-full object-contain" /></div><div className="mt-3 flex max-w-full gap-3 overflow-x-auto pb-2" aria-label="Ảnh minh họa Skill">{images.map((image, index) => <button key={image.id} type="button" onClick={() => setActiveImageId(image.id)} aria-label={`Xem ảnh ${mediaLabel(image.media_type)} ${index + 1}`} aria-pressed={activeImageId === image.id} className={`w-20 shrink-0 overflow-hidden rounded-xl border-2 bg-card text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${activeImageId === image.id ? "border-primary" : "border-transparent"}`}><img src={image.path} alt="" className="aspect-square w-full bg-muted object-contain" /><span className="block truncate p-1 text-center text-[10px]">{mediaLabel(image.media_type)}</span></button>)}</div></div>
       <div className="min-w-0"><h1 className="break-words text-3xl leading-tight sm:text-4xl">{title}</h1><p className="mt-5 break-words text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">{intro}</p><section className="mt-8 rounded-2xl border border-border bg-card p-5 sm:p-6"><h2 className="text-2xl">Bạn nhận được gì</h2><ul className="mt-4 space-y-3 break-words text-base leading-7">{benefits.map((benefit, index) => <li key={`${benefit}-${index}`}>• {benefit}</li>)}</ul></section></div>
     </section>
     <section className="skill-detail__actions mx-auto grid w-full max-w-6xl gap-6 px-4 pb-16 sm:px-6 sm:pb-20">
