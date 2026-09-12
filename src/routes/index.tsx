@@ -568,7 +568,7 @@ function ProductCard({
         </span>
       </Link>
       <div className="space-y-2 p-3">
-        <h3 className="truncate font-display text-lg leading-tight">{product.title}</h3>
+        <h3 className="skill-card__title font-display">{product.title}</h3>
         <p className="min-h-[4.5rem] text-xs leading-5 text-muted-foreground">{description}</p>
         <Link
           to="/skill/$skillId"

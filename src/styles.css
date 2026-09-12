@@ -123,3 +123,21 @@ textarea.input { min-height: 12rem; }
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Reserve two readable title lines on mobile cards instead of cutting names mid-word. */
+.skill-card__title {
+  display: -webkit-box;
+  min-height: 2.5rem;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 1rem;
+  line-height: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .skill-card__title {
+    font-size: 1.125rem;
+    line-height: 1.35rem;
+  }
+}
