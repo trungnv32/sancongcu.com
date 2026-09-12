@@ -55,6 +55,29 @@ export function createFallbackTransferOrder(productIds: string[]): TransferOrder
   return buildTransferOrder(productIds, defaultPaymentSettings);
 }
 
+export function createSavedTransferOrder({
+  orderCode,
+  amount,
+  transferNote,
+  productCount,
+}: {
+  orderCode: string;
+  amount: number;
+  transferNote: string;
+  productCount: number;
+}): TransferOrder {
+  const qrUrl = `https://img.vietqr.io/image/${defaultPaymentSettings.bankCode}-${defaultPaymentSettings.accountNumber}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(transferNote)}&accountName=${encodeURIComponent(defaultPaymentSettings.accountName)}`;
+  return {
+    orderCode,
+    amount,
+    currency: "VND",
+    transferNote,
+    productCount,
+    configured: true,
+    payment: { ...defaultPaymentSettings, qrUrl },
+  };
+}
+
 export const createTransferOrder = createServerFn({ method: "POST" })
   .validator(orderInput)
   .handler(({ data }) => {

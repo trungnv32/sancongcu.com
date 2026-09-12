@@ -12,6 +12,7 @@ import techcombankPaymentQr from "@/assets/techcombank-payment-qr.jpg";
 import { getProductContent } from "@/lib/product-content";
 import {
   createFallbackTransferOrder,
+  createSavedTransferOrder,
   createTransferOrder,
   type TransferOrder,
 } from "@/lib/commerce";
@@ -258,6 +259,21 @@ function Landing() {
     setTransferOrder(null);
 
     try {
+      if (supabase) {
+        const { data, error } = await supabase.rpc("create_pending_order", {
+          p_skill_slugs: products.map((product) => product.id),
+        });
+        const savedOrder = data?.[0];
+        if (!error && savedOrder) {
+          setTransferOrder(createSavedTransferOrder({
+            orderCode: savedOrder.order_code,
+            amount: savedOrder.total_amount,
+            transferNote: savedOrder.transfer_note,
+            productCount: savedOrder.product_count,
+          }));
+          return;
+        }
+      }
       const order = await createTransferOrder({
         data: { productIds: products.map((product) => product.id) },
       });

@@ -64,6 +64,24 @@ type Media = {
   sort_order: number;
 };
 
+type OrderItem = {
+  id: string;
+  skill_title: string;
+  unit_amount: number;
+};
+
+type Order = {
+  id: string;
+  order_code: string;
+  status: "pending" | "confirmed" | "delivered" | "cancelled";
+  total_amount: number;
+  transfer_note: string;
+  confirmed_at: string | null;
+  delivered_at: string | null;
+  created_at: string;
+  order_items: OrderItem[];
+};
+
 const adminEmails = new Set(["sancongcu@gmail.com", "trungnv32@gmail.com"]);
 const statusLabel = { draft: "Bản nháp", published: "Đang hiển thị", hidden: "Đã ẩn" };
 
@@ -97,6 +115,7 @@ function AdminPage() {
   const [halls, setHalls] = useState<Hall[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [media, setMedia] = useState<Media[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [selectedHallId, setSelectedHallId] = useState<string | null>(null);
   const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -144,12 +163,13 @@ function AdminPage() {
     if (!supabase) return;
     setIsLoading(true);
     setError(null);
-    const [hallResult, skillResult, mediaResult] = await Promise.all([
+    const [hallResult, skillResult, mediaResult, orderResult] = await Promise.all([
       supabase.from("halls").select("*").order("sort_order").order("name"),
       supabase.from("skills").select("*").order("sort_order").order("title"),
       supabase.from("skill_media").select("*").order("sort_order"),
+      supabase.from("orders").select("*, order_items(id, skill_title, unit_amount)").order("created_at", { ascending: false }),
     ]);
-    const requestError = hallResult.error ?? skillResult.error ?? mediaResult.error;
+    const requestError = hallResult.error ?? skillResult.error ?? mediaResult.error ?? orderResult.error;
     if (requestError) {
       setError(`Không thể tải dữ liệu: ${requestError.message}`);
     } else {
@@ -158,10 +178,23 @@ function AdminPage() {
       setHalls(nextHalls);
       setSkills(nextSkills);
       setMedia((mediaResult.data ?? []) as Media[]);
+      setOrders((orderResult.data ?? []) as Order[]);
       setSelectedHallId((current) => current ?? nextHalls[0]?.id ?? null);
       setSelectedSkillId((current) => current ?? nextSkills[0]?.id ?? null);
     }
     setIsLoading(false);
+  }
+
+  async function updateOrderStatus(order: Order, field: "confirmed" | "delivered", checked: boolean) {
+    if (!supabase) return;
+    setError(null);
+    const status: Order["status"] = checked ? (field === "confirmed" ? "confirmed" : "delivered") : field === "confirmed" ? "pending" : order.confirmed_at ? "confirmed" : "pending";
+    const update = field === "confirmed"
+      ? { status, confirmed_at: checked ? new Date().toISOString() : null, delivered_at: checked ? order.delivered_at : null }
+      : { status, delivered_at: checked ? new Date().toISOString() : null };
+    const { data, error: updateError } = await supabase.from("orders").update(update).eq("id", order.id).select("*, order_items(id, skill_title, unit_amount)").single();
+    if (updateError) setError(updateError.message);
+    else if (data) setOrders((current) => current.map((item) => item.id === data.id ? data as Order : item));
   }
 
   async function sendMagicLink(event: FormEvent<HTMLFormElement>) {
@@ -541,6 +574,7 @@ function AdminPage() {
         <section className="min-w-0 space-y-5">
           {error && <Alert tone="error" text={error} onClose={() => setError(null)} />}
           {notice && <Alert tone="success" text={notice} onClose={() => setNotice(null)} />}
+          <OrdersPanel orders={orders} onStatusChange={updateOrderStatus} />
           {selectedHall && (
             <form
               onSubmit={(event) => void saveHall(event)}
@@ -718,6 +752,35 @@ function AdminPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+function OrdersPanel({
+  orders,
+  onStatusChange,
+}: {
+  orders: Order[];
+  onStatusChange: (order: Order, field: "confirmed" | "delivered", checked: boolean) => Promise<void>;
+}) {
+  return (
+    <section id="orders" className="rounded-2xl border border-border bg-card shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4 sm:p-5">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Quản lý đơn</p>
+          <h2 className="mt-1 text-xl font-bold">Đơn kích hoạt Skill</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Đơn được lưu ngay khi khách mở phần thanh toán.</p>
+        </div>
+        <span className="rounded-full bg-secondary px-3 py-1 text-sm font-bold">{orders.length} đơn</span>
+      </div>
+      {orders.length === 0 ? <p className="p-5 text-sm text-muted-foreground">Chưa có đơn kích hoạt nào.</p> : (
+        <div className="overflow-x-auto">
+          <table className="min-w-[850px] w-full text-left text-sm">
+            <thead className="bg-muted/60 text-xs uppercase tracking-wide text-muted-foreground"><tr><th className="px-5 py-3">Mã đơn</th><th className="px-5 py-3">Skill đặt</th><th className="px-5 py-3">Số tiền</th><th className="px-5 py-3">Nội dung CK</th><th className="px-5 py-3">Thời gian</th><th className="px-5 py-3">Trạng thái</th></tr></thead>
+            <tbody>{orders.map((order) => <tr key={order.id} className="border-t border-border align-top"><td className="px-5 py-4 font-bold">{order.order_code}</td><td className="px-5 py-4"><ul className="space-y-1">{order.order_items.map((item) => <li key={item.id}>{item.skill_title}</li>)}</ul></td><td className="px-5 py-4 font-bold">{new Intl.NumberFormat("vi-VN").format(order.total_amount)}đ</td><td className="px-5 py-4 font-mono text-xs">{order.transfer_note}</td><td className="px-5 py-4 text-muted-foreground">{new Date(order.created_at).toLocaleString("vi-VN")}</td><td className="px-5 py-4"><div className="space-y-2"><label className="flex cursor-pointer items-center gap-2"><input type="checkbox" checked={Boolean(order.confirmed_at)} onChange={(event) => void onStatusChange(order, "confirmed", event.target.checked)} />Đã thanh toán</label><label className="flex cursor-pointer items-center gap-2"><input type="checkbox" checked={Boolean(order.delivered_at)} disabled={!order.confirmed_at} onChange={(event) => void onStatusChange(order, "delivered", event.target.checked)} />Đã gửi Skill</label></div></td></tr>)}</tbody>
+          </table>
+        </div>
+      )}
+    </section>
   );
 }
 
