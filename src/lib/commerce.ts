@@ -30,12 +30,21 @@ const defaultPaymentSettings: PaymentSettings = {
   accountName: "HỘ KINH DOANH SUMOI",
 };
 
-function buildTransferOrder(productIds: string[], paymentSettings: PaymentSettings): TransferOrder {
+function buildTransferOrder(
+  productIds: string[],
+  paymentSettings: PaymentSettings,
+  comboSize?: 5 | 10 | null,
+): TransferOrder {
   const uniqueProductIds = [...new Set(productIds)];
   const orderCode = `SC${Date.now().toString().slice(-8)}`;
   const configured = Object.values(paymentSettings).every(Boolean);
-  const amount = 51000 * uniqueProductIds.length;
-  const transferNote = `${orderCode} ${uniqueProductIds.length}SKILL`.toUpperCase();
+  const amount =
+    comboSize === 5 ? 208000 : comboSize === 10 ? 650000 : 51000 * uniqueProductIds.length;
+  const transferNote = (
+    comboSize
+      ? `${orderCode} COMBO${comboSize} ${comboSize}SKILL`
+      : `${orderCode} ${uniqueProductIds.length}SKILL`
+  ).toUpperCase();
   const qrUrl = configured
     ? `https://img.vietqr.io/image/${paymentSettings.bankCode}-${paymentSettings.accountNumber}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(transferNote)}&accountName=${encodeURIComponent(paymentSettings.accountName)}`
     : null;
@@ -51,8 +60,11 @@ function buildTransferOrder(productIds: string[], paymentSettings: PaymentSettin
   };
 }
 
-export function createFallbackTransferOrder(productIds: string[]): TransferOrder {
-  return buildTransferOrder(productIds, defaultPaymentSettings);
+export function createFallbackTransferOrder(
+  productIds: string[],
+  comboSize?: 5 | 10 | null,
+): TransferOrder {
+  return buildTransferOrder(productIds, defaultPaymentSettings, comboSize);
 }
 
 export function createSavedTransferOrder({

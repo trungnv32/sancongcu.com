@@ -118,6 +118,13 @@ function Detail() {
     localStorage.setItem(key, JSON.stringify(cart.includes(skillId) ? cart : [...cart, skillId]));
     window.location.href = "/#danh-muc-1";
   };
+  const chooseCombo = (comboSize: 5 | 10) => {
+    const key = "sancongcu-cart";
+    const cart = JSON.parse(localStorage.getItem(key) || "[]") as string[];
+    localStorage.setItem(key, JSON.stringify(cart.includes(skillId) ? cart : [...cart, skillId]));
+    localStorage.setItem("sancongcu-combo-size", String(comboSize));
+    window.location.href = "/#danh-muc-1";
+  };
   const activate = () => {
     window.location.href = `/?activate=${encodeURIComponent(skillId)}#danh-muc-1`;
   };
@@ -214,6 +221,13 @@ function Detail() {
                       Tiết kiệm 20%
                     </span>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => chooseCombo(5)}
+                    className="mt-4 min-h-12 w-full rounded-full border border-background/40 px-4 py-3 text-sm font-bold transition hover:bg-background hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  >
+                    Chọn Combo 5 Skill
+                  </button>
                 </div>
                 <div className="rounded-xl border border-primary/70 bg-primary/20 p-4 shadow-[0_0_0_1px_hsl(var(--primary)/0.2)]">
                   <p className="text-sm font-bold">Combo 10 Skill</p>
@@ -227,6 +241,13 @@ function Detail() {
                       Tiết kiệm 50%
                     </span>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => chooseCombo(10)}
+                    className="mt-4 min-h-12 w-full rounded-full bg-background px-4 py-3 text-sm font-bold text-foreground transition hover:bg-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background"
+                  >
+                    Chọn Combo 10 Skill
+                  </button>
                 </div>
               </div>
               <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-background/15 pt-5">

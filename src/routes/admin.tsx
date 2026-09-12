@@ -1051,6 +1051,16 @@ function OrdersPanel({
                   <td className="px-5 py-4">
                     <div className="space-y-2">
                       {order.order_items.map((item) => {
+                        if (!item.skill_id) {
+                          return (
+                            <p
+                              key={item.id}
+                              className="min-w-56 pt-2 text-xs font-medium text-muted-foreground"
+                            >
+                              Quà tặng được bàn giao cùng đơn.
+                            </p>
+                          );
+                        }
                         const entitlement = entitlements.find(
                           (entry) => entry.order_item_id === item.id && !entry.revoked_at,
                         );

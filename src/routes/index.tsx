@@ -53,6 +53,13 @@ type Product = {
 
 const skillPriceUsd = 1.99;
 const paymentZaloUrl = "https://zalo.me/0938069668";
+type ComboSize = 5 | 10;
+
+function getSavedComboSize(): ComboSize | null {
+  if (typeof window === "undefined") return null;
+  const value = Number(window.localStorage.getItem("sancongcu-combo-size"));
+  return value === 5 || value === 10 ? value : null;
+}
 
 type Category = {
   id: string;
@@ -217,6 +224,7 @@ function Landing() {
       return [];
     }
   });
+  const [comboSize, setComboSize] = useState<ComboSize | null>(getSavedComboSize);
   const [checkoutTitle, setCheckoutTitle] = useState<string | null>(null);
   const [transferOrder, setTransferOrder] = useState<TransferOrder | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
@@ -224,6 +232,13 @@ function Landing() {
   useEffect(() => {
     window.localStorage.setItem("sancongcu-cart", JSON.stringify(cart));
   }, [cart]);
+  useEffect(() => {
+    if (comboSize) window.localStorage.setItem("sancongcu-combo-size", String(comboSize));
+    else window.localStorage.removeItem("sancongcu-combo-size");
+  }, [comboSize]);
+  useEffect(() => {
+    if (comboSize && cart.length > comboSize) setComboSize(null);
+  }, [cart.length, comboSize]);
   const [catalog, setCatalog] = useState<Category[] | null>(null);
   useEffect(() => {
     if (!supabase) return;
@@ -263,12 +278,14 @@ function Landing() {
   }, []);
   const activeCategories = catalog ?? categories;
   const add = (id: string) => setCart((c) => (c.includes(id) ? c : [...c, id]));
-  const total = cart.length * skillPriceUsd;
+  const total = comboSize === 5 ? 8 : comboSize === 10 ? 25 : cart.length * skillPriceUsd;
+  const comboReady = !comboSize || cart.length === comboSize;
+  const comboGift = comboSize === 10;
   const visibleCategories = activeCategories.filter(
     (category) =>
       category.visible !== false && category.products.some((product) => product.visible !== false),
   );
-  const startCheckout = async (products: Product[]) => {
+  const startCheckout = async (products: Product[], selectedComboSize: ComboSize | null = null) => {
     if (products.length === 0) return;
     setCheckoutTitle(
       products.length === 1 ? products[0].title : `${products.length} Skill đã chọn`,
@@ -278,7 +295,10 @@ function Landing() {
 
     // Render a usable QR before waiting for the database. The same code is
     // passed to Supabase immediately after the first paint.
-    const immediateOrder = createFallbackTransferOrder(products.map((product) => product.id));
+    const immediateOrder = createFallbackTransferOrder(
+      products.map((product) => product.id),
+      selectedComboSize,
+    );
     setTransferOrder(immediateOrder);
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
@@ -289,6 +309,7 @@ function Landing() {
       const { data, error } = await supabase.rpc("create_pending_order", {
         p_skill_slugs: products.map((product) => product.id),
         p_order_code: immediateOrder.orderCode,
+        p_combo_size: selectedComboSize ?? null,
       });
       const savedOrder = data?.[0];
       if (error) throw error;
@@ -318,7 +339,8 @@ function Landing() {
     const selectedProducts = activeCategories
       .flatMap((category) => category.products)
       .filter((product) => cart.includes(product.id));
-    await startCheckout(selectedProducts);
+    if (comboSize && selectedProducts.length !== comboSize) return;
+    await startCheckout(selectedProducts, comboSize);
   };
   useEffect(() => {
     const activateId = new URLSearchParams(window.location.search).get("activate");
@@ -344,7 +366,10 @@ function Landing() {
           </div>
           <div className="flex shrink-0 items-center gap-2 text-sm">
             <span className="hidden text-muted-foreground sm:inline">
-              {cart.length} skill · {total.toFixed(2)}$
+              {comboSize
+                ? `Combo ${comboSize} · ${cart.length}/${comboSize} Skill`
+                : `${cart.length} skill`}{" "}
+              · {total.toFixed(2)}$
             </span>
             <a
               href="#combo"
@@ -493,13 +518,21 @@ function Landing() {
       {cart.length > 0 && (
         <div className="fixed inset-x-0 bottom-4 z-40 mx-auto flex max-w-sm items-center justify-between rounded-full bg-foreground px-5 py-3 text-background shadow-brand">
           <span className="text-sm">
-            ⚡ {cart.length} skill · <strong>{total.toFixed(2)}$</strong>
+            ⚡{" "}
+            {comboSize
+              ? `Combo ${comboSize} · ${cart.length}/${comboSize} Skill`
+              : `${cart.length} skill`}{" "}
+            · <strong>{total.toFixed(2)}$</strong>
+            {comboGift && (
+              <span className="block text-xs text-background/75">+ ChatGPT Plus 1 tháng</span>
+            )}
           </span>
           <button
             onClick={handleCartCheckout}
-            className="rounded-full bg-brand-gradient px-4 py-1.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground"
+            disabled={!comboReady}
+            className="rounded-full bg-brand-gradient px-4 py-1.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Kích hoạt →
+            {comboReady ? "Kích hoạt →" : `Chọn thêm ${comboSize! - cart.length} Skill`}
           </button>
         </div>
       )}
