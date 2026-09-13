@@ -7,6 +7,7 @@ import {
   Copy,
   Eye,
   EyeOff,
+  FileText,
   ImagePlus,
   LoaderCircle,
   LogOut,
@@ -166,6 +167,7 @@ function AdminPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [newHallName, setNewHallName] = useState("");
+  const [adminSection, setAdminSection] = useState<"orders" | "catalog">("orders");
 
   const selectedSkill = useMemo(
     () => skills.find((skill) => skill.id === selectedSkillId) ?? null,
@@ -760,6 +762,18 @@ function AdminPage() {
 
       <div className="admin-layout mx-auto grid max-w-[1600px] gap-5 p-4 sm:p-6 lg:grid-cols-[280px_minmax(0,1fr)]">
         <aside className="min-w-0 rounded-2xl border border-border bg-card p-3 shadow-sm lg:sticky lg:top-24 lg:h-[calc(100vh-7rem)] lg:overflow-y-auto">
+          <button
+            type="button"
+            onClick={() => setAdminSection("orders")}
+            aria-current={adminSection === "orders" ? "page" : undefined}
+            className={`mb-4 flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-bold transition ${adminSection === "orders" ? "bg-foreground text-background" : "border border-border hover:bg-muted"}`}
+          >
+            <FileText className="size-4" />
+            Quản lý đơn
+            <span className="ml-auto rounded-full bg-background/15 px-2 py-0.5 text-xs">
+              {orders.length}
+            </span>
+          </button>
           <div className="flex items-center justify-between px-2 py-2">
             <h2 className="font-bold">Danh mục</h2>
             <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold">
@@ -771,6 +785,7 @@ function AdminPage() {
               <button
                 key={hall.id}
                 onClick={() => {
+                  setAdminSection("catalog");
                   setSelectedHallId(hall.id);
                   setSelectedSkillId(skills.find((skill) => skill.hall_id === hall.id)?.id ?? null);
                 }}
@@ -810,188 +825,194 @@ function AdminPage() {
         <section className="admin-content min-w-0 space-y-5">
           {error && <Alert tone="error" text={error} onClose={() => setError(null)} />}
           {notice && <Alert tone="success" text={notice} onClose={() => setNotice(null)} />}
-          <OrdersPanel
-            orders={orders}
-            entitlements={entitlements}
-            onStatusChange={updateOrderStatus}
-            onInstallLink={createOrCopyInstallLink}
-            onRegenerateInstallLink={(order, item) => createOrCopyInstallLink(order, item, true)}
-          />
-          {selectedHall && (
-            <form
-              onSubmit={(event) => void saveHall(event)}
-              onChange={(event) => {
-                const input = event.target as unknown as HTMLInputElement;
-                if (input.name === "hall_name") {
-                  const slugInput = event.currentTarget.elements.namedItem(
-                    "hall_slug",
-                  ) as HTMLInputElement | null;
-                  if (slugInput) slugInput.value = slugify(input.value);
-                }
-              }}
-              className="rounded-2xl border border-border bg-card p-4 sm:p-5"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-                    Chỉnh sửa sảnh
-                  </p>
-                  <h2 className="mt-1 text-xl font-bold">{selectedHall.name}</h2>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => void toggleHall(selectedHall)}
-                    className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-bold transition hover:bg-muted"
-                  >
-                    {selectedHall.is_visible ? (
-                      <Eye className="size-4" />
-                    ) : (
-                      <EyeOff className="size-4" />
-                    )}
-                    {selectedHall.is_visible ? "Đang hiển thị" : "Đang ẩn"}
-                  </button>
-                  <button
-                    disabled={isSaving}
-                    className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
-                  >
-                    <Save className="size-4" />
-                    Lưu sảnh
-                  </button>
-                </div>
-              </div>
-              <div className="mt-5 grid gap-4 md:grid-cols-2">
-                <CountInput
-                  label="Tên sảnh"
-                  name="hall_name"
-                  defaultValue={selectedHall.name}
-                  maxLength={100}
-                />
-                <CountInput
-                  label="Đường dẫn sảnh"
-                  name="hall_slug"
-                  defaultValue={selectedHall.slug}
-                  maxLength={100}
-                />
-                <Field label="Thứ tự hiển thị">
-                  <input
-                    name="hall_sort_order"
-                    inputMode="numeric"
-                    type="number"
-                    defaultValue={selectedHall.sort_order}
-                    className="input"
-                  />
-                </Field>
-                <Field label="URL poster sảnh">
-                  <input
-                    name="hall_poster_path"
-                    defaultValue={selectedHall.poster_path ?? ""}
-                    className="input"
-                  />
-                </Field>
-              </div>
-              <div className="mt-4">
-                <CountInput
-                  label="Mô tả sảnh"
-                  name="hall_description"
-                  defaultValue={selectedHall.description}
-                  maxLength={300}
-                  multiline
-                  rows={4}
-                />
-              </div>
-            </form>
+          {adminSection === "orders" && (
+            <OrdersPanel
+              orders={orders}
+              entitlements={entitlements}
+              onStatusChange={updateOrderStatus}
+              onInstallLink={createOrCopyInstallLink}
+              onRegenerateInstallLink={(order, item) => createOrCopyInstallLink(order, item, true)}
+            />
           )}
-
-          <section className="rounded-2xl border border-border bg-card shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4 sm:p-5">
-              <div>
-                <h2 className="font-bold">Skill trong danh mục</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Chọn một Skill để chỉnh sửa toàn bộ nội dung.
-                </p>
-              </div>
-              <button
-                onClick={() => void createSkill()}
-                disabled={isSaving}
-                className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-gradient px-4 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90 disabled:opacity-50"
+          {adminSection === "catalog" && selectedHall && (
+            <>
+              <form
+                onSubmit={(event) => void saveHall(event)}
+                onChange={(event) => {
+                  const input = event.target as unknown as HTMLInputElement;
+                  if (input.name === "hall_name") {
+                    const slugInput = event.currentTarget.elements.namedItem(
+                      "hall_slug",
+                    ) as HTMLInputElement | null;
+                    if (slugInput) slugInput.value = slugify(input.value);
+                  }
+                }}
+                className="rounded-2xl border border-border bg-card p-4 sm:p-5"
               >
-                <Plus className="size-4" />
-                Tạo Skill
-              </button>
-            </div>
-            <div className="flex min-w-0 max-w-full gap-3 overflow-x-auto p-4 sm:p-5">
-              {skills
-                .filter((skill) => !selectedHallId || skill.hall_id === selectedHallId)
-                .map((skill) => (
-                  <div
-                    key={skill.id}
-                    className={`w-52 shrink-0 overflow-hidden rounded-xl border text-left transition ${selectedSkillId === skill.id ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/50"}`}
-                  >
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                      Chỉnh sửa sảnh
+                    </p>
+                    <h2 className="mt-1 text-xl font-bold">{selectedHall.name}</h2>
+                  </div>
+                  <div className="flex gap-2">
                     <button
-                      onClick={() => setSelectedSkillId(skill.id)}
-                      className="block w-full text-left"
+                      type="button"
+                      onClick={() => void toggleHall(selectedHall)}
+                      className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-bold transition hover:bg-muted"
                     >
-                      <div className="aspect-[16/9] bg-muted">
-                        {skill.thumbnail_path ? (
-                          <img
-                            src={skill.thumbnail_path}
-                            alt=""
-                            className="size-full object-cover"
-                          />
-                        ) : (
-                          <div className="grid size-full place-items-center text-xs font-semibold text-muted-foreground">
-                            Chưa có ảnh
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-3">
-                        <p className="line-clamp-2 text-sm font-bold">{skill.title}</p>
-                        <p className="mt-2 text-xs text-muted-foreground">
-                          {statusLabel[skill.status]}
-                        </p>
-                      </div>
+                      {selectedHall.is_visible ? (
+                        <Eye className="size-4" />
+                      ) : (
+                        <EyeOff className="size-4" />
+                      )}
+                      {selectedHall.is_visible ? "Đang hiển thị" : "Đang ẩn"}
                     </button>
                     <button
-                      onClick={() => void toggleSkillVisibility(skill)}
-                      className={`m-3 mt-0 inline-flex min-h-9 w-[calc(100%-1.5rem)] items-center justify-center rounded-lg text-xs font-bold ${skill.status === "published" ? "border border-border hover:bg-muted" : "bg-primary text-primary-foreground"}`}
+                      disabled={isSaving}
+                      className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
                     >
-                      {skill.status === "published" ? "Ẩn Skill" : "Hiển thị"}
+                      <Save className="size-4" />
+                      Lưu sảnh
                     </button>
                   </div>
-                ))}
-              {skills.filter((skill) => !selectedHallId || skill.hall_id === selectedHallId)
-                .length === 0 && (
-                <p className="py-5 text-sm text-muted-foreground">
-                  Chưa có Skill trong danh mục này.
-                </p>
-              )}
-            </div>
-          </section>
+                </div>
+                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                  <CountInput
+                    label="Tên sảnh"
+                    name="hall_name"
+                    defaultValue={selectedHall.name}
+                    maxLength={100}
+                  />
+                  <CountInput
+                    label="Đường dẫn sảnh"
+                    name="hall_slug"
+                    defaultValue={selectedHall.slug}
+                    maxLength={100}
+                  />
+                  <Field label="Thứ tự hiển thị">
+                    <input
+                      name="hall_sort_order"
+                      inputMode="numeric"
+                      type="number"
+                      defaultValue={selectedHall.sort_order}
+                      className="input"
+                    />
+                  </Field>
+                  <Field label="URL poster sảnh">
+                    <input
+                      name="hall_poster_path"
+                      defaultValue={selectedHall.poster_path ?? ""}
+                      className="input"
+                    />
+                  </Field>
+                </div>
+                <div className="mt-4">
+                  <CountInput
+                    label="Mô tả sảnh"
+                    name="hall_description"
+                    defaultValue={selectedHall.description}
+                    maxLength={300}
+                    multiline
+                    rows={4}
+                  />
+                </div>
+              </form>
 
-          {selectedSkill ? (
-            <SkillEditor
-              skill={selectedSkill}
-              halls={halls}
-              media={selectedMedia}
-              isSaving={isSaving}
-              onSave={saveSkill}
-              onDelete={deleteSkill}
-              onToggleVisibility={toggleSkillVisibility}
-              onUpload={uploadFile}
-              packages={packages.filter((itemPackage) => itemPackage.skill_id === selectedSkill.id)}
-              onUploadPackage={uploadSkillPackage}
-              onMediaUpdate={updateMedia}
-              onMediaDelete={deleteMedia}
-            />
-          ) : (
-            <section className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
-              <ImagePlus className="mx-auto size-8 text-primary" />
-              <h2 className="mt-4 text-lg font-bold">Chọn hoặc tạo một Skill</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Nội dung chi tiết, gallery và hướng dẫn sẽ xuất hiện ở đây.
-              </p>
-            </section>
+              <section className="rounded-2xl border border-border bg-card shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4 sm:p-5">
+                  <div>
+                    <h2 className="font-bold">Skill trong danh mục</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Chọn một Skill để chỉnh sửa toàn bộ nội dung.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => void createSkill()}
+                    disabled={isSaving}
+                    className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-gradient px-4 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90 disabled:opacity-50"
+                  >
+                    <Plus className="size-4" />
+                    Tạo Skill
+                  </button>
+                </div>
+                <div className="flex min-w-0 max-w-full gap-3 overflow-x-auto p-4 sm:p-5">
+                  {skills
+                    .filter((skill) => !selectedHallId || skill.hall_id === selectedHallId)
+                    .map((skill) => (
+                      <div
+                        key={skill.id}
+                        className={`w-52 shrink-0 overflow-hidden rounded-xl border text-left transition ${selectedSkillId === skill.id ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/50"}`}
+                      >
+                        <button
+                          onClick={() => setSelectedSkillId(skill.id)}
+                          className="block w-full text-left"
+                        >
+                          <div className="aspect-[16/9] bg-muted">
+                            {skill.thumbnail_path ? (
+                              <img
+                                src={skill.thumbnail_path}
+                                alt=""
+                                className="size-full object-cover"
+                              />
+                            ) : (
+                              <div className="grid size-full place-items-center text-xs font-semibold text-muted-foreground">
+                                Chưa có ảnh
+                              </div>
+                            )}
+                          </div>
+                          <div className="p-3">
+                            <p className="line-clamp-2 text-sm font-bold">{skill.title}</p>
+                            <p className="mt-2 text-xs text-muted-foreground">
+                              {statusLabel[skill.status]}
+                            </p>
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => void toggleSkillVisibility(skill)}
+                          className={`m-3 mt-0 inline-flex min-h-9 w-[calc(100%-1.5rem)] items-center justify-center rounded-lg text-xs font-bold ${skill.status === "published" ? "border border-border hover:bg-muted" : "bg-primary text-primary-foreground"}`}
+                        >
+                          {skill.status === "published" ? "Ẩn Skill" : "Hiển thị"}
+                        </button>
+                      </div>
+                    ))}
+                  {skills.filter((skill) => !selectedHallId || skill.hall_id === selectedHallId)
+                    .length === 0 && (
+                    <p className="py-5 text-sm text-muted-foreground">
+                      Chưa có Skill trong danh mục này.
+                    </p>
+                  )}
+                </div>
+              </section>
+
+              {selectedSkill ? (
+                <SkillEditor
+                  skill={selectedSkill}
+                  halls={halls}
+                  media={selectedMedia}
+                  isSaving={isSaving}
+                  onSave={saveSkill}
+                  onDelete={deleteSkill}
+                  onToggleVisibility={toggleSkillVisibility}
+                  onUpload={uploadFile}
+                  packages={packages.filter(
+                    (itemPackage) => itemPackage.skill_id === selectedSkill.id,
+                  )}
+                  onUploadPackage={uploadSkillPackage}
+                  onMediaUpdate={updateMedia}
+                  onMediaDelete={deleteMedia}
+                />
+              ) : (
+                <section className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
+                  <ImagePlus className="mx-auto size-8 text-primary" />
+                  <h2 className="mt-4 text-lg font-bold">Chọn hoặc tạo một Skill</h2>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Nội dung chi tiết, gallery và hướng dẫn sẽ xuất hiện ở đây.
+                  </p>
+                </section>
+              )}
+            </>
           )}
         </section>
       </div>
