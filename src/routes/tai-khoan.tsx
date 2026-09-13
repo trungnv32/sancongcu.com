@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CheckCircle2, CircleUserRound, LoaderCircle, LogOut, WalletCards } from "lucide-react";
+import { CircleUserRound, LoaderCircle, LogOut, Save, Settings, WalletCards } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
@@ -12,6 +12,7 @@ function AccountPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [wallet, setWallet] = useState<Wallet | null>(null);
+  const [displayName, setDisplayName] = useState("");
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [fullName, setFullName] = useState("");
   const [identityType, setIdentityType] = useState<"email" | "phone">("email");
@@ -40,6 +41,7 @@ function AccountPage() {
         supabase.from("wallets").select("balance_vnd").eq("user_id", id).maybeSingle(),
       ]);
       setProfile((profileResult.data as Profile | null) ?? null);
+      setDisplayName((profileResult.data as Profile | null)?.display_name ?? "");
       setWallet((walletResult.data as Wallet | null) ?? null);
     };
     void supabase.auth.getUser().then(({ data }) => void load(data.user?.id ?? null));
@@ -107,6 +109,26 @@ function AccountPage() {
     await supabase?.auth.signOut();
   }
 
+  async function saveAccountSettings(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!supabase || !userId) return;
+    setBusy(true);
+    setError(null);
+    const { data, error: updateError } = await supabase
+      .from("profiles")
+      .update({ display_name: displayName.trim() })
+      .eq("user_id", userId)
+      .select("display_name,email,phone")
+      .single();
+    setBusy(false);
+    if (updateError) {
+      setError(updateError.message);
+      return;
+    }
+    setProfile(data as Profile);
+    setNotice("Đã lưu cài đặt tài khoản.");
+  }
+
   if (!supabase) {
     return (
       <main className="grid min-h-screen place-items-center bg-soft-gradient p-6">
@@ -128,7 +150,7 @@ function AccountPage() {
                 Xin chào{profile?.display_name ? `, ${profile.display_name}` : ""}
               </h1>
               <p className="mt-2 text-sm text-muted-foreground">
-                Quản lý ví và các Webapp Skill của bạn.
+                Quản lý số dư và các Webapp Skill của bạn.
               </p>
             </div>
             <button
@@ -139,9 +161,9 @@ function AccountPage() {
               <LogOut className="size-4" /> Đăng xuất
             </button>
           </div>
-          <section className="mt-8 rounded-2xl bg-foreground p-5 text-background sm:p-6">
+          <section id="so-du" className="mt-8 rounded-2xl bg-foreground p-5 text-background sm:p-6">
             <div className="flex items-center gap-2 text-background/70">
-              <WalletCards className="size-5" /> Ví SanCongCu
+              <WalletCards className="size-5" /> Số dư
             </div>
             <p className="mt-3 text-4xl font-extrabold">
               {(wallet?.balance_vnd ?? 0).toLocaleString("vi-VN")}đ
@@ -170,6 +192,34 @@ function AccountPage() {
               </p>
               <p className="mt-2 font-semibold">{profile?.phone || "Chưa liên kết"}</p>
             </div>
+          </section>
+          <section id="cai-dat" className="mt-6 rounded-2xl border border-border p-5 sm:p-6">
+            <div className="flex items-center gap-2">
+              <Settings className="size-5 text-primary" />
+              <h2 className="text-xl font-bold">Cài đặt tài khoản</h2>
+            </div>
+            <form onSubmit={(event) => void saveAccountSettings(event)} className="mt-5">
+              <label className="block text-sm font-bold">
+                Tên hiển thị
+                <input
+                  value={displayName}
+                  onChange={(event) => setDisplayName(event.target.value)}
+                  className="input mt-2 h-12"
+                  maxLength={80}
+                />
+              </label>
+              <button
+                disabled={busy}
+                className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full bg-brand-gradient px-5 py-3 text-sm font-bold text-primary-foreground disabled:opacity-60"
+              >
+                {busy ? (
+                  <LoaderCircle className="size-4 animate-spin" />
+                ) : (
+                  <Save className="size-4" />
+                )}{" "}
+                Lưu cài đặt
+              </button>
+            </form>
           </section>
           <Link
             to="/"

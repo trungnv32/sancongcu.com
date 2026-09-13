@@ -1,7 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ImagePlus, LoaderCircle, WalletCards } from "lucide-react";
+import {
+  CircleUserRound,
+  ImagePlus,
+  LoaderCircle,
+  LogOut,
+  Settings,
+  WalletCards,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import fallback from "@/assets/tue-lam-03-standing.jpg";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/app/$skillId")({ component: SkillWebapp });
@@ -19,6 +34,7 @@ function SkillWebapp() {
   const [loaded, setLoaded] = useState(!supabase);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSignedIn, setIsSignedIn] = useState(false);
+  const [balance, setBalance] = useState<number | null>(null);
 
   useEffect(() => {
     if (!supabase) return;
@@ -37,12 +53,29 @@ function SkillWebapp() {
 
   useEffect(() => {
     if (!supabase) return;
-    void supabase.auth.getSession().then(({ data }) => setIsSignedIn(Boolean(data.session)));
+    const loadAccount = async (userId: string | undefined) => {
+      setIsSignedIn(Boolean(userId));
+      if (!userId) {
+        setBalance(null);
+        return;
+      }
+      const { data } = await supabase
+        .from("wallets")
+        .select("balance_vnd")
+        .eq("user_id", userId)
+        .maybeSingle();
+      setBalance(data?.balance_vnd ?? 0);
+    };
+    void supabase.auth.getSession().then(({ data }) => void loadAccount(data.session?.user.id));
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsSignedIn(Boolean(session));
+      void loadAccount(session?.user.id);
     });
     return () => subscription.subscription.unsubscribe();
   }, []);
+
+  async function signOut() {
+    await supabase?.auth.signOut();
+  }
 
   if (!loaded) {
     return (
@@ -82,13 +115,43 @@ function SkillWebapp() {
           >
             ← Chi tiết Skill
           </Link>
-          <Link
-            to="/tai-khoan"
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-bold"
-          >
-            <WalletCards className="size-4" />
-            {isSignedIn ? "Ví của tôi" : "Đăng nhập"}
-          </Link>
+          {isSignedIn ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-bold transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                  <CircleUserRound className="size-4" /> Tài khoản
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 rounded-xl p-2">
+                <DropdownMenuLabel>Tài khoản</DropdownMenuLabel>
+                <DropdownMenuItem asChild>
+                  <Link to="/tai-khoan" hash="so-du" className="min-h-11 cursor-pointer">
+                    <WalletCards className="size-4" /> Số dư:{" "}
+                    {(balance ?? 0).toLocaleString("vi-VN")}đ
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/tai-khoan" hash="cai-dat" className="min-h-11 cursor-pointer">
+                    <Settings className="size-4" /> Cài đặt tài khoản
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={() => void signOut()}
+                  className="min-h-11 cursor-pointer text-destructive focus:text-destructive"
+                >
+                  <LogOut className="size-4" /> Đăng xuất
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link
+              to="/tai-khoan"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-bold transition hover:bg-muted"
+            >
+              <CircleUserRound className="size-4" /> Đăng nhập
+            </Link>
+          )}
         </div>
       </header>
       <section className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-[minmax(0,1fr)_360px]">
