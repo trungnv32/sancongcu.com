@@ -51,11 +51,17 @@ Deno.serve(async (request) => {
       const { data: jobs, error } = await db
         .from("webapp_jobs")
         .select(
-          "id,user_id,status,quoted_amount_vnd,input_paths,output_paths,instruction,request_params,error_message,created_at,completed_at,skills(title),profiles(display_name,phone)",
+          "id,user_id,status,quoted_amount_vnd,input_paths,output_paths,instruction,request_params,error_message,created_at,completed_at,skills(title)",
         )
         .order("created_at", { ascending: false })
         .limit(100);
       if (error) return json({ error: "Không thể tải lịch sử tạo ảnh." }, 500);
+      const userIds = [...new Set((jobs ?? []).map((job) => job.user_id))];
+      const { data: profiles, error: profileError } = userIds.length
+        ? await db.from("profiles").select("user_id,display_name,phone").in("user_id", userIds)
+        : { data: [], error: null };
+      if (profileError) return json({ error: "Không thể tải thông tin khách hàng." }, 500);
+      const profilesByUserId = new Map((profiles ?? []).map((profile) => [profile.user_id, profile]));
       const items = await Promise.all(
         (jobs ?? []).map(async (job) => {
           const sign = async (bucket: "webapp-inputs" | "webapp-outputs", path: string) =>
@@ -68,6 +74,7 @@ Deno.serve(async (request) => {
           );
           return {
             ...job,
+            profiles: profilesByUserId.get(job.user_id) ?? null,
             input_urls: inputUrls.filter(Boolean),
             output_urls: outputUrls.filter(Boolean),
           };
