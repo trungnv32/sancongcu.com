@@ -8,17 +8,15 @@ export const Route = createFileRoute("/tai-khoan")({ component: AccountPage });
 type Profile = { display_name: string; email: string | null; phone: string | null };
 type Wallet = { balance_vnd: number };
 
-function isEmail(value: string) {
-  return value.includes("@");
-}
-
 function AccountPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [fullName, setFullName] = useState("");
+  const [identityType, setIdentityType] = useState<"email" | "phone">("email");
   const [identity, setIdentity] = useState("");
+  const [phoneConfirmation, setPhoneConfirmation] = useState("");
   const [password, setPassword] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -72,12 +70,21 @@ function AccountPage() {
     setError(null);
     setNotice(null);
     const commonOptions = { data: { full_name: fullName.trim() } };
+    if (
+      mode === "signup" &&
+      identityType === "phone" &&
+      identity.trim() !== phoneConfirmation.trim()
+    ) {
+      setError("Số điện thoại nhập lại chưa khớp.");
+      setBusy(false);
+      return;
+    }
     const result =
       mode === "signup"
-        ? isEmail(identity)
+        ? identityType === "email"
           ? await supabase.auth.signUp({ email: identity.trim(), password, options: commonOptions })
           : await supabase.auth.signUp({ phone: identity.trim(), password, options: commonOptions })
-        : isEmail(identity)
+        : identityType === "email"
           ? await supabase.auth.signInWithPassword({ email: identity.trim(), password })
           : await supabase.auth.signInWithPassword({ phone: identity.trim(), password });
     setBusy(false);
@@ -87,9 +94,9 @@ function AccountPage() {
     }
     if (mode === "signup" && !result.data.session) {
       setNotice(
-        isEmail(identity)
+        identityType === "email"
           ? "Hãy kiểm tra email để xác nhận tài khoản trước khi đăng nhập."
-          : "Hãy làm theo hướng dẫn xác minh số điện thoại để hoàn tất đăng ký.",
+          : "Tài khoản đã được tạo. Bạn có thể đăng nhập bằng số điện thoại và mật khẩu.",
       );
       return;
     }
@@ -213,17 +220,57 @@ function AccountPage() {
               />
             </label>
           )}
-          <label className={`block text-sm font-bold ${mode === "signup" ? "mt-4" : ""}`}>
-            Email hoặc số điện thoại
+          <div
+            className={`mt-4 grid grid-cols-2 rounded-xl bg-muted p-1 text-sm font-bold ${mode === "signup" ? "" : "mt-0"}`}
+          >
+            <button
+              type="button"
+              onClick={() => setIdentityType("email")}
+              aria-pressed={identityType === "email"}
+              className={`min-h-10 rounded-lg px-3 transition ${identityType === "email" ? "bg-card shadow-sm" : "text-muted-foreground"}`}
+            >
+              Email
+            </button>
+            <button
+              type="button"
+              onClick={() => setIdentityType("phone")}
+              aria-pressed={identityType === "phone"}
+              className={`min-h-10 rounded-lg px-3 transition ${identityType === "phone" ? "bg-card shadow-sm" : "text-muted-foreground"}`}
+            >
+              Số điện thoại
+            </button>
+          </div>
+          <label className="mt-4 block text-sm font-bold">
+            {identityType === "email" ? "Email" : "Số điện thoại"}
             <input
               value={identity}
               onChange={(event) => setIdentity(event.target.value)}
               className="input mt-2 h-12"
-              placeholder="email@domain.com hoặc +84…"
+              type={identityType === "email" ? "email" : "tel"}
+              inputMode={identityType === "email" ? "email" : "tel"}
+              placeholder={identityType === "email" ? "email@domain.com" : "+84…"}
               required
               autoComplete="username"
             />
           </label>
+          {mode === "signup" && identityType === "phone" && (
+            <label className="mt-4 block text-sm font-bold">
+              Nhập lại số điện thoại
+              <input
+                value={phoneConfirmation}
+                onChange={(event) => setPhoneConfirmation(event.target.value)}
+                className="input mt-2 h-12"
+                type="tel"
+                inputMode="tel"
+                placeholder="Nhập lại đúng số điện thoại ở trên"
+                required
+                autoComplete="tel"
+              />
+              <span className="mt-2 block text-xs font-normal leading-5 text-muted-foreground">
+                Chúng tôi dùng bước này để hạn chế lỗi gõ nhầm số; hiện chưa gửi SMS xác thực.
+              </span>
+            </label>
+          )}
           <label className="mt-4 block text-sm font-bold">
             Mật khẩu
             <input
@@ -264,6 +311,7 @@ function AccountPage() {
             setMode(mode === "login" ? "signup" : "login");
             setError(null);
             setNotice(null);
+            setPhoneConfirmation("");
           }}
           className="mt-5 w-full text-sm font-bold text-primary hover:underline"
         >
