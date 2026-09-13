@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AppSkillIdRouteImport } from './routes/app.$skillId'
 import { Route as SkillSkillIdRouteImport } from './routes/skill.$skillId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +24,11 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppSkillIdRoute = AppSkillIdRouteImport.update({
+  id: '/app/$skillId',
+  path: '/app/$skillId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SkillSkillIdRoute = SkillSkillIdRouteImport.update({
   id: '/skill/$skillId',
   path: '/skill/$skillId',
@@ -32,30 +38,34 @@ const SkillSkillIdRoute = SkillSkillIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/app/$skillId': typeof AppSkillIdRoute
   '/skill/$skillId': typeof SkillSkillIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/app/$skillId': typeof AppSkillIdRoute
   '/skill/$skillId': typeof SkillSkillIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/app/$skillId': typeof AppSkillIdRoute
   '/skill/$skillId': typeof SkillSkillIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/skill/$skillId'
+  fullPaths: '/' | '/admin' | '/app/$skillId' | '/skill/$skillId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/skill/$skillId'
-  id: '__root__' | '/' | '/admin' | '/skill/$skillId'
+  to: '/' | '/admin' | '/app/$skillId' | '/skill/$skillId'
+  id: '__root__' | '/' | '/admin' | '/app/$skillId' | '/skill/$skillId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  AppSkillIdRoute: typeof AppSkillIdRoute
   SkillSkillIdRoute: typeof SkillSkillIdRoute
 }
 
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/$skillId': {
+      id: '/app/$skillId'
+      path: '/app/$skillId'
+      fullPath: '/app/$skillId'
+      preLoaderRoute: typeof AppSkillIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/skill/$skillId': {
       id: '/skill/$skillId'
       path: '/skill/$skillId'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  AppSkillIdRoute: AppSkillIdRoute,
   SkillSkillIdRoute: SkillSkillIdRoute,
 }
 export const routeTree = rootRouteImport

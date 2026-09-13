@@ -51,6 +51,7 @@ type Skill = {
   thumbnail_path: string | null;
   price_usd: number;
   activation_price_vnd: number;
+  webapp_enabled: boolean;
   status: "draft" | "published" | "hidden";
   sort_order: number;
 };
@@ -389,6 +390,7 @@ function AdminPage() {
       thumbnail_path: String(form.get("thumbnail_path") || "").trim() || null,
       price_usd: Number(form.get("price_usd") || 1.99),
       activation_price_vnd: Number(form.get("activation_price_vnd") || 51000),
+      webapp_enabled: form.get("webapp_enabled") === "on",
       status: String(form.get("status")) as Skill["status"],
       sort_order: Number(form.get("sort_order") || 0),
     };
@@ -1284,6 +1286,24 @@ function SkillEditor({
               className="input"
             />
           </Field>
+          <div className="rounded-xl border border-border bg-muted/40 p-4 sm:col-span-2">
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                key={`webapp-enabled-${skill.id}`}
+                name="webapp_enabled"
+                type="checkbox"
+                defaultChecked={skill.webapp_enabled}
+                className="mt-1 size-4 accent-primary"
+              />
+              <span>
+                <span className="block text-sm font-bold">Có Webapp dùng ngay</span>
+                <span className="mt-1 block text-sm leading-6 text-muted-foreground">
+                  Hiển thị CTA “Dùng ngay trên app” tại trang chi tiết và mở trang Webapp riêng
+                  cho Skill này.
+                </span>
+              </span>
+            </label>
+          </div>
           <Field label="Thứ tự trong danh mục">
             <input
               name="sort_order"
