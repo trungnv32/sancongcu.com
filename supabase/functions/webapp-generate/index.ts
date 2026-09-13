@@ -287,13 +287,14 @@ Deno.serve(async (request) => {
         );
         requestForm.append("size", "1024x1024");
         requestForm.append("n", "1");
+        // The Images API accepts multiple references only through image[].
         // Image 1 is the product reference; Image 2 locks the room for later shots.
-        files.forEach((file) => requestForm.append("image", file, file.name));
-        if (canonicalRoom) requestForm.append("image", canonicalRoom, canonicalRoom.name);
+        files.forEach((file) => requestForm.append("image[]", file, file.name));
+        if (canonicalRoom) requestForm.append("image[]", canonicalRoom, canonicalRoom.name);
         else if (heroLayoutReference)
-          requestForm.append("image", heroLayoutReference, heroLayoutReference.name);
+          requestForm.append("image[]", heroLayoutReference, heroLayoutReference.name);
         if (logo instanceof File && logoPosition !== "none")
-          requestForm.append("image", logo, logo.name);
+          requestForm.append("image[]", logo, logo.name);
         const response = await fetch("https://api.openai.com/v1/images/edits", {
           method: "POST",
           headers: { Authorization: `Bearer ${apiKey}` },
