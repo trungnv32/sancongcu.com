@@ -5,8 +5,7 @@ import fallback from "@/assets/tue-lam-03-standing.jpg";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/app/$skillId")({ component: SkillWebapp });
-type Config = { price_vnd?: number; input_limit?: number; input_min?: number };
-type LogoPosition = "none" | "top-left" | "top-right" | "center";
+type Config = { price_vnd?: number; input_limit?: number };
 type Skill = {
   title: string;
   introduction: string;
@@ -28,21 +27,14 @@ function SkillWebapp() {
   const [skill, setSkill] = useState<Skill | null>(null);
   const [loaded, setLoaded] = useState(!supabase);
   const [files, setFiles] = useState<File[]>([]);
-  const [logo, setLogo] = useState<File | null>(null);
   const [instruction, setInstruction] = useState("");
-  const [selectedOutputCount, setSelectedOutputCount] = useState(1);
-  const [includeCover, setIncludeCover] = useState(false);
-  const [logoPosition, setLogoPosition] = useState<LogoPosition>("none");
   const [signedIn, setSignedIn] = useState(false);
   const [balance, setBalance] = useState(0);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const pricePerImage = Math.max(0, skill?.webapp_config?.price_vnd ?? 15000);
+  const price = Math.max(0, skill?.webapp_config?.price_vnd ?? 15000);
   const inputLimit = Math.min(4, Math.max(1, skill?.webapp_config?.input_limit ?? 1));
-  const inputMin = Math.min(inputLimit, Math.max(1, skill?.webapp_config?.input_min ?? 1));
-  const unitPrice = logoPosition === "none" ? pricePerImage : 6000;
-  const totalPrice = selectedOutputCount * unitPrice;
 
   const loadJobs = async () => {
     if (!supabase) return;
@@ -105,13 +97,9 @@ function SkillWebapp() {
       const body = new FormData();
       body.set("skill_slug", skillId);
       body.set("instruction", instruction);
-      body.set("output_count", String(selectedOutputCount));
-      body.set("include_cover", String(includeCover));
-      body.set("logo_position", logoPosition);
       body.set("request_id", requestId);
       body.set("session_token", `Bearer ${session.access_token}`);
       files.forEach((file) => body.append("images[]", file));
-      if (logo) body.set("logo", logo);
       return body;
     };
     let data: { error?: string; job?: Job } | null = null;
@@ -138,12 +126,9 @@ function SkillWebapp() {
       return;
     }
     if (data?.job) setJobs((current) => [data.job as Job, ...current]);
-    setBalance((current) => Math.max(0, current - totalPrice));
+    setBalance((current) => Math.max(0, current - price));
     setFiles([]);
-    setLogo(null);
     setInstruction("");
-    setIncludeCover(false);
-    setLogoPosition("none");
   }
   if (!loaded)
     return (
@@ -210,9 +195,7 @@ function SkillWebapp() {
                 {files.length ? `Đã chọn ${files.length} ảnh` : "Tải ảnh sản phẩm lên"}
               </span>
               <span className="mt-1 block text-sm text-muted-foreground">
-                {inputLimit === 1
-                  ? "Chỉ cần 1 ảnh"
-                  : `Tối thiểu ${inputMin} · tối đa ${inputLimit} ảnh`}
+                {inputLimit === 1 ? "Chỉ cần 1 ảnh" : `Tối đa ${inputLimit} ảnh`}
                 {" · JPG, PNG hoặc WebP · 10 MB/ảnh"}
               </span>
               {inputLimit === 1 && (
@@ -235,92 +218,10 @@ function SkillWebapp() {
               ))}
             </div>
           )}
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <label className="block text-sm font-bold">
-              Số lượng ảnh (các góc chụp khác nhau)
-              <select
-                value={selectedOutputCount}
-                onChange={(event) => {
-                  setSelectedOutputCount(Number(event.target.value));
-                  setError(null);
-                }}
-                className="input mt-2 h-12"
-              >
-                {Array.from({ length: 4 }, (_, index) => index + 1).map((count) => (
-                  <option key={count} value={count}>
-                    {count} ảnh
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className="flex min-h-12 items-center gap-3 self-end rounded-xl border border-border bg-muted/40 px-4 text-sm font-bold">
-              <label className="flex cursor-pointer items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={includeCover}
-                  onChange={(event) => {
-                    setIncludeCover(event.target.checked);
-                    setError(null);
-                  }}
-                  className="size-4 accent-primary"
-                />
-                Có ảnh Hero
-              </label>
-              <a
-                href={skill.thumbnail_path || fallback}
-                target="_blank"
-                rel="noreferrer"
-                className="text-primary underline underline-offset-2"
-              >
-                (xem ảnh mẫu)
-              </a>
-            </div>
-          </div>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            {logoPosition === "none"
-              ? `${money(pricePerImage)} / ảnh · tổng ${money(totalPrice)}.`
-              : `Logo: 6.000đ / ảnh · tổng ${money(totalPrice)}.`}{" "}
-            Ảnh Hero được tính trong số lượng ảnh đã chọn. Khi chọn nhiều ảnh, app tạo lần lượt ảnh
-            toàn cảnh, trung cảnh và cận cảnh thay vì ghép nhiều góc vào một ảnh.
-          </p>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <label className="block text-sm font-bold">
-              Vị trí logo
-              <select
-                value={logoPosition}
-                onChange={(event) => {
-                  setLogoPosition(event.target.value as LogoPosition);
-                  setError(null);
-                }}
-                className="input mt-2 h-12"
-              >
-                <option value="none">Không logo</option>
-                <option value="top-left">Trái trên</option>
-                <option value="top-right">Phải trên</option>
-                <option value="center">Ở giữa</option>
-              </select>
-            </label>
-            <label className="block text-sm font-bold">
-              Tải logo PNG trong suốt
-              <input
-                type="file"
-                accept="image/png"
-                onChange={(event) => {
-                  setLogo(event.target.files?.[0] ?? null);
-                  event.target.value = "";
-                }}
-                className="input mt-2 block h-12 w-full cursor-pointer px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-2 file:py-1 file:font-semibold"
-              />
-              <span className="mt-1 block font-normal text-muted-foreground">
-                {logo ? logo.name : "Chỉ dùng khi bạn chọn vị trí logo."}
-              </span>
-            </label>
-          </div>
           <label className="mt-6 block text-sm font-bold">
             Yêu cầu thêm{" "}
             <span className="font-normal text-muted-foreground">
-              (không bắt buộc, nên ghi tên bộ ga, thành phần bộ ga, ví dụ 1 ga 2 vỏ gối, 1 chăn hè
-              trần mỏng, chất liệu và đặc tính)
+              (không bắt buộc)
             </span>
             <textarea
               value={instruction}
@@ -330,7 +231,7 @@ function SkillWebapp() {
               }}
               maxLength={1000}
               rows={5}
-              placeholder="Ví dụ: Bộ chăn ga poly cotton, 1 ga 2 vỏ gối 1 chăn hè trần mỏng, chất cotton, thấm hút tốt, giặt máy được, mọi kích thước"
+              placeholder="Ví dụ: tạo ảnh chính diện, nền phòng ngủ sáng, không thêm chữ…"
               className="input mt-2 min-h-32 resize-y leading-7"
             />
           </label>
@@ -344,11 +245,7 @@ function SkillWebapp() {
                 type="button"
                 onClick={() => {
                   setFiles([]);
-                  setLogo(null);
                   setInstruction("");
-                  setSelectedOutputCount(1);
-                  setIncludeCover(false);
-                  setLogoPosition("none");
                   setError(null);
                 }}
                 className="mt-3 font-bold underline underline-offset-4"
@@ -366,25 +263,23 @@ function SkillWebapp() {
           />
           <h2 className="mt-5 text-xl font-bold">Tạo ảnh theo lượt</h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            {logoPosition === "none" ? money(pricePerImage) : "6.000đ"} / ảnh · tổng{" "}
-            {money(totalPrice)} cho {selectedOutputCount} ảnh. Nếu tạo không thành công, hệ thống tự
-            hoàn tiền.
+            {money(price)} / ảnh. Nếu tạo không thành công, hệ thống tự hoàn tiền.
           </p>
           {signedIn ? (
             <button
               type="button"
-              disabled={files.length < inputMin || creating || balance < totalPrice}
+              disabled={!files.length || creating || balance < price}
               onClick={() => void generate()}
               className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-brand-gradient px-5 py-3 font-bold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {creating && <LoaderCircle className="size-4 animate-spin" />}
               {creating
                 ? "Đang tạo ảnh…"
-                : files.length < inputMin
-                  ? `Cần ${inputMin} ảnh đầu vào`
-                  : balance < totalPrice
+                : !files.length
+                  ? "Cần ảnh đầu vào"
+                  : balance < price
                     ? "Số dư chưa đủ"
-                    : `Tạo ảnh · ${money(totalPrice)}`}
+                    : `Tạo ảnh · ${money(price)}`}
             </button>
           ) : (
             <Link
