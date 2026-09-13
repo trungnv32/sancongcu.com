@@ -61,7 +61,9 @@ Deno.serve(async (request) => {
         ? await db.from("profiles").select("user_id,display_name,phone").in("user_id", userIds)
         : { data: [], error: null };
       if (profileError) return json({ error: "Không thể tải thông tin khách hàng." }, 500);
-      const profilesByUserId = new Map((profiles ?? []).map((profile) => [profile.user_id, profile]));
+      const profilesByUserId = new Map(
+        (profiles ?? []).map((profile) => [profile.user_id, profile]),
+      );
       const items = await Promise.all(
         (jobs ?? []).map(async (job) => {
           const sign = async (bucket: "webapp-inputs" | "webapp-outputs", path: string) =>

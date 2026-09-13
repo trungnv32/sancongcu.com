@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 // Environment variables can override these values for a future development project.
 export const supabaseUrl =
   import.meta.env.VITE_SUPABASE_URL ?? "https://hxcucycjemuudlvaxhdk.supabase.co";
-const supabasePublishableKey =
+export const supabasePublishableKey =
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "sb_publishable_5i2cKVLcW3jcq8JKJclBqw_1VMgRfO4";
 
 /**

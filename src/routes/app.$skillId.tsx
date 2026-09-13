@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { CircleUserRound, Download, ImagePlus, LoaderCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import fallback from "@/assets/tue-lam-03-standing.jpg";
-import { supabase } from "@/lib/supabase";
+import { supabase, supabasePublishableKey, supabaseUrl } from "@/lib/supabase";
 
 export const Route = createFileRoute("/app/$skillId")({ component: SkillWebapp });
 type Config = { price_vnd?: number; input_limit?: number; input_min?: number };
@@ -22,18 +22,6 @@ type Job = {
   output_urls: string[];
 };
 const money = (value: number) => `${value.toLocaleString("vi-VN")}đ`;
-
-async function functionErrorMessage(error: unknown) {
-  const context = (error as { context?: unknown } | null)?.context;
-  if (context instanceof Response) {
-    const body = await context
-      .clone()
-      .json()
-      .catch(() => null);
-    if (body && typeof body.error === "string") return body.error;
-  }
-  return "Không thể kết nối dịch vụ tạo ảnh. Vui lòng thử lại.";
-}
 
 function SkillWebapp() {
   const { skillId } = Route.useParams();
@@ -112,13 +100,40 @@ function SkillWebapp() {
     body.set("logo_position", logoPosition);
     files.forEach((file) => body.append("images", file));
     if (logo) body.set("logo", logo);
-    const { data, error: requestError } = await supabase.functions.invoke("webapp-generate", {
-      body,
-    });
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) {
+      setCreating(false);
+      setError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+      return;
+    }
+    let data: { error?: string; job?: Job } | null = null;
+    try {
+      const response = await fetch(`${supabaseUrl}/functions/v1/webapp-generate`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: supabasePublishableKey,
+          "X-Client-Info": "sancongcu-webapp",
+        },
+        body,
+      });
+      data = (await response.json().catch(() => null)) as typeof data;
+      if (!response.ok) throw new Error(data?.error || "Dịch vụ tạo ảnh đang gặp sự cố.");
+    } catch (requestError) {
+      setCreating(false);
+      console.error("Webapp generation failed", requestError);
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Không thể kết nối dịch vụ tạo ảnh. Vui lòng thử lại.",
+      );
+      return;
+    }
     setCreating(false);
-    if (requestError || data?.error) {
-      console.error("Webapp generation failed", requestError ?? data);
-      setError(data?.error || (await functionErrorMessage(requestError)));
+    if (data?.error) {
+      setError(data.error);
       return;
     }
     if (data?.job) setJobs((current) => [data.job as Job, ...current]);
