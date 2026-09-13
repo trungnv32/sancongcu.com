@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { CircleUserRound, Download, ImagePlus, LoaderCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import fallback from "@/assets/tue-lam-03-standing.jpg";
-import { generateWebappImage } from "@/lib/webapp-generate.functions";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/app/$skillId")({ component: SkillWebapp });
@@ -102,8 +101,7 @@ function SkillWebapp() {
       body.set("include_cover", String(includeCover));
       body.set("logo_position", logoPosition);
       body.set("request_id", requestId);
-      body.set("_access_token", session.access_token);
-      files.forEach((file) => body.append("images", file));
+      files.forEach((file) => body.append("images[]", file));
       if (logo) body.set("logo", logo);
       return body;
     };
@@ -119,7 +117,13 @@ function SkillWebapp() {
     try {
       for (let attempt = 0; attempt < 2; attempt += 1) {
         try {
-          data = (await generateWebappImage({ data: makeBody() })) as typeof data;
+          const response = await fetch("/api/webapp-generate.php", {
+            method: "POST",
+            headers: { "X-Supabase-Authorization": `Bearer ${session.access_token}` },
+            body: makeBody(),
+          });
+          data = (await response.json().catch(() => null)) as typeof data;
+          if (!response.ok) throw new Error(data?.error || "Dịch vụ tạo ảnh đang gặp sự cố.");
           break;
         } catch (error) {
           if (attempt === 1 || !(error instanceof TypeError)) throw error;

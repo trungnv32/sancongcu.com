@@ -119,7 +119,9 @@ Deno.serve(async (request) => {
   const includeCover = String(form.get("include_cover") || "false") === "true";
   const logoPosition = String(form.get("logo_position") || "none");
   const requestId = String(form.get("request_id") || "").trim();
-  const files = form.getAll("images").filter((item): item is File => item instanceof File);
+  const files = [...form.entries()]
+    .filter(([name, item]) => (name === "images" || name.startsWith("images[")) && item instanceof File)
+    .map(([, item]) => item as File);
   const logo = form.get("logo");
   if (!slug || files.length < 1) return json({ error: "Hãy tải ít nhất một ảnh sản phẩm." }, 400);
   if (
