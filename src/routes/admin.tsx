@@ -5,6 +5,7 @@ import {
   ChevronRight,
   CircleAlert,
   Copy,
+  History,
   Eye,
   EyeOff,
   FileText,
@@ -103,6 +104,35 @@ type WalletTopup = {
   confirmed_at: string | null;
 };
 
+type WebappJob = {
+  id: string;
+  user_id: string;
+  status: "queued" | "running" | "succeeded" | "failed" | "cancelled";
+  quoted_amount_vnd: number;
+  input_paths: string[];
+  output_paths: string[];
+  input_urls: string[];
+  output_urls: string[];
+  instruction: string;
+  request_params: {
+    output_count?: number;
+    include_hero?: boolean;
+    has_logo?: boolean;
+    logo_position?: string;
+    input_image_count?: number;
+    input_product_paths?: string[];
+    logo_path?: string | null;
+    model?: string;
+    prompt_template?: string;
+    shot_plan?: string[];
+  };
+  error_message: string | null;
+  created_at: string;
+  completed_at: string | null;
+  skills: { title: string } | null;
+  profiles: { display_name: string; phone: string | null } | null;
+};
+
 type SkillPackage = {
   id: string;
   skill_id: string;
@@ -169,6 +199,7 @@ function AdminPage() {
   const [media, setMedia] = useState<Media[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [walletTopups, setWalletTopups] = useState<WalletTopup[]>([]);
+  const [webappJobs, setWebappJobs] = useState<WebappJob[]>([]);
   const [packages, setPackages] = useState<SkillPackage[]>([]);
   const [entitlements, setEntitlements] = useState<SkillEntitlement[]>([]);
   const [selectedHallId, setSelectedHallId] = useState<string | null>(null);
@@ -178,7 +209,9 @@ function AdminPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [newHallName, setNewHallName] = useState("");
-  const [adminSection, setAdminSection] = useState<"orders" | "topups" | "catalog">("orders");
+  const [adminSection, setAdminSection] = useState<
+    "orders" | "topups" | "webapp-history" | "catalog"
+  >("orders");
 
   const selectedSkill = useMemo(
     () => skills.find((skill) => skill.id === selectedSkillId) ?? null,
@@ -227,6 +260,7 @@ function AdminPage() {
       packageResult,
       entitlementResult,
       topupResult,
+      webappHistoryResult,
     ] = await Promise.all([
       supabase.from("halls").select("*").order("sort_order").order("name"),
       supabase.from("skills").select("*").order("sort_order").order("title"),
@@ -241,6 +275,7 @@ function AdminPage() {
         .from("wallet_topups")
         .select("id,amount_vnd,credited_amount_vnd,transfer_code,status,created_at,confirmed_at")
         .order("created_at", { ascending: false }),
+      supabase.functions.invoke("webapp-generate", { body: { action: "admin-history" } }),
     ]);
     const requestError =
       hallResult.error ??
@@ -249,7 +284,8 @@ function AdminPage() {
       orderResult.error ??
       packageResult.error ??
       entitlementResult.error ??
-      topupResult.error;
+      topupResult.error ??
+      webappHistoryResult.error;
     if (requestError) {
       setError(`Không thể tải dữ liệu: ${requestError.message}`);
     } else {
@@ -262,6 +298,14 @@ function AdminPage() {
       setPackages((packageResult.data ?? []) as SkillPackage[]);
       setEntitlements((entitlementResult.data ?? []) as SkillEntitlement[]);
       setWalletTopups((topupResult.data ?? []) as WalletTopup[]);
+      setWebappJobs(
+        ((webappHistoryResult.data?.jobs ?? []) as WebappJob[]).map((job) => ({
+          ...job,
+          input_urls: job.input_urls ?? [],
+          output_urls: job.output_urls ?? [],
+          request_params: job.request_params ?? {},
+        })),
+      );
       setSelectedHallId((current) => current ?? nextHalls[0]?.id ?? null);
       setSelectedSkillId((current) => current ?? nextSkills[0]?.id ?? null);
     }
@@ -828,6 +872,18 @@ function AdminPage() {
               {walletTopups.filter((item) => item.status === "pending").length}
             </span>
           </button>
+          <button
+            type="button"
+            onClick={() => setAdminSection("webapp-history")}
+            aria-current={adminSection === "webapp-history" ? "page" : undefined}
+            className={`mb-4 flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-bold transition ${adminSection === "webapp-history" ? "bg-foreground text-background" : "border border-border hover:bg-muted"}`}
+          >
+            <History className="size-4" />
+            Lịch sử tạo ảnh
+            <span className="ml-auto rounded-full bg-background/15 px-2 py-0.5 text-xs">
+              {webappJobs.length}
+            </span>
+          </button>
           <div className="flex items-center justify-between px-2 py-2">
             <h2 className="font-bold">Danh mục</h2>
             <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold">
@@ -891,6 +947,7 @@ function AdminPage() {
           {adminSection === "topups" && (
             <TopupsPanel topups={walletTopups} onConfirmTopup={confirmWalletTopup} />
           )}
+          {adminSection === "webapp-history" && <WebappHistoryPanel jobs={webappJobs} />}
           {adminSection === "catalog" && selectedHall && (
             <>
               <form
@@ -1321,6 +1378,190 @@ function TopupsPanel({
         </div>
       )}
     </section>
+  );
+}
+
+function WebappHistoryPanel({ jobs }: { jobs: WebappJob[] }) {
+  const statusText: Record<WebappJob["status"], string> = {
+    queued: "Đang chờ",
+    running: "Đang tạo",
+    succeeded: "Đã tạo ảnh",
+    failed: "Tạo lỗi · đã hoàn tiền",
+    cancelled: "Đã hủy",
+  };
+  const logoPositionText: Record<string, string> = {
+    none: "Không logo",
+    "top-left": "Trái trên",
+    "top-right": "Phải trên",
+    center: "Ở giữa",
+  };
+
+  return (
+    <section className="min-w-0 rounded-2xl border border-border bg-card shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4 sm:p-5">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+            Kiểm tra khiếu nại
+          </p>
+          <h2 className="mt-1 text-xl font-bold">Lịch sử tạo ảnh Webapp</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Lưu ảnh gốc, lựa chọn đầu vào, yêu cầu khách và kết quả cho từng lượt tạo ảnh.
+          </p>
+        </div>
+        <span className="rounded-full bg-secondary px-3 py-1 text-sm font-bold">
+          {jobs.length} lượt
+        </span>
+      </div>
+      {jobs.length === 0 ? (
+        <p className="p-5 text-sm text-muted-foreground">Chưa có lượt tạo ảnh nào.</p>
+      ) : (
+        <div className="divide-y divide-border">
+          {jobs.map((job) => {
+            const params = job.request_params ?? {};
+            const productPaths = new Set(params.input_product_paths ?? []);
+            return (
+              <details key={job.id} className="group p-4 sm:p-5">
+                <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-4 gap-y-2 rounded-xl outline-none ring-primary focus-visible:ring-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold">{job.skills?.title ?? "Skill không còn tồn tại"}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {new Date(job.created_at).toLocaleString("vi-VN")} ·{" "}
+                      {job.profiles?.display_name || "Khách chưa đặt tên"}
+                      {job.profiles?.phone ? ` · ${job.profiles.phone}` : ""}
+                    </p>
+                  </div>
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-xs font-bold ${job.status === "succeeded" ? "bg-emerald-100 text-emerald-800" : job.status === "failed" ? "bg-destructive/10 text-destructive" : "bg-amber-100 text-amber-800"}`}
+                  >
+                    {statusText[job.status]}
+                  </span>
+                  <span className="text-sm font-bold">
+                    {job.quoted_amount_vnd.toLocaleString("vi-VN")}đ
+                  </span>
+                  <ChevronRight className="size-5 transition group-open:rotate-90" />
+                </summary>
+                <div className="mt-5 grid gap-5 border-t border-border pt-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                  <div className="space-y-5">
+                    <div>
+                      <h3 className="text-sm font-bold">Thông số đầu vào</h3>
+                      {Object.keys(params).length === 0 ? (
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          Lượt tạo cũ chưa lưu đủ thông số. Ảnh gốc và kết quả vẫn được giữ lại.
+                        </p>
+                      ) : (
+                        <dl className="mt-3 grid gap-2 rounded-xl bg-muted/60 p-3 text-sm sm:grid-cols-2">
+                          <div>
+                            <dt className="text-muted-foreground">Số ảnh</dt>
+                            <dd className="font-bold">{params.output_count ?? "—"}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-muted-foreground">Ảnh Hero</dt>
+                            <dd className="font-bold">{params.include_hero ? "Có" : "Không"}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-muted-foreground">Logo</dt>
+                            <dd className="font-bold">
+                              {params.has_logo
+                                ? logoPositionText[params.logo_position ?? "none"]
+                                : "Không logo"}
+                            </dd>
+                          </div>
+                          <div>
+                            <dt className="text-muted-foreground">Mô hình</dt>
+                            <dd className="font-bold">{params.model ?? "—"}</dd>
+                          </div>
+                          <div className="sm:col-span-2">
+                            <dt className="text-muted-foreground">Kế hoạch ảnh</dt>
+                            <dd className="font-bold">{params.shot_plan?.join(" · ") || "—"}</dd>
+                          </div>
+                        </dl>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold">Yêu cầu thêm của khách</h3>
+                      <p className="mt-2 whitespace-pre-wrap rounded-xl bg-muted/60 p-3 text-sm leading-6">
+                        {job.instruction || "Khách không nhập yêu cầu thêm."}
+                      </p>
+                    </div>
+                    {job.error_message && (
+                      <div>
+                        <h3 className="text-sm font-bold text-destructive">
+                          Lỗi hệ thống ghi nhận
+                        </h3>
+                        <p className="mt-2 rounded-xl bg-destructive/10 p-3 text-sm text-destructive">
+                          {job.error_message}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-5">
+                    <AuditImageSet
+                      title="Ảnh gốc khách tải lên"
+                      urls={job.input_urls.filter((_, index) => {
+                        const path = job.input_paths[index];
+                        return productPaths.size === 0 || productPaths.has(path);
+                      })}
+                      emptyText="Không còn ảnh gốc để hiển thị."
+                    />
+                    {params.has_logo && (
+                      <AuditImageSet
+                        title="Logo khách tải lên"
+                        urls={job.input_urls.filter(
+                          (_, index) => job.input_paths[index] === params.logo_path,
+                        )}
+                        emptyText="Không còn logo để hiển thị."
+                      />
+                    )}
+                    <AuditImageSet
+                      title="Kết quả đầu ra"
+                      urls={job.output_urls}
+                      emptyText="Lượt này chưa có ảnh đầu ra."
+                    />
+                  </div>
+                </div>
+              </details>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function AuditImageSet({
+  title,
+  urls,
+  emptyText,
+}: {
+  title: string;
+  urls: string[];
+  emptyText: string;
+}) {
+  return (
+    <div>
+      <h3 className="text-sm font-bold">{title}</h3>
+      {urls.length === 0 ? (
+        <p className="mt-2 text-sm text-muted-foreground">{emptyText}</p>
+      ) : (
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {urls.map((url, index) => (
+            <a
+              key={url}
+              href={url}
+              target="_blank"
+              rel="noreferrer"
+              className="group/image overflow-hidden rounded-xl border border-border bg-muted"
+            >
+              <img
+                src={url}
+                alt={`${title} ${index + 1}`}
+                className="aspect-square w-full object-cover transition group-hover/image:scale-105"
+              />
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

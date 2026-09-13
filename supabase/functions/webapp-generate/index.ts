@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const allowedOrigins = new Set(["https://sancongcu.com", "http://localhost:8080"]);
+const adminEmails = new Set(["sancongcu@gmail.com", "trungnv32@gmail.com"]);
 const corsHeaders = {
   "Access-Control-Allow-Origin": "https://sancongcu.com",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -40,6 +41,36 @@ Deno.serve(async (request) => {
   const contentType = request.headers.get("content-type") || "";
   if (contentType.includes("application/json")) {
     const payload = await request.json().catch(() => ({}));
+    if (payload.action === "admin-history") {
+      if (!authData.user.email || !adminEmails.has(authData.user.email.toLowerCase()))
+        return json({ error: "Bạn không có quyền xem lịch sử này." }, 403);
+      const { data: jobs, error } = await db
+        .from("webapp_jobs")
+        .select(
+          "id,user_id,status,quoted_amount_vnd,input_paths,output_paths,instruction,request_params,error_message,created_at,completed_at,skills(title),profiles(display_name,phone)",
+        )
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) return json({ error: "Không thể tải lịch sử tạo ảnh." }, 500);
+      const items = await Promise.all(
+        (jobs ?? []).map(async (job) => {
+          const sign = async (bucket: "webapp-inputs" | "webapp-outputs", path: string) =>
+            (await db.storage.from(bucket).createSignedUrl(path, 3600)).data?.signedUrl ?? null;
+          const inputUrls = await Promise.all(
+            ((job.input_paths as string[]) ?? []).map((path) => sign("webapp-inputs", path)),
+          );
+          const outputUrls = await Promise.all(
+            ((job.output_paths as string[]) ?? []).map((path) => sign("webapp-outputs", path)),
+          );
+          return {
+            ...job,
+            input_urls: inputUrls.filter(Boolean),
+            output_urls: outputUrls.filter(Boolean),
+          };
+        }),
+      );
+      return json({ jobs: items });
+    }
     if (payload.action !== "history") return json({ error: "Yêu cầu không hợp lệ." }, 400);
     const { data: jobs, error } = await db
       .from("webapp_jobs")
@@ -128,6 +159,25 @@ Deno.serve(async (request) => {
       if (error) throw error;
       inputPaths.push(logoPath);
     }
+    const logoPath = logo instanceof File ? inputPaths[inputPaths.length - 1] : null;
+    const shotNames = [
+      includeCover ? "ảnh Hero/toàn cảnh" : "ảnh toàn cảnh",
+      "ảnh trung cảnh",
+      "ảnh cận cảnh",
+      "ảnh chi tiết bổ sung",
+    ].slice(0, outputCount);
+    const requestParams = {
+      output_count: outputCount,
+      include_hero: includeCover,
+      has_logo: logo instanceof File && logoPosition !== "none",
+      logo_position: logoPosition,
+      input_image_count: files.length,
+      input_product_paths: inputPaths.slice(0, files.length),
+      logo_path: logoPath,
+      model: String(config.model || "gpt-image-2"),
+      prompt_template: String(config.prompt_template || ""),
+      shot_plan: shotNames,
+    };
     const { data: job, error: jobError } = await db.rpc("webapp_start_job", {
       p_user_id: authData.user.id,
       p_skill_id: skill.id,
@@ -135,6 +185,7 @@ Deno.serve(async (request) => {
       p_instruction: instruction,
       p_output_count: outputCount,
       p_has_logo: logo instanceof File && logoPosition !== "none",
+      p_request_params: requestParams,
     });
     if (jobError || !job) throw jobError ?? new Error("Không thể tạo lượt xử lý.");
     const hardRequirements = [
