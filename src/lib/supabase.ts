@@ -12,6 +12,14 @@ const supabasePublishableKey =
  * never place a service-role key in browser code.
  */
 export const supabase =
-  supabaseUrl && supabasePublishableKey ? createClient(supabaseUrl, supabasePublishableKey) : null;
+  supabaseUrl && supabasePublishableKey
+    ? createClient(supabaseUrl, supabasePublishableKey, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+        },
+      })
+    : null;
 
 export const isSupabaseConfigured = Boolean(supabase);
