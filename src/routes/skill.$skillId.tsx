@@ -231,7 +231,7 @@ function Detail() {
                   </button>
                 </div>
                 <div className="rounded-xl border border-primary/70 bg-primary/20 p-4 shadow-[0_0_0_1px_hsl(var(--primary)/0.2)]">
-                  <p className="text-sm font-bold">Combo 10 Skill</p>
+                  <p className="text-sm font-bold">Combo 10 skill + ChatGPT Plus</p>
                   <p className="mt-1 text-sm text-background/85">Tự chọn bất kỳ 10 Skill</p>
                   <p className="mt-2 text-xs font-semibold leading-5 text-primary-foreground">
                     Tặng ChatGPT Plus 1 tháng, sẵn sử dụng
@@ -247,7 +247,7 @@ function Detail() {
                     onClick={() => chooseCombo(10)}
                     className="mt-4 min-h-12 w-full rounded-full bg-background px-4 py-3 text-sm font-bold text-foreground transition hover:bg-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background"
                   >
-                    Chọn Combo 10 Skill
+                    Chọn Combo 10 skill + ChatGPT Plus
                   </button>
                 </div>
               </div>
@@ -328,7 +328,8 @@ function Detail() {
                 Không muốn cài đặt, không có ChatGPT Plus?
               </p>
               <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                Dùng ngay trên app, trả tiền theo lượt sử dụng, chỉ từ 5.000đ / ảnh.
+                Dùng ngay trên app, không phải cài gì, trả tiền theo lượt sử dụng, chỉ từ 5.000đ /
+                ảnh.
               </p>
               <Link
                 to="/app/$skillId"
