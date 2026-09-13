@@ -5,7 +5,7 @@ import fallback from "@/assets/tue-lam-03-standing.jpg";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/app/$skillId")({ component: SkillWebapp });
-type Config = { price_vnd?: number; input_limit?: number; output_count?: number };
+type Config = { price_vnd?: number; input_limit?: number };
 type LogoPosition = "none" | "top-left" | "top-right" | "center";
 type Skill = {
   title: string;
@@ -38,13 +38,10 @@ function SkillWebapp() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const price = Math.max(0, skill?.webapp_config?.price_vnd ?? 15000);
+  const pricePerImage = Math.max(0, skill?.webapp_config?.price_vnd ?? 15000);
   const inputLimit = Math.min(4, Math.max(1, skill?.webapp_config?.input_limit ?? 1));
-  const outputCount = Math.min(4, Math.max(1, skill?.webapp_config?.output_count ?? 1));
-
-  useEffect(() => {
-    setSelectedOutputCount((current) => Math.min(outputCount, Math.max(1, current)));
-  }, [outputCount]);
+  const unitPrice = logoPosition === "none" ? pricePerImage : 6000;
+  const totalPrice = selectedOutputCount * unitPrice;
 
   const loadJobs = async () => {
     if (!supabase) return;
@@ -111,7 +108,7 @@ function SkillWebapp() {
       return;
     }
     if (data?.job) setJobs((current) => [data.job as Job, ...current]);
-    setBalance((current) => Math.max(0, current - price));
+    setBalance((current) => Math.max(0, current - totalPrice));
     setFiles([]);
     setLogo(null);
     setInstruction("");
@@ -201,29 +198,45 @@ function SkillWebapp() {
           )}
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <label className="block text-sm font-bold">
-              Số lượng ảnh đầu ra
+              Số lượng ảnh (các góc chụp khác nhau)
               <select
                 value={selectedOutputCount}
                 onChange={(event) => setSelectedOutputCount(Number(event.target.value))}
                 className="input mt-2 h-12"
               >
-                {Array.from({ length: outputCount }, (_, index) => index + 1).map((count) => (
+                {Array.from({ length: 4 }, (_, index) => index + 1).map((count) => (
                   <option key={count} value={count}>
                     {count} ảnh
                   </option>
                 ))}
               </select>
             </label>
-            <label className="flex min-h-12 cursor-pointer items-center gap-3 self-end rounded-xl border border-border bg-muted/40 px-4 text-sm font-bold transition hover:bg-muted">
-              <input
-                type="checkbox"
-                checked={includeCover}
-                onChange={(event) => setIncludeCover(event.target.checked)}
-                className="size-4 accent-primary"
-              />
-              Có ảnh bìa
-            </label>
+            <div className="flex min-h-12 items-center gap-3 self-end rounded-xl border border-border bg-muted/40 px-4 text-sm font-bold">
+              <label className="flex cursor-pointer items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={includeCover}
+                  onChange={(event) => setIncludeCover(event.target.checked)}
+                  className="size-4 accent-primary"
+                />
+                Có ảnh bìa
+              </label>
+              <a
+                href={skill.thumbnail_path || fallback}
+                target="_blank"
+                rel="noreferrer"
+                className="text-primary underline underline-offset-2"
+              >
+                (xem ảnh mẫu)
+              </a>
+            </div>
           </div>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            {logoPosition === "none"
+              ? `${money(pricePerImage)} / ảnh · tổng ${money(totalPrice)}.`
+              : `Logo: 6.000đ / ảnh · tổng ${money(totalPrice)}.`}{" "}
+            Ảnh bìa được tính trong số lượng ảnh đã chọn.
+          </p>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <label className="block text-sm font-bold">
               Vị trí logo
@@ -282,22 +295,23 @@ function SkillWebapp() {
           />
           <h2 className="mt-5 text-xl font-bold">Tạo ảnh theo lượt</h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            {money(price)} / lượt · nhận tối đa {outputCount} ảnh. Nếu tạo không thành công, hệ
-            thống tự hoàn tiền.
+            {logoPosition === "none" ? money(pricePerImage) : "6.000đ"} / ảnh · tổng{" "}
+            {money(totalPrice)} cho {selectedOutputCount} ảnh. Nếu tạo không thành công, hệ thống tự
+            hoàn tiền.
           </p>
           {signedIn ? (
             <button
               type="button"
-              disabled={!files.length || creating || balance < price}
+              disabled={!files.length || creating || balance < totalPrice}
               onClick={() => void generate()}
               className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-brand-gradient px-5 py-3 font-bold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {creating && <LoaderCircle className="size-4 animate-spin" />}
               {creating
                 ? "Đang tạo ảnh…"
-                : balance < price
+                : balance < totalPrice
                   ? "Số dư chưa đủ"
-                  : `Tạo ảnh · ${money(price)}`}
+                  : `Tạo ảnh · ${money(totalPrice)}`}
             </button>
           ) : (
             <Link

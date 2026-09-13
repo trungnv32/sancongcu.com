@@ -446,7 +446,6 @@ function AdminPage() {
       webapp_config: {
         price_vnd: Math.max(0, Number(form.get("webapp_price_vnd") || 15000)),
         input_limit: Math.min(4, Math.max(1, Number(form.get("webapp_input_limit") || 1))),
-        output_count: Math.min(4, Math.max(1, Number(form.get("webapp_output_count") || 1))),
         model: String(form.get("webapp_model") || "gpt-image-2").trim(),
         prompt_template: String(form.get("webapp_prompt_template") || "").trim(),
       },
@@ -1473,7 +1472,7 @@ function SkillEditor({
               </span>
             </label>
             <div className="mt-4 grid gap-4 border-t border-border pt-4 md:grid-cols-3">
-              <Field label="Giá mỗi lượt (VND)">
+              <Field label="Giá mỗi ảnh không logo (VND)">
                 <input
                   name="webapp_price_vnd"
                   type="number"
@@ -1490,16 +1489,6 @@ function SkillEditor({
                   min="1"
                   max="4"
                   defaultValue={skill.webapp_config?.input_limit ?? 1}
-                  className="input"
-                />
-              </Field>
-              <Field label="Số ảnh đầu ra">
-                <input
-                  name="webapp_output_count"
-                  type="number"
-                  min="1"
-                  max="4"
-                  defaultValue={skill.webapp_config?.output_count ?? 1}
                   className="input"
                 />
               </Field>

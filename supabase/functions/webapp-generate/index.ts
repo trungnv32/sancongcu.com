@@ -103,8 +103,7 @@ Deno.serve(async (request) => {
   const limit = Math.max(1, Math.min(4, Number(config.input_limit) || 1));
   if (files.length > limit)
     return json({ error: `Webapp này nhận tối đa ${limit} ảnh đầu vào.` }, 400);
-  const outputLimit = Math.max(1, Math.min(4, Number(config.output_count) || 1));
-  const outputCount = Math.max(1, Math.min(outputLimit, requestedOutputCount));
+  const outputCount = Math.max(1, Math.min(4, requestedOutputCount));
   const stamp = `${authData.user.id}/${crypto.randomUUID()}`;
   const inputPaths: string[] = [];
   try {
@@ -131,6 +130,8 @@ Deno.serve(async (request) => {
       p_skill_id: skill.id,
       p_input_paths: inputPaths,
       p_instruction: instruction,
+      p_output_count: outputCount,
+      p_has_logo: logo instanceof File && logoPosition !== "none",
     });
     if (jobError || !job) throw jobError ?? new Error("Không thể tạo lượt xử lý.");
     const prompt = [
