@@ -160,7 +160,7 @@ Deno.serve(async (request) => {
       openaiForm.append("prompt", prompt);
       openaiForm.append("size", "1024x1024");
       openaiForm.append("n", String(outputCount));
-      // Image order matters for workflows that use an edit target and product reference.
+      // Pass every reference image in upload order; each Skill prompt defines their role.
       files.forEach((file) => openaiForm.append("image", file, file.name));
       if (logo instanceof File && logoPosition !== "none")
         openaiForm.append("image", logo, logo.name);
