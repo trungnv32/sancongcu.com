@@ -118,8 +118,9 @@ function SkillWebapp() {
     try {
       for (let attempt = 0; attempt < 2; attempt += 1) {
         try {
-          const response = await fetch("/api/webapp-generate.php", {
+          const response = await fetch(`/api/webapp-generate.php?request=${requestId}`, {
             method: "POST",
+            cache: "no-store",
             body: makeBody(),
           });
           data = (await response.json().catch(() => null)) as typeof data;
@@ -247,7 +248,10 @@ function SkillWebapp() {
               Số lượng ảnh (các góc chụp khác nhau)
               <select
                 value={selectedOutputCount}
-                onChange={(event) => setSelectedOutputCount(Number(event.target.value))}
+                onChange={(event) => {
+                  setSelectedOutputCount(Number(event.target.value));
+                  setError(null);
+                }}
                 className="input mt-2 h-12"
               >
                 {Array.from({ length: 4 }, (_, index) => index + 1).map((count) => (
@@ -262,7 +266,10 @@ function SkillWebapp() {
                 <input
                   type="checkbox"
                   checked={includeCover}
-                  onChange={(event) => setIncludeCover(event.target.checked)}
+                  onChange={(event) => {
+                    setIncludeCover(event.target.checked);
+                    setError(null);
+                  }}
                   className="size-4 accent-primary"
                 />
                 Có ảnh Hero
@@ -289,7 +296,10 @@ function SkillWebapp() {
               Vị trí logo
               <select
                 value={logoPosition}
-                onChange={(event) => setLogoPosition(event.target.value as LogoPosition)}
+                onChange={(event) => {
+                  setLogoPosition(event.target.value as LogoPosition);
+                  setError(null);
+                }}
                 className="input mt-2 h-12"
               >
                 <option value="none">Không logo</option>
@@ -322,7 +332,10 @@ function SkillWebapp() {
             </span>
             <textarea
               value={instruction}
-              onChange={(event) => setInstruction(event.target.value)}
+              onChange={(event) => {
+                setInstruction(event.target.value);
+                setError(null);
+              }}
               maxLength={1000}
               rows={5}
               placeholder="Ví dụ: Bộ chăn ga poly cotton, 1 ga 2 vỏ gối 1 chăn hè trần mỏng, chất cotton, thấm hút tốt, giặt máy được, mọi kích thước"
@@ -330,12 +343,27 @@ function SkillWebapp() {
             />
           </label>
           {error && (
-            <p
+            <div
               role="alert"
               className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm leading-6 text-destructive"
             >
-              {error}
-            </p>
+              <p>{error}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setFiles([]);
+                  setLogo(null);
+                  setInstruction("");
+                  setSelectedOutputCount(1);
+                  setIncludeCover(false);
+                  setLogoPosition("none");
+                  setError(null);
+                }}
+                className="mt-3 font-bold underline underline-offset-4"
+              >
+                Đặt lại yêu cầu
+              </button>
+            </div>
           )}
         </section>
         <aside className="h-fit rounded-3xl border border-border bg-card p-5 shadow-card sm:p-6">
