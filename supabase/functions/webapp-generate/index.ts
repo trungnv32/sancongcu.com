@@ -71,7 +71,11 @@ Deno.serve(async (request) => {
   const form = await request.formData();
   const slug = String(form.get("skill_slug") || "").trim();
   const instruction = String(form.get("instruction") || "").trim();
+  const requestedOutputCount = Number(form.get("output_count") || 1);
+  const includeCover = String(form.get("include_cover") || "false") === "true";
+  const logoPosition = String(form.get("logo_position") || "none");
   const files = form.getAll("images").filter((item): item is File => item instanceof File);
+  const logo = form.get("logo");
   if (!slug || files.length < 1) return json({ error: "Hãy tải ít nhất một ảnh sản phẩm." }, 400);
   if (
     files.some(
@@ -81,6 +85,12 @@ Deno.serve(async (request) => {
     )
   )
     return json({ error: "Mỗi ảnh phải là JPG, PNG hoặc WebP và tối đa 10 MB." }, 400);
+  if (logo instanceof File && (logo.type !== "image/png" || logo.size > 5 * 1024 * 1024))
+    return json({ error: "Logo phải là ảnh PNG trong suốt và tối đa 5 MB." }, 400);
+  if (!["none", "top-left", "top-right", "center"].includes(logoPosition))
+    return json({ error: "Vị trí logo không hợp lệ." }, 400);
+  if (logoPosition !== "none" && !(logo instanceof File))
+    return json({ error: "Hãy tải logo PNG trước khi chọn vị trí hiển thị logo." }, 400);
   const { data: skill } = await db
     .from("skills")
     .select("id,title,webapp_config")
@@ -93,6 +103,8 @@ Deno.serve(async (request) => {
   const limit = Math.max(1, Math.min(4, Number(config.input_limit) || 1));
   if (files.length > limit)
     return json({ error: `Webapp này nhận tối đa ${limit} ảnh đầu vào.` }, 400);
+  const outputLimit = Math.max(1, Math.min(4, Number(config.output_count) || 1));
+  const outputCount = Math.max(1, Math.min(outputLimit, requestedOutputCount));
   const stamp = `${authData.user.id}/${crypto.randomUUID()}`;
   const inputPaths: string[] = [];
   try {
@@ -106,6 +118,14 @@ Deno.serve(async (request) => {
       if (error) throw error;
       inputPaths.push(path);
     }
+    if (logo instanceof File) {
+      const logoPath = `${stamp}/logo.png`;
+      const { error } = await db.storage
+        .from("webapp-inputs")
+        .upload(logoPath, logo, { contentType: "image/png" });
+      if (error) throw error;
+      inputPaths.push(logoPath);
+    }
     const { data: job, error: jobError } = await db.rpc("webapp_start_job", {
       p_user_id: authData.user.id,
       p_skill_id: skill.id,
@@ -116,6 +136,16 @@ Deno.serve(async (request) => {
     const prompt = [
       String(config.prompt_template || ""),
       instruction ? `Yêu cầu thêm của khách: ${instruction}` : "",
+      includeCover
+        ? "Bộ ảnh đầu ra phải có 1 ảnh bìa nổi bật; các ảnh còn lại theo yêu cầu của khách."
+        : "Không tạo ảnh bìa; chỉ tạo các ảnh sản phẩm theo yêu cầu.",
+      logo instanceof File && logoPosition !== "none"
+        ? `Dùng logo PNG tham chiếu được tải kèm, giữ nguyên logo và đặt logo ở vị trí ${
+            { "top-left": "trái trên", "top-right": "phải trên", center: "chính giữa" }[
+              logoPosition as "top-left" | "top-right" | "center"
+            ]
+          }. Không thay đổi, không vẽ lại logo.`
+        : "Không thêm logo vào ảnh.",
       "Giữ chính xác sản phẩm trong ảnh tham chiếu; không thêm chữ, logo hay watermark trừ khi được yêu cầu.",
     ]
       .filter(Boolean)
@@ -125,9 +155,11 @@ Deno.serve(async (request) => {
       openaiForm.append("model", String(config.model || "gpt-image-2"));
       openaiForm.append("prompt", prompt);
       openaiForm.append("size", "1024x1024");
-      openaiForm.append("n", String(Math.max(1, Math.min(4, Number(config.output_count) || 1))));
+      openaiForm.append("n", String(outputCount));
       // The first image is the visual reference. Configurable workflows can add multi-reference support later.
       openaiForm.append("image", files[0], files[0].name);
+      if (logo instanceof File && logoPosition !== "none")
+        openaiForm.append("image", logo, logo.name);
       const response = await fetch("https://api.openai.com/v1/images/edits", {
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}` },

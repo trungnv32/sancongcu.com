@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/app/$skillId")({ component: SkillWebapp });
 type Config = { price_vnd?: number; input_limit?: number; output_count?: number };
+type LogoPosition = "none" | "top-left" | "top-right" | "center";
 type Skill = {
   title: string;
   introduction: string;
@@ -27,7 +28,11 @@ function SkillWebapp() {
   const [skill, setSkill] = useState<Skill | null>(null);
   const [loaded, setLoaded] = useState(!supabase);
   const [files, setFiles] = useState<File[]>([]);
+  const [logo, setLogo] = useState<File | null>(null);
   const [instruction, setInstruction] = useState("");
+  const [selectedOutputCount, setSelectedOutputCount] = useState(1);
+  const [includeCover, setIncludeCover] = useState(false);
+  const [logoPosition, setLogoPosition] = useState<LogoPosition>("none");
   const [signedIn, setSignedIn] = useState(false);
   const [balance, setBalance] = useState(0);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -36,6 +41,10 @@ function SkillWebapp() {
   const price = Math.max(0, skill?.webapp_config?.price_vnd ?? 15000);
   const inputLimit = Math.min(4, Math.max(1, skill?.webapp_config?.input_limit ?? 1));
   const outputCount = Math.min(4, Math.max(1, skill?.webapp_config?.output_count ?? 1));
+
+  useEffect(() => {
+    setSelectedOutputCount((current) => Math.min(outputCount, Math.max(1, current)));
+  }, [outputCount]);
 
   const loadJobs = async () => {
     if (!supabase) return;
@@ -88,7 +97,11 @@ function SkillWebapp() {
     const body = new FormData();
     body.set("skill_slug", skillId);
     body.set("instruction", instruction);
+    body.set("output_count", String(selectedOutputCount));
+    body.set("include_cover", String(includeCover));
+    body.set("logo_position", logoPosition);
     files.forEach((file) => body.append("images", file));
+    if (logo) body.set("logo", logo);
     const { data, error: requestError } = await supabase.functions.invoke("webapp-generate", {
       body,
     });
@@ -100,7 +113,10 @@ function SkillWebapp() {
     if (data?.job) setJobs((current) => [data.job as Job, ...current]);
     setBalance((current) => Math.max(0, current - price));
     setFiles([]);
+    setLogo(null);
     setInstruction("");
+    setIncludeCover(false);
+    setLogoPosition("none");
   }
   if (!loaded)
     return (
@@ -183,6 +199,61 @@ function SkillWebapp() {
               ))}
             </div>
           )}
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <label className="block text-sm font-bold">
+              Số lượng ảnh đầu ra
+              <select
+                value={selectedOutputCount}
+                onChange={(event) => setSelectedOutputCount(Number(event.target.value))}
+                className="input mt-2 h-12"
+              >
+                {Array.from({ length: outputCount }, (_, index) => index + 1).map((count) => (
+                  <option key={count} value={count}>
+                    {count} ảnh
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex min-h-12 cursor-pointer items-center gap-3 self-end rounded-xl border border-border bg-muted/40 px-4 text-sm font-bold transition hover:bg-muted">
+              <input
+                type="checkbox"
+                checked={includeCover}
+                onChange={(event) => setIncludeCover(event.target.checked)}
+                className="size-4 accent-primary"
+              />
+              Có ảnh bìa
+            </label>
+          </div>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <label className="block text-sm font-bold">
+              Vị trí logo
+              <select
+                value={logoPosition}
+                onChange={(event) => setLogoPosition(event.target.value as LogoPosition)}
+                className="input mt-2 h-12"
+              >
+                <option value="none">Không logo</option>
+                <option value="top-left">Trái trên</option>
+                <option value="top-right">Phải trên</option>
+                <option value="center">Ở giữa</option>
+              </select>
+            </label>
+            <label className="block text-sm font-bold">
+              Tải logo PNG trong suốt
+              <input
+                type="file"
+                accept="image/png"
+                onChange={(event) => {
+                  setLogo(event.target.files?.[0] ?? null);
+                  event.target.value = "";
+                }}
+                className="input mt-2 block h-12 w-full cursor-pointer px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-2 file:py-1 file:font-semibold"
+              />
+              <span className="mt-1 block font-normal text-muted-foreground">
+                {logo ? logo.name : "Chỉ dùng khi bạn chọn vị trí logo."}
+              </span>
+            </label>
+          </div>
           <label className="mt-6 block text-sm font-bold">
             Yêu cầu thêm <span className="font-normal text-muted-foreground">(không bắt buộc)</span>
             <textarea
