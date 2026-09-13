@@ -137,12 +137,12 @@ Deno.serve(async (request) => {
       p_has_logo: logo instanceof File && logoPosition !== "none",
     });
     if (jobError || !job) throw jobError ?? new Error("Không thể tạo lượt xử lý.");
-    const prompt = [
-      String(config.prompt_template || ""),
-      instruction ? `Yêu cầu thêm của khách: ${instruction}` : "",
+    const hardRequirements = [
+      "RÀNG BUỘC BẮT BUỘC CỦA WEBAPP: các lựa chọn dưới đây có ưu tiên cao hơn mọi yêu cầu thêm của khách. Nếu có mâu thuẫn, bỏ qua phần mâu thuẫn trong yêu cầu thêm và tuân thủ các ràng buộc này.",
+      `Chỉ tạo đúng ${outputCount} ảnh đầu ra, không nhiều hơn và không ít hơn.`,
       includeCover
-        ? "Bộ ảnh đầu ra phải có 1 ảnh bìa nổi bật; các ảnh còn lại theo yêu cầu của khách."
-        : "Không tạo ảnh bìa; chỉ tạo các ảnh sản phẩm theo yêu cầu.",
+        ? "Có đúng 1 ảnh bìa nổi bật trong tổng số ảnh đầu ra; các ảnh còn lại là ảnh sản phẩm theo yêu cầu."
+        : "Không tạo ảnh bìa; chỉ tạo ảnh sản phẩm.",
       logo instanceof File && logoPosition !== "none"
         ? `Dùng logo PNG tham chiếu được tải kèm, giữ nguyên logo và đặt logo ở vị trí ${
             { "top-left": "trái trên", "top-right": "phải trên", center: "chính giữa" }[
@@ -150,7 +150,14 @@ Deno.serve(async (request) => {
             ]
           }. Không thay đổi, không vẽ lại logo.`
         : "Không thêm logo vào ảnh.",
-      "Giữ chính xác sản phẩm trong ảnh tham chiếu; không thêm chữ, logo hay watermark trừ khi được yêu cầu.",
+      "Giữ chính xác sản phẩm trong ảnh tham chiếu; không thêm chữ, logo hay watermark trừ khi được yêu cầu bởi ràng buộc bắt buộc ở trên.",
+    ];
+    const prompt = [
+      String(config.prompt_template || ""),
+      instruction
+        ? `Yêu cầu thêm của khách (chỉ áp dụng khi không mâu thuẫn với ràng buộc bắt buộc): ${instruction}`
+        : "",
+      ...hardRequirements,
     ]
       .filter(Boolean)
       .join("\n\n");

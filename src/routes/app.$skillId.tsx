@@ -276,7 +276,7 @@ function SkillWebapp() {
               onChange={(event) => setInstruction(event.target.value)}
               maxLength={1000}
               rows={5}
-              placeholder="Ví dụ: tạo ảnh chính diện, nền phòng ngủ sáng, không thêm chữ…"
+              placeholder="Ví dụ: tạo ảnh chụp chính diện, phòng tối giản hiện đại, nền phòng ngủ sáng, không chèn thêm chữ..."
               className="input mt-2 min-h-32 resize-y leading-7"
             />
           </label>
