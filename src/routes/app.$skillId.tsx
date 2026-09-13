@@ -23,6 +23,18 @@ type Job = {
 };
 const money = (value: number) => `${value.toLocaleString("vi-VN")}đ`;
 
+async function functionErrorMessage(error: unknown) {
+  const context = (error as { context?: unknown } | null)?.context;
+  if (context instanceof Response) {
+    const body = await context
+      .clone()
+      .json()
+      .catch(() => null);
+    if (body && typeof body.error === "string") return body.error;
+  }
+  return "Không thể kết nối dịch vụ tạo ảnh. Vui lòng thử lại.";
+}
+
 function SkillWebapp() {
   const { skillId } = Route.useParams();
   const [skill, setSkill] = useState<Skill | null>(null);
@@ -105,7 +117,8 @@ function SkillWebapp() {
     });
     setCreating(false);
     if (requestError || data?.error) {
-      setError(data?.error || "Không thể kết nối dịch vụ tạo ảnh. Vui lòng thử lại.");
+      console.error("Webapp generation failed", requestError ?? data);
+      setError(data?.error || (await functionErrorMessage(requestError)));
       return;
     }
     if (data?.job) setJobs((current) => [data.job as Job, ...current]);
