@@ -73,6 +73,8 @@ function AccountPage() {
   const [identity, setIdentity] = useState("");
   const [phoneConfirmation, setPhoneConfirmation] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
+  const [passwordConfirmationTouched, setPasswordConfirmationTouched] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -120,6 +122,12 @@ function AccountPage() {
     setError(null);
     setNotice(null);
     const commonOptions = { data: { full_name: fullName.trim() } };
+    if (mode === "signup" && password !== passwordConfirmation) {
+      setError("Mật khẩu nhập lại chưa khớp.");
+      setPasswordConfirmationTouched(true);
+      setBusy(false);
+      return;
+    }
     if (
       mode === "signup" &&
       identityType === "phone" &&
@@ -179,6 +187,16 @@ function AccountPage() {
     setBusy(false);
     if (result.error) {
       setError(translateAuthError(result.error.message));
+      return;
+    }
+    if (
+      mode === "signup" &&
+      identityType === "email" &&
+      result.data.user?.identities?.length === 0
+    ) {
+      setError(
+        "Email này đã có tài khoản. Nếu bạn từng đăng nhập bằng Google, hãy bấm “Tiếp tục với Google”.",
+      );
       return;
     }
     if (mode === "signup" && !result.data.session) {
@@ -478,6 +496,36 @@ function AccountPage() {
               autoComplete={mode === "login" ? "current-password" : "new-password"}
             />
           </label>
+          {mode === "signup" && (
+            <label className="mt-4 block text-sm font-bold">
+              Nhập lại mật khẩu
+              <input
+                value={passwordConfirmation}
+                onChange={(event) => setPasswordConfirmation(event.target.value)}
+                onBlur={() => setPasswordConfirmationTouched(true)}
+                type="password"
+                minLength={6}
+                aria-invalid={passwordConfirmationTouched && password !== passwordConfirmation}
+                aria-describedby={
+                  passwordConfirmationTouched && password !== passwordConfirmation
+                    ? "password-confirmation-error"
+                    : undefined
+                }
+                className="input mt-2 h-12"
+                placeholder="Nhập lại mật khẩu"
+                required
+                autoComplete="new-password"
+              />
+              {passwordConfirmationTouched && password !== passwordConfirmation && (
+                <span
+                  id="password-confirmation-error"
+                  className="mt-2 block text-xs font-medium text-red-700"
+                >
+                  Mật khẩu nhập lại chưa khớp.
+                </span>
+              )}
+            </label>
+          )}
           {error && (
             <p
               role="alert"
@@ -507,6 +555,8 @@ function AccountPage() {
             setError(null);
             setNotice(null);
             setPhoneConfirmation("");
+            setPasswordConfirmation("");
+            setPasswordConfirmationTouched(false);
           }}
           className="mt-5 w-full text-sm font-bold text-primary hover:underline"
         >
