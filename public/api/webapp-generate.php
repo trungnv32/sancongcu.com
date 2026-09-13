@@ -3,16 +3,12 @@ declare(strict_types=1);
 
 header('Cache-Control: no-store');
 
-$nativeNonce = $_POST['native_form'] ?? '';
-function respond(array $payload, int $status = 200): never {
-    global $nativeNonce;
+function respond(array $payload, int $status = 200) {
+    $nativeNonce = $_POST['native_form'] ?? '';
     http_response_code($status);
     if (is_string($nativeNonce) && $nativeNonce !== '') {
         header('Content-Type: text/html; charset=utf-8');
-        $message = json_encode(
-            ['source' => 'webapp-generate', 'nonce' => $nativeNonce, 'data' => $payload],
-            JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE,
-        );
+        $message = json_encode(['source' => 'webapp-generate', 'nonce' => $nativeNonce, 'data' => $payload]);
         echo '<!doctype html><script>window.parent.postMessage(' . $message . ', window.location.origin)</script>';
         exit;
     }
