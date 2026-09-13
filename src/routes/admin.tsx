@@ -15,6 +15,7 @@ import {
   Save,
   Trash2,
   Upload,
+  WalletCards,
 } from "lucide-react";
 import {
   useEffect,
@@ -177,7 +178,7 @@ function AdminPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [newHallName, setNewHallName] = useState("");
-  const [adminSection, setAdminSection] = useState<"orders" | "catalog">("orders");
+  const [adminSection, setAdminSection] = useState<"orders" | "topups" | "catalog">("orders");
 
   const selectedSkill = useMemo(
     () => skills.find((skill) => skill.id === selectedSkillId) ?? null,
@@ -816,6 +817,18 @@ function AdminPage() {
               {orders.length}
             </span>
           </button>
+          <button
+            type="button"
+            onClick={() => setAdminSection("topups")}
+            aria-current={adminSection === "topups" ? "page" : undefined}
+            className={`mb-4 flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-bold transition ${adminSection === "topups" ? "bg-foreground text-background" : "border border-border hover:bg-muted"}`}
+          >
+            <WalletCards className="size-4" />
+            Nạp số dư
+            <span className="ml-auto rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">
+              {walletTopups.filter((item) => item.status === "pending").length}
+            </span>
+          </button>
           <div className="flex items-center justify-between px-2 py-2">
             <h2 className="font-bold">Danh mục</h2>
             <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold">
@@ -874,9 +887,10 @@ function AdminPage() {
               onStatusChange={updateOrderStatus}
               onInstallLink={createOrCopyInstallLink}
               onRegenerateInstallLink={(order, item) => createOrCopyInstallLink(order, item, true)}
-              topups={walletTopups}
-              onConfirmTopup={confirmWalletTopup}
             />
+          )}
+          {adminSection === "topups" && (
+            <TopupsPanel topups={walletTopups} onConfirmTopup={confirmWalletTopup} />
           )}
           {adminSection === "catalog" && selectedHall && (
             <>
@@ -1070,8 +1084,6 @@ function OrdersPanel({
   onStatusChange,
   onInstallLink,
   onRegenerateInstallLink,
-  topups,
-  onConfirmTopup,
 }: {
   orders: Order[];
   entitlements: SkillEntitlement[];
@@ -1082,8 +1094,6 @@ function OrdersPanel({
   ) => Promise<void>;
   onInstallLink: (order: Order, item: OrderItem) => Promise<void>;
   onRegenerateInstallLink: (order: Order, item: OrderItem) => Promise<void>;
-  topups: WalletTopup[];
-  onConfirmTopup: (topup: WalletTopup) => Promise<void>;
 }) {
   return (
     <section
@@ -1103,66 +1113,6 @@ function OrdersPanel({
         <span className="rounded-full bg-secondary px-3 py-1 text-sm font-bold">
           {orders.length} đơn
         </span>
-      </div>
-      <div className="border-b border-border bg-muted/20 p-4 sm:p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h3 className="font-bold">Yêu cầu nạp số dư</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Xác nhận sau khi đối chiếu giao dịch chuyển khoản.
-            </p>
-          </div>
-          <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-bold text-amber-800">
-            {topups.filter((item) => item.status === "pending").length} chờ xác nhận
-          </span>
-        </div>
-        {topups.length === 0 ? (
-          <p className="mt-4 text-sm text-muted-foreground">Chưa có yêu cầu nạp tiền.</p>
-        ) : (
-          <div className="mt-4 overflow-x-auto">
-            <table className="min-w-[680px] w-full text-left text-sm">
-              <thead className="text-xs uppercase text-muted-foreground">
-                <tr>
-                  <th className="py-2 pr-4">Mã nạp</th>
-                  <th className="py-2 pr-4">Chuyển khoản / cộng số dư</th>
-                  <th className="py-2 pr-4">Thời gian</th>
-                  <th className="py-2">Xác nhận</th>
-                </tr>
-              </thead>
-              <tbody>
-                {topups.map((topup) => (
-                  <tr key={topup.id} className="border-t border-border">
-                    <td className="py-3 pr-4 font-mono text-xs font-bold">{topup.transfer_code}</td>
-                    <td className="py-3 pr-4 font-bold">
-                      {topup.amount_vnd.toLocaleString("vi-VN")}đ
-                      {topup.credited_amount_vnd > topup.amount_vnd && (
-                        <span className="mt-1 block text-xs text-emerald-700">
-                          Cộng: {topup.credited_amount_vnd.toLocaleString("vi-VN")}đ
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 pr-4 text-muted-foreground">
-                      {new Date(topup.created_at).toLocaleString("vi-VN")}
-                    </td>
-                    <td className="py-3">
-                      {topup.status === "confirmed" ? (
-                        <span className="font-bold text-emerald-700">Đã cộng tiền</span>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => void onConfirmTopup(topup)}
-                          className="min-h-10 rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground hover:opacity-90"
-                        >
-                          Đã nhận tiền · cộng số dư
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </div>
       {orders.length === 0 ? (
         <p className="p-5 text-sm text-muted-foreground">Chưa có đơn kích hoạt nào.</p>
@@ -1288,6 +1238,82 @@ function OrdersPanel({
                         Đã gửi Skill
                       </label>
                     </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function TopupsPanel({
+  topups,
+  onConfirmTopup,
+}: {
+  topups: WalletTopup[];
+  onConfirmTopup: (topup: WalletTopup) => Promise<void>;
+}) {
+  const pendingCount = topups.filter((item) => item.status === "pending").length;
+
+  return (
+    <section className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4 sm:p-5">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+            Quản lý số dư
+          </p>
+          <h2 className="mt-1 text-xl font-bold">Yêu cầu nạp số dư</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Đối chiếu giao dịch chuyển khoản rồi cộng số dư cho khách hàng.
+          </p>
+        </div>
+        <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-bold text-amber-800">
+          {pendingCount} chờ xác nhận
+        </span>
+      </div>
+      {topups.length === 0 ? (
+        <p className="p-5 text-sm text-muted-foreground">Chưa có yêu cầu nạp tiền.</p>
+      ) : (
+        <div className="overflow-x-auto p-4 sm:p-5">
+          <table className="min-w-[680px] w-full text-left text-sm">
+            <thead className="text-xs uppercase text-muted-foreground">
+              <tr>
+                <th className="py-2 pr-4">Mã nạp</th>
+                <th className="py-2 pr-4">Chuyển khoản / cộng số dư</th>
+                <th className="py-2 pr-4">Thời gian</th>
+                <th className="py-2">Xác nhận</th>
+              </tr>
+            </thead>
+            <tbody>
+              {topups.map((topup) => (
+                <tr key={topup.id} className="border-t border-border">
+                  <td className="py-3 pr-4 font-mono text-xs font-bold">{topup.transfer_code}</td>
+                  <td className="py-3 pr-4 font-bold">
+                    {topup.amount_vnd.toLocaleString("vi-VN")}đ
+                    {topup.credited_amount_vnd > topup.amount_vnd && (
+                      <span className="mt-1 block text-xs text-emerald-700">
+                        Cộng: {topup.credited_amount_vnd.toLocaleString("vi-VN")}đ
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-3 pr-4 text-muted-foreground">
+                    {new Date(topup.created_at).toLocaleString("vi-VN")}
+                  </td>
+                  <td className="py-3">
+                    {topup.status === "confirmed" ? (
+                      <span className="font-bold text-emerald-700">Đã cộng tiền</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => void onConfirmTopup(topup)}
+                        className="min-h-10 rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground hover:opacity-90"
+                      >
+                        Đã nhận tiền · cộng số dư
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
