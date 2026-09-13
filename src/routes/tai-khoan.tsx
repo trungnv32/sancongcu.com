@@ -24,6 +24,13 @@ type WalletLedgerItem = {
   created_at: string;
 };
 
+function normalizePhone(value: string) {
+  const cleaned = value.replace(/[\s().-]/g, "");
+  if (/^0\d{9}$/.test(cleaned)) return `+84${cleaned.slice(1)}`;
+  if (/^84\d{9}$/.test(cleaned)) return `+${cleaned}`;
+  return cleaned;
+}
+
 const ledgerLabels: Record<WalletLedgerItem["entry_type"], string> = {
   topup: "Nạp tiền",
   hold: "Tạm giữ chi phí",
@@ -85,20 +92,6 @@ function AccountPage() {
     return () => subscription.subscription.unsubscribe();
   }, []);
 
-  async function signInWithGoogle() {
-    if (!supabase) return;
-    setBusy(true);
-    setError(null);
-    const { error: authError } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/tai-khoan` },
-    });
-    if (authError) {
-      setError(authError.message);
-      setBusy(false);
-    }
-  }
-
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!supabase) return;
@@ -109,20 +102,35 @@ function AccountPage() {
     if (
       mode === "signup" &&
       identityType === "phone" &&
-      identity.trim() !== phoneConfirmation.trim()
+      normalizePhone(identity) !== normalizePhone(phoneConfirmation)
     ) {
       setError("Số điện thoại nhập lại chưa khớp.");
+      setBusy(false);
+      return;
+    }
+    const normalizedIdentity =
+      identityType === "phone" ? normalizePhone(identity) : identity.trim();
+    if (identityType === "phone" && !/^\+\d{8,15}$/.test(normalizedIdentity)) {
+      setError("Hãy nhập số điện thoại hợp lệ, ví dụ 0912 345 678.");
       setBusy(false);
       return;
     }
     const result =
       mode === "signup"
         ? identityType === "email"
-          ? await supabase.auth.signUp({ email: identity.trim(), password, options: commonOptions })
-          : await supabase.auth.signUp({ phone: identity.trim(), password, options: commonOptions })
+          ? await supabase.auth.signUp({
+              email: normalizedIdentity,
+              password,
+              options: commonOptions,
+            })
+          : await supabase.auth.signUp({
+              phone: normalizedIdentity,
+              password,
+              options: commonOptions,
+            })
         : identityType === "email"
-          ? await supabase.auth.signInWithPassword({ email: identity.trim(), password })
-          : await supabase.auth.signInWithPassword({ phone: identity.trim(), password });
+          ? await supabase.auth.signInWithPassword({ email: normalizedIdentity, password })
+          : await supabase.auth.signInWithPassword({ phone: normalizedIdentity, password });
     setBusy(false);
     if (result.error) {
       setError(result.error.message);
@@ -318,11 +326,14 @@ function AccountPage() {
         </p>
         <button
           type="button"
-          onClick={() => void signInWithGoogle()}
-          disabled={busy}
-          className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-border px-4 font-bold transition hover:bg-muted disabled:opacity-60"
+          onClick={() =>
+            setNotice(
+              "Đăng nhập Google đang được cấu hình. Hãy dùng email hoặc số điện thoại trong lúc này.",
+            )
+          }
+          className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-border px-4 font-bold text-muted-foreground transition hover:bg-muted"
         >
-          <CircleUserRound className="size-5" /> Tiếp tục với Google
+          <CircleUserRound className="size-5" /> Tiếp tục với Google — sắp mở
         </button>
         <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
           <span className="h-px flex-1 bg-border" />
@@ -388,7 +399,7 @@ function AccountPage() {
                 autoComplete="tel"
               />
               <span className="mt-2 block text-xs font-normal leading-5 text-muted-foreground">
-                Chúng tôi dùng bước này để hạn chế lỗi gõ nhầm số; hiện chưa gửi SMS xác thực.
+                Nhập lại số điện thoại để hạn chế lỗi gõ nhầm.
               </span>
             </label>
           )}
