@@ -47,9 +47,9 @@ const topupOptions = [
   { amount: 10000 },
   { amount: 20000 },
   { amount: 50000 },
-  { amount: 100000, bonus: 10000 },
-  { amount: 200000, bonus: 50000 },
-  { amount: 500000, bonus: 250000 },
+  { amount: 100000, discount: "Ưu đãi 10%" },
+  { amount: 200000, discount: "Ưu đãi 25%" },
+  { amount: 500000, discount: "Ưu đãi 50%" },
 ];
 
 function normalizePhone(value: string) {
@@ -372,16 +372,25 @@ function AccountPage() {
                     placeholder="Ví dụ: 50.000"
                   />
                 </label>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {topupOptions.map(({ amount, bonus }) => (
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {topupOptions.map(({ amount, discount }) => (
                     <button
                       key={amount}
                       type="button"
                       onClick={() => setTopupAmount(amount.toLocaleString("vi-VN"))}
-                      className="min-h-10 rounded-full border border-border px-3 text-xs font-bold hover:bg-muted"
+                      aria-pressed={parseAmount(topupAmount) === amount}
+                      className={`relative min-h-14 rounded-xl border px-3 py-2 text-left text-sm font-extrabold transition hover:border-primary hover:bg-primary/5 ${
+                        parseAmount(topupAmount) === amount
+                          ? "border-primary bg-primary/5 text-primary"
+                          : "border-border bg-card"
+                      }`}
                     >
-                      {formatVnd(amount)}
-                      {bonus ? ` +${formatVnd(bonus)}` : ""}
+                      <span className="whitespace-nowrap">{formatVnd(amount)}</span>
+                      {discount && (
+                        <span className="absolute -right-1 -top-2 whitespace-nowrap rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-extrabold text-white shadow-sm">
+                          {discount}
+                        </span>
+                      )}
                     </button>
                   ))}
                 </div>
