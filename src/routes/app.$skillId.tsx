@@ -22,6 +22,65 @@ type Job = {
 };
 const money = (value: number) => `${value.toLocaleString("vi-VN")}đ`;
 
+type NativeGenerationResult = { error?: string; job?: Job };
+
+function submitNativeGeneration(body: FormData): Promise<NativeGenerationResult> {
+  return new Promise((resolve, reject) => {
+    const nonce = crypto.randomUUID();
+    const frameName = `webapp-generation-${nonce}`;
+    const iframe = document.createElement("iframe");
+    const form = document.createElement("form");
+    const cleanUp = () => {
+      window.removeEventListener("message", onMessage);
+      window.clearTimeout(timeout);
+      iframe.remove();
+      form.remove();
+    };
+    const onMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      const payload = event.data as { source?: string; nonce?: string; data?: NativeGenerationResult };
+      if (payload?.source !== "webapp-generate" || payload.nonce !== nonce) return;
+      cleanUp();
+      resolve(payload.data ?? { error: "Dịch vụ tạo ảnh trả về dữ liệu không hợp lệ." });
+    };
+    const timeout = window.setTimeout(() => {
+      cleanUp();
+      reject(new Error("Yêu cầu tạo ảnh mất quá lâu. Vui lòng thử lại."));
+    }, 120_000);
+
+    iframe.name = frameName;
+    iframe.hidden = true;
+    form.method = "POST";
+    form.enctype = "multipart/form-data";
+    form.action = "/api/webapp-generate.php";
+    form.target = frameName;
+    form.hidden = true;
+
+    for (const [name, value] of body.entries()) {
+      const input = document.createElement("input");
+      input.name = name;
+      if (value instanceof File) {
+        input.type = "file";
+        const transfer = new DataTransfer();
+        transfer.items.add(value);
+        input.files = transfer.files;
+      } else {
+        input.type = "hidden";
+        input.value = value;
+      }
+      form.append(input);
+    }
+    const nativeFlag = document.createElement("input");
+    nativeFlag.type = "hidden";
+    nativeFlag.name = "native_form";
+    nativeFlag.value = nonce;
+    form.append(nativeFlag);
+    window.addEventListener("message", onMessage);
+    document.body.append(iframe, form);
+    form.submit();
+  });
+}
+
 function SkillWebapp() {
   const { skillId } = Route.useParams();
   const [skill, setSkill] = useState<Skill | null>(null);
@@ -104,12 +163,7 @@ function SkillWebapp() {
     };
     let data: { error?: string; job?: Job } | null = null;
     try {
-      const response = await fetch("/api/webapp-generate.php", {
-        method: "POST",
-        body: makeBody(),
-      });
-      data = (await response.json().catch(() => null)) as typeof data;
-      if (!response.ok) throw new Error(data?.error || "Dịch vụ tạo ảnh đang gặp sự cố.");
+      data = await submitNativeGeneration(makeBody());
     } catch (requestError) {
       setCreating(false);
       console.error("Webapp generation failed", requestError);
