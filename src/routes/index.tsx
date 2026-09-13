@@ -394,12 +394,12 @@ function Landing() {
                 : `${cart.length} skill`}{" "}
               · {total.toFixed(2)}$
             </span>
-            <a
-              href="#combo"
+            <Link
+              to="/tai-khoan"
               className="rounded-full bg-foreground px-4 py-2 font-medium text-background transition hover:opacity-90"
             >
-              Chọn combo →
-            </a>
+              Tài khoản
+            </Link>
           </div>
         </div>
       </header>
