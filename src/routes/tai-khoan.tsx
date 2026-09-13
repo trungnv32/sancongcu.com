@@ -31,6 +31,23 @@ function normalizePhone(value: string) {
   return cleaned;
 }
 
+function translateAuthError(message: string) {
+  const normalized = message.toLowerCase();
+  if (normalized.includes("invalid login credentials")) {
+    return "Email/số điện thoại hoặc mật khẩu chưa đúng. Vui lòng thử lại.";
+  }
+  if (normalized.includes("email not confirmed")) {
+    return "Email chưa được xác nhận. Hãy kiểm tra hộp thư rồi thử đăng nhập lại.";
+  }
+  if (normalized.includes("user already registered")) {
+    return "Email hoặc số điện thoại này đã được đăng ký. Hãy đăng nhập thay vì tạo tài khoản mới.";
+  }
+  if (normalized.includes("password should be")) {
+    return "Mật khẩu chưa đủ điều kiện. Hãy dùng ít nhất 6 ký tự.";
+  }
+  return "Không thể hoàn tất yêu cầu. Vui lòng kiểm tra thông tin và thử lại.";
+}
+
 const ledgerLabels: Record<WalletLedgerItem["entry_type"], string> = {
   topup: "Nạp tiền",
   hold: "Tạm giữ chi phí",
@@ -133,7 +150,7 @@ function AccountPage() {
           : await supabase.auth.signInWithPassword({ phone: normalizedIdentity, password });
     setBusy(false);
     if (result.error) {
-      setError(result.error.message);
+      setError(translateAuthError(result.error.message));
       return;
     }
     if (mode === "signup" && !result.data.session) {
@@ -161,7 +178,7 @@ function AccountPage() {
       options: { redirectTo: `${window.location.origin}/tai-khoan` },
     });
     if (authError) {
-      setError(authError.message);
+      setError(translateAuthError(authError.message));
       setBusy(false);
     }
   }
@@ -337,7 +354,7 @@ function AccountPage() {
           {mode === "login" ? "Đăng nhập" : "Tạo tài khoản"}
         </h1>
         <p className="mt-2 leading-7 text-muted-foreground">
-          Một tài khoản, một ví, dùng cho mọi Webapp Skill.
+          Một tài khoản dùng cho mọi Webapp Skill.
         </p>
         <button
           type="button"
@@ -436,7 +453,8 @@ function AccountPage() {
           {error && (
             <p
               role="alert"
-              className="mt-4 rounded-xl bg-destructive/10 p-3 text-sm text-destructive"
+              aria-live="assertive"
+              className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium leading-6 text-red-700"
             >
               {error}
             </p>
