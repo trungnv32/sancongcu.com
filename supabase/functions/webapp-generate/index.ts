@@ -118,6 +118,7 @@ Deno.serve(async (request) => {
   const requestedOutputCount = Number(form.get("output_count") || 1);
   const includeCover = String(form.get("include_cover") || "false") === "true";
   const logoPosition = String(form.get("logo_position") || "none");
+  const requestId = String(form.get("request_id") || "").trim();
   const files = form.getAll("images").filter((item): item is File => item instanceof File);
   const logo = form.get("logo");
   if (!slug || files.length < 1) return json({ error: "Hãy tải ít nhất một ảnh sản phẩm." }, 400);
@@ -135,6 +136,8 @@ Deno.serve(async (request) => {
     return json({ error: "Vị trí logo không hợp lệ." }, 400);
   if (logoPosition !== "none" && !(logo instanceof File))
     return json({ error: "Hãy tải logo PNG trước khi chọn vị trí hiển thị logo." }, 400);
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestId))
+    return json({ error: "Yêu cầu tạo ảnh không hợp lệ. Hãy thử lại." }, 400);
   const { data: skill } = await db
     .from("skills")
     .select("id,title,thumbnail_path,webapp_config")
@@ -143,6 +146,21 @@ Deno.serve(async (request) => {
     .eq("webapp_enabled", true)
     .maybeSingle();
   if (!skill) return json({ error: "Webapp này hiện chưa sẵn sàng." }, 404);
+  const { data: existingJob } = await db
+    .from("webapp_jobs")
+    .select("id,status,quoted_amount_vnd,output_paths,created_at")
+    .eq("user_id", authData.user.id)
+    .contains("request_params", { client_request_id: requestId })
+    .maybeSingle();
+  if (existingJob) {
+    const urls = await Promise.all(
+      ((existingJob.output_paths as string[]) ?? []).map(
+        async (path) =>
+          (await db.storage.from("webapp-outputs").createSignedUrl(path, 3600)).data?.signedUrl,
+      ),
+    );
+    return json({ job: { ...existingJob, output_urls: urls.filter(Boolean) } });
+  }
   const config = (skill.webapp_config ?? {}) as Record<string, unknown>;
   const limit = Math.max(1, Math.min(4, Number(config.input_limit) || 1));
   const minInput = Math.min(limit, Math.max(1, Number(config.input_min) || 1));
@@ -190,6 +208,7 @@ Deno.serve(async (request) => {
       model: String(config.model || "gpt-image-2"),
       prompt_template: String(config.prompt_template || ""),
       shot_plan: shotNames,
+      client_request_id: requestId,
     };
     const { data: job, error: jobError } = await db.rpc("webapp_start_job", {
       p_user_id: authData.user.id,

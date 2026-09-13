@@ -92,14 +92,19 @@ function SkillWebapp() {
     if (!supabase || !files.length || creating) return;
     setCreating(true);
     setError(null);
-    const body = new FormData();
-    body.set("skill_slug", skillId);
-    body.set("instruction", instruction);
-    body.set("output_count", String(selectedOutputCount));
-    body.set("include_cover", String(includeCover));
-    body.set("logo_position", logoPosition);
-    files.forEach((file) => body.append("images", file));
-    if (logo) body.set("logo", logo);
+    const requestId = crypto.randomUUID();
+    const makeBody = () => {
+      const body = new FormData();
+      body.set("skill_slug", skillId);
+      body.set("instruction", instruction);
+      body.set("output_count", String(selectedOutputCount));
+      body.set("include_cover", String(includeCover));
+      body.set("logo_position", logoPosition);
+      body.set("request_id", requestId);
+      files.forEach((file) => body.append("images", file));
+      if (logo) body.set("logo", logo);
+      return body;
+    };
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -110,17 +115,24 @@ function SkillWebapp() {
     }
     let data: { error?: string; job?: Job } | null = null;
     try {
-      const response = await fetch(`${supabaseUrl}/functions/v1/webapp-generate`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          apikey: supabasePublishableKey,
-          "X-Client-Info": "sancongcu-webapp",
-        },
-        body,
-      });
-      data = (await response.json().catch(() => null)) as typeof data;
-      if (!response.ok) throw new Error(data?.error || "Dịch vụ tạo ảnh đang gặp sự cố.");
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          const response = await fetch(`${supabaseUrl}/functions/v1/webapp-generate`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+              apikey: supabasePublishableKey,
+              "X-Client-Info": "sancongcu-webapp",
+            },
+            body: makeBody(),
+          });
+          data = (await response.json().catch(() => null)) as typeof data;
+          if (!response.ok) throw new Error(data?.error || "Dịch vụ tạo ảnh đang gặp sự cố.");
+          break;
+        } catch (error) {
+          if (attempt === 1 || !(error instanceof TypeError)) throw error;
+        }
+      }
     } catch (requestError) {
       setCreating(false);
       console.error("Webapp generation failed", requestError);
