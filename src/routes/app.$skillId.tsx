@@ -229,7 +229,7 @@ function SkillWebapp() {
                   onChange={(event) => setIncludeCover(event.target.checked)}
                   className="size-4 accent-primary"
                 />
-                Có ảnh bìa
+                Có ảnh Hero
               </label>
               <a
                 href={skill.thumbnail_path || fallback}
@@ -245,7 +245,8 @@ function SkillWebapp() {
             {logoPosition === "none"
               ? `${money(pricePerImage)} / ảnh · tổng ${money(totalPrice)}.`
               : `Logo: 6.000đ / ảnh · tổng ${money(totalPrice)}.`}{" "}
-            Ảnh bìa được tính trong số lượng ảnh đã chọn.
+            Ảnh Hero được tính trong số lượng ảnh đã chọn. Khi chọn nhiều ảnh, app tạo lần lượt ảnh
+            toàn cảnh, trung cảnh và cận cảnh thay vì ghép nhiều góc vào một ảnh.
           </p>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <label className="block text-sm font-bold">

@@ -93,7 +93,7 @@ Deno.serve(async (request) => {
     return json({ error: "Hãy tải logo PNG trước khi chọn vị trí hiển thị logo." }, 400);
   const { data: skill } = await db
     .from("skills")
-    .select("id,title,webapp_config")
+    .select("id,title,thumbnail_path,webapp_config")
     .eq("slug", slug)
     .eq("status", "published")
     .eq("webapp_enabled", true)
@@ -141,8 +141,8 @@ Deno.serve(async (request) => {
       "RÀNG BUỘC BẮT BUỘC CỦA WEBAPP: các lựa chọn dưới đây có ưu tiên cao hơn mọi yêu cầu thêm của khách. Nếu có mâu thuẫn, bỏ qua phần mâu thuẫn trong yêu cầu thêm và tuân thủ các ràng buộc này.",
       `Chỉ tạo đúng ${outputCount} ảnh đầu ra, không nhiều hơn và không ít hơn.`,
       includeCover
-        ? "Có đúng 1 ảnh bìa nổi bật trong tổng số ảnh đầu ra; các ảnh còn lại là ảnh sản phẩm theo yêu cầu."
-        : "Không tạo ảnh bìa; chỉ tạo ảnh sản phẩm.",
+        ? "Có đúng 1 ảnh Hero/toàn cảnh trong tổng số ảnh đầu ra; các ảnh còn lại là các góc sản phẩm khác nhau."
+        : "Không tạo ảnh Hero; chỉ tạo ảnh sản phẩm.",
       logo instanceof File && logoPosition !== "none"
         ? `Dùng logo PNG tham chiếu được tải kèm, giữ nguyên logo và đặt logo ở vị trí ${
             { "top-left": "trái trên", "top-right": "phải trên", center: "chính giữa" }[
@@ -162,26 +162,83 @@ Deno.serve(async (request) => {
       .filter(Boolean)
       .join("\n\n");
     try {
-      const openaiForm = new FormData();
-      openaiForm.append("model", String(config.model || "gpt-image-2"));
-      openaiForm.append("prompt", prompt);
-      openaiForm.append("size", "1024x1024");
-      openaiForm.append("n", String(outputCount));
-      // Pass every reference image in upload order; each Skill prompt defines their role.
-      files.forEach((file) => openaiForm.append("image", file, file.name));
-      if (logo instanceof File && logoPosition !== "none")
-        openaiForm.append("image", logo, logo.name);
-      const response = await fetch("https://api.openai.com/v1/images/edits", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}` },
-        body: openaiForm,
-      });
-      const result = await response.json();
-      if (!response.ok || !Array.isArray(result.data))
-        throw new Error(result?.error?.message || "AI không thể tạo ảnh.");
+      let heroLayoutReference: File | null = null;
+      if (includeCover && typeof skill.thumbnail_path === "string") {
+        try {
+          const layoutResponse = await fetch(skill.thumbnail_path);
+          const layoutBlob = await layoutResponse.blob();
+          if (layoutResponse.ok && layoutBlob.type.startsWith("image/"))
+            heroLayoutReference = new File([layoutBlob], "hero-layout-reference.png", {
+              type: layoutBlob.type,
+            });
+        } catch {
+          // The Hero can still be generated without the optional layout reference.
+        }
+      }
+      const shotPlan = [
+        includeCover
+          ? {
+              name: "ảnh Hero/toàn cảnh",
+              prompt:
+                "Create exactly ONE standalone Hero image: a polished full-room commercial product cover showing the complete bed and bedding. Follow the supplied Hero layout reference only for its clean e-commerce hierarchy, never its product, brand, room, logos or text. Use only confirmed product facts from the customer request if text is necessary; otherwise leave information areas clean. This is one full-frame Hero image, never a poster collage or contact sheet.",
+            }
+          : {
+              name: "ảnh toàn cảnh",
+              prompt:
+                "Create exactly ONE standalone wide product photo showing the complete bed and bedding in the canonical room. This is a single full-frame image, not a collage or contact sheet.",
+            },
+        {
+          name: "ảnh trung cảnh",
+          prompt:
+            "Create exactly ONE standalone medium shot from the side or foot-side of the bed looking toward the headboard. Show the bedding construction and bed clearly. This is a single full-frame image, not a collage or contact sheet.",
+        },
+        {
+          name: "ảnh cận cảnh",
+          prompt:
+            "Create exactly ONE standalone close-up product-detail photo focused on the fabric texture, pattern, stitching, piping or quilt construction. Keep enough of the same bed and canonical room visible to prove it belongs to the same set. This is a single full-frame image, not a collage or contact sheet.",
+        },
+        {
+          name: "ảnh chi tiết bổ sung",
+          prompt:
+            "Create exactly ONE standalone alternate close-up product-detail photo of the bedding edge, pillowcase, fabric texture or quilt construction in the same canonical room. This is a single full-frame image, not a collage or contact sheet.",
+        },
+      ].slice(0, outputCount);
       const outputPaths: string[] = [];
-      for (const [index, image] of result.data.entries()) {
-        if (!image.b64_json) continue;
+      let canonicalRoom: File | null = null;
+      for (const [index, shot] of shotPlan.entries()) {
+        const requestForm = new FormData();
+        requestForm.append("model", String(config.model || "gpt-image-2"));
+        requestForm.append(
+          "prompt",
+          [
+            prompt,
+            `Góc chụp bắt buộc cho lượt này: ${shot.name}. ${shot.prompt}`,
+            canonicalRoom
+              ? "Image 2 is the canonical room created for this same set. Preserve its exact room architecture, bed, headboard, furniture, decor, lighting and palette; change only the camera viewpoint for this shot."
+              : heroLayoutReference
+                ? "Image 2 is only a Hero layout reference. Do not copy its bedding, brand, text, room, furniture or decor. Use it only for the clean cover-image hierarchy while creating the canonical room for this set."
+                : "This first image establishes the canonical room for the complete set. Use a consistent modern minimalist apartment/studio bedroom that later shots can preserve exactly.",
+            "Return one image only. Never create multiple panels, a collage, a contact sheet, picture-in-picture, split screen or a composite of several camera angles.",
+          ].join("\n\n"),
+        );
+        requestForm.append("size", "1024x1024");
+        requestForm.append("n", "1");
+        // Image 1 is the product reference; Image 2 locks the room for later shots.
+        files.forEach((file) => requestForm.append("image", file, file.name));
+        if (canonicalRoom) requestForm.append("image", canonicalRoom, canonicalRoom.name);
+        else if (heroLayoutReference)
+          requestForm.append("image", heroLayoutReference, heroLayoutReference.name);
+        if (logo instanceof File && logoPosition !== "none")
+          requestForm.append("image", logo, logo.name);
+        const response = await fetch("https://api.openai.com/v1/images/edits", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${apiKey}` },
+          body: requestForm,
+        });
+        const result = await response.json();
+        const image = result?.data?.[0];
+        if (!response.ok || !image?.b64_json)
+          throw new Error(result?.error?.message || "AI không thể tạo ảnh.");
         const bytes = Uint8Array.from(atob(image.b64_json), (char) => char.charCodeAt(0));
         const path = `${stamp}/output-${index}.png`;
         const { error } = await db.storage
@@ -189,6 +246,8 @@ Deno.serve(async (request) => {
           .upload(path, bytes, { contentType: "image/png" });
         if (error) throw error;
         outputPaths.push(path);
+        if (!canonicalRoom)
+          canonicalRoom = new File([bytes], "canonical-room.png", { type: "image/png" });
       }
       if (!outputPaths.length) throw new Error("AI không trả về ảnh đầu ra.");
       await db.rpc("webapp_complete_job", { p_job_id: job.id, p_output_paths: outputPaths });
