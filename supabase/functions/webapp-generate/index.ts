@@ -1,10 +1,14 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const allowedOrigins = new Set(["https://sancongcu.com", "http://localhost:8080"]);
+const allowedOrigins = new Set([
+  "https://sancongcu.com",
+  "https://www.sancongcu.com",
+  "http://localhost:8080",
+]);
 const adminEmails = new Set(["sancongcu@gmail.com", "trungnv32@gmail.com"]);
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "https://sancongcu.com",
+  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 const json = (body: Record<string, unknown>, status = 200) =>
