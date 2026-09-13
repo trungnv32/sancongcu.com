@@ -95,6 +95,7 @@ type Order = {
 type WalletTopup = {
   id: string;
   amount_vnd: number;
+  credited_amount_vnd: number;
   transfer_code: string;
   status: "pending" | "confirmed" | "cancelled";
   created_at: string;
@@ -237,7 +238,7 @@ function AdminPage() {
       supabase.from("skill_entitlements").select("*"),
       supabase
         .from("wallet_topups")
-        .select("id,amount_vnd,transfer_code,status,created_at,confirmed_at")
+        .select("id,amount_vnd,credited_amount_vnd,transfer_code,status,created_at,confirmed_at")
         .order("created_at", { ascending: false }),
     ]);
     const requestError =
@@ -279,7 +280,9 @@ function AdminPage() {
       setWalletTopups((current) =>
         current.map((item) => (item.id === topup.id ? (data as WalletTopup) : item)),
       );
-      setNotice(`Đã cộng ${topup.amount_vnd.toLocaleString("vi-VN")}đ vào số dư khách hàng.`);
+      setNotice(
+        `Đã cộng ${topup.credited_amount_vnd.toLocaleString("vi-VN")}đ vào số dư khách hàng.`,
+      );
     }
   }
 
@@ -1121,7 +1124,7 @@ function OrdersPanel({
               <thead className="text-xs uppercase text-muted-foreground">
                 <tr>
                   <th className="py-2 pr-4">Mã nạp</th>
-                  <th className="py-2 pr-4">Số tiền</th>
+                  <th className="py-2 pr-4">Chuyển khoản / cộng số dư</th>
                   <th className="py-2 pr-4">Thời gian</th>
                   <th className="py-2">Xác nhận</th>
                 </tr>
@@ -1132,6 +1135,11 @@ function OrdersPanel({
                     <td className="py-3 pr-4 font-mono text-xs font-bold">{topup.transfer_code}</td>
                     <td className="py-3 pr-4 font-bold">
                       {topup.amount_vnd.toLocaleString("vi-VN")}đ
+                      {topup.credited_amount_vnd > topup.amount_vnd && (
+                        <span className="mt-1 block text-xs text-emerald-700">
+                          Cộng: {topup.credited_amount_vnd.toLocaleString("vi-VN")}đ
+                        </span>
+                      )}
                     </td>
                     <td className="py-3 pr-4 text-muted-foreground">
                       {new Date(topup.created_at).toLocaleString("vi-VN")}

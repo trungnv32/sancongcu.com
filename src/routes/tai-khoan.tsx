@@ -26,10 +26,31 @@ type WalletLedgerItem = {
 type Topup = {
   id: string;
   amount_vnd: number;
+  credited_amount_vnd: number;
   transfer_code: string;
   status: "pending" | "confirmed" | "cancelled";
   created_at: string;
 };
+const formatVnd = (value: number) => `${value.toLocaleString("vi-VN")}đ`;
+const parseAmount = (value: string) => Number(value.replace(/\D/g, "")) || 0;
+const formatAmountInput = (value: string) => {
+  const amount = parseAmount(value);
+  return amount ? amount.toLocaleString("vi-VN") : "";
+};
+const topupCreditFor = (amount: number) => {
+  if (amount === 100000) return 110000;
+  if (amount === 200000) return 250000;
+  if (amount === 500000) return 750000;
+  return amount;
+};
+const topupOptions = [
+  { amount: 10000 },
+  { amount: 20000 },
+  { amount: 50000 },
+  { amount: 100000, bonus: 10000 },
+  { amount: 200000, bonus: 50000 },
+  { amount: 500000, bonus: 250000 },
+];
 
 function normalizePhone(value: string) {
   const cleaned = value.replace(/[\s().-]/g, "");
@@ -74,10 +95,11 @@ function AccountPage() {
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [ledger, setLedger] = useState<WalletLedgerItem[]>([]);
   const [topups, setTopups] = useState<Topup[]>([]);
-  const [topupAmount, setTopupAmount] = useState("50000");
+  const [topupAmount, setTopupAmount] = useState("50.000");
   const [showTopup, setShowTopup] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [mode, setMode] = useState<"login" | "signup">("login");
+  const topupCreditPreview = topupCreditFor(parseAmount(topupAmount));
   const [fullName, setFullName] = useState("");
   const [identityType, setIdentityType] = useState<"email" | "phone">("email");
   const [identity, setIdentity] = useState("");
@@ -114,7 +136,7 @@ function AccountPage() {
           .limit(50),
         supabase
           .from("wallet_topups")
-          .select("id,amount_vnd,transfer_code,status,created_at")
+          .select("id,amount_vnd,credited_amount_vnd,transfer_code,status,created_at")
           .eq("user_id", id)
           .order("created_at", { ascending: false })
           .limit(10),
@@ -268,7 +290,7 @@ function AccountPage() {
 
   async function createTopup() {
     if (!supabase) return;
-    const amount = Number(topupAmount.replace(/\D/g, ""));
+    const amount = parseAmount(topupAmount);
     if (!Number.isInteger(amount) || amount < 5000) {
       setError("Số tiền nạp tối thiểu là 5.000đ.");
       return;
@@ -344,24 +366,31 @@ function AccountPage() {
                   Số tiền muốn nạp
                   <input
                     value={topupAmount}
-                    onChange={(event) => setTopupAmount(event.target.value.replace(/\D/g, ""))}
+                    onChange={(event) => setTopupAmount(formatAmountInput(event.target.value))}
                     inputMode="numeric"
                     className="input mt-2 h-12"
-                    placeholder="Ví dụ: 50000"
+                    placeholder="Ví dụ: 50.000"
                   />
                 </label>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {[50000, 100000, 200000, 500000].map((amount) => (
+                  {topupOptions.map(({ amount, bonus }) => (
                     <button
                       key={amount}
                       type="button"
-                      onClick={() => setTopupAmount(String(amount))}
+                      onClick={() => setTopupAmount(amount.toLocaleString("vi-VN"))}
                       className="min-h-10 rounded-full border border-border px-3 text-xs font-bold hover:bg-muted"
                     >
-                      {amount.toLocaleString("vi-VN")}đ
+                      {formatVnd(amount)}
+                      {bonus ? ` +${formatVnd(bonus)}` : ""}
                     </button>
                   ))}
                 </div>
+                {topupCreditPreview > parseAmount(topupAmount) && (
+                  <p className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">
+                    Ưu đãi nạp tiền: chuyển {formatVnd(parseAmount(topupAmount))}, số dư nhận được{" "}
+                    {formatVnd(topupCreditPreview)}.
+                  </p>
+                )}
                 <button
                   type="button"
                   disabled={busy}
@@ -379,8 +408,14 @@ function AccountPage() {
                     />
                     <p className="mt-4 flex justify-between gap-3">
                       <span>Số tiền</span>
-                      <strong>{topups[0].amount_vnd.toLocaleString("vi-VN")}đ</strong>
+                      <strong>{formatVnd(topups[0].amount_vnd)}</strong>
                     </p>
+                    {topups[0].credited_amount_vnd > topups[0].amount_vnd && (
+                      <p className="mt-2 font-bold text-emerald-700">
+                        Số dư nhận được: {formatVnd(topups[0].credited_amount_vnd)} · tặng thêm{" "}
+                        {formatVnd(topups[0].credited_amount_vnd - topups[0].amount_vnd)}
+                      </p>
+                    )}
                     <p className="mt-2 border-t border-border pt-3">
                       Nội dung CK: <strong className="font-mono">{topups[0].transfer_code}</strong>
                     </p>
