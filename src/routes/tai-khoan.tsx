@@ -433,7 +433,8 @@ function AccountPage() {
                       <strong className="font-mono">{activeTopup.transfer_code}</strong>
                     </p>
                     <p className="mt-3 text-xs leading-5 text-muted-foreground">
-                      Sau khi chuyển khoản, số dư sẽ được cộng khi quản trị xác nhận.
+                      Sau khi chuyển khoản, gửi bill tới Zalo 0938.069.668. Số dư sẽ được cộng sau
+                      khi đối chiếu.
                     </p>
                   </div>
                 )}
