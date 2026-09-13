@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as TaiKhoanRouteImport } from './routes/tai-khoan'
 import { Route as AppSkillIdRouteImport } from './routes/app.$skillId'
 import { Route as SkillSkillIdRouteImport } from './routes/skill.$skillId'
 
@@ -22,6 +23,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TaiKhoanRoute = TaiKhoanRouteImport.update({
+  id: '/tai-khoan',
+  path: '/tai-khoan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppSkillIdRoute = AppSkillIdRouteImport.update({
@@ -38,12 +44,14 @@ const SkillSkillIdRoute = SkillSkillIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/tai-khoan': typeof TaiKhoanRoute
   '/app/$skillId': typeof AppSkillIdRoute
   '/skill/$skillId': typeof SkillSkillIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/tai-khoan': typeof TaiKhoanRoute
   '/app/$skillId': typeof AppSkillIdRoute
   '/skill/$skillId': typeof SkillSkillIdRoute
 }
@@ -51,20 +59,28 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/tai-khoan': typeof TaiKhoanRoute
   '/app/$skillId': typeof AppSkillIdRoute
   '/skill/$skillId': typeof SkillSkillIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/app/$skillId' | '/skill/$skillId'
+  fullPaths: '/' | '/admin' | '/tai-khoan' | '/app/$skillId' | '/skill/$skillId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/app/$skillId' | '/skill/$skillId'
-  id: '__root__' | '/' | '/admin' | '/app/$skillId' | '/skill/$skillId'
+  to: '/' | '/admin' | '/tai-khoan' | '/app/$skillId' | '/skill/$skillId'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/tai-khoan'
+    | '/app/$skillId'
+    | '/skill/$skillId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  TaiKhoanRoute: typeof TaiKhoanRoute
   AppSkillIdRoute: typeof AppSkillIdRoute
   SkillSkillIdRoute: typeof SkillSkillIdRoute
 }
@@ -83,6 +99,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tai-khoan': {
+      id: '/tai-khoan'
+      path: '/tai-khoan'
+      fullPath: '/tai-khoan'
+      preLoaderRoute: typeof TaiKhoanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/$skillId': {
@@ -105,6 +128,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  TaiKhoanRoute: TaiKhoanRoute,
   AppSkillIdRoute: AppSkillIdRoute,
   SkillSkillIdRoute: SkillSkillIdRoute,
 }

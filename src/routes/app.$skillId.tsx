@@ -18,6 +18,7 @@ function SkillWebapp() {
   const [skill, setSkill] = useState<SkillWebappConfig | null>(null);
   const [loaded, setLoaded] = useState(!supabase);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isSignedIn, setIsSignedIn] = useState(false);
 
   useEffect(() => {
     if (!supabase) return;
@@ -33,6 +34,15 @@ function SkillWebapp() {
       setLoaded(true);
     })();
   }, [skillId]);
+
+  useEffect(() => {
+    if (!supabase) return;
+    void supabase.auth.getSession().then(({ data }) => setIsSignedIn(Boolean(data.session)));
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsSignedIn(Boolean(session));
+    });
+    return () => subscription.subscription.unsubscribe();
+  }, []);
 
   if (!loaded) {
     return (
@@ -50,7 +60,10 @@ function SkillWebapp() {
           <p className="mt-3 leading-7 text-muted-foreground">
             Skill chưa bật phiên bản dùng trực tiếp trên web hoặc chưa được công bố.
           </p>
-          <Link to="/" className="mt-6 inline-flex min-h-11 items-center rounded-full bg-foreground px-5 py-3 font-bold text-background">
+          <Link
+            to="/"
+            className="mt-6 inline-flex min-h-11 items-center rounded-full bg-foreground px-5 py-3 font-bold text-background"
+          >
             Về trang chủ
           </Link>
         </section>
@@ -62,16 +75,20 @@ function SkillWebapp() {
     <main className="min-h-screen bg-soft-gradient">
       <header className="border-b border-border bg-background">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <Link to="/skill/$skillId" params={{ skillId }} className="text-sm font-semibold sm:text-base">
+          <Link
+            to="/skill/$skillId"
+            params={{ skillId }}
+            className="text-sm font-semibold sm:text-base"
+          >
             ← Chi tiết Skill
           </Link>
-          <button
-            type="button"
+          <Link
+            to="/tai-khoan"
             className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-bold"
           >
             <WalletCards className="size-4" />
-            Ví của tôi
-          </button>
+            {isSignedIn ? "Ví của tôi" : "Đăng nhập"}
+          </Link>
         </div>
       </header>
       <section className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -88,23 +105,42 @@ function SkillWebapp() {
             />
             <span>
               <ImagePlus className="mx-auto size-9 text-primary" />
-              <span className="mt-3 block font-bold">{selectedFile ? selectedFile.name : "Tải ảnh sản phẩm lên"}</span>
+              <span className="mt-3 block font-bold">
+                {selectedFile ? selectedFile.name : "Tải ảnh sản phẩm lên"}
+              </span>
               <span className="mt-1 block text-sm text-muted-foreground">JPG, PNG hoặc WebP</span>
             </span>
           </label>
         </section>
         <aside className="h-fit rounded-3xl border border-border bg-card p-5 shadow-card sm:p-6">
-          <img src={skill.thumbnail_path || fallback} alt="" className="aspect-square w-full rounded-2xl object-cover" />
+          <img
+            src={skill.thumbnail_path || fallback}
+            alt=""
+            className="aspect-square w-full rounded-2xl object-cover"
+          />
           <h2 className="mt-5 text-xl font-bold">Tạo ảnh theo lượt</h2>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">Chỉ từ 5.000đ / ảnh. Chi phí sẽ được hiển thị và xác nhận trước khi tạo.</p>
-          <button
-            type="button"
-            disabled={!selectedFile}
-            className="mt-5 min-h-12 w-full rounded-full bg-brand-gradient px-5 py-3 font-bold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Tạo ảnh
-          </button>
-          <p className="mt-3 text-center text-xs leading-5 text-muted-foreground">Tính năng tạo ảnh và ví sẽ được kết nối ở bước tiếp theo.</p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Chỉ từ 5.000đ / ảnh. Chi phí sẽ được hiển thị và xác nhận trước khi tạo.
+          </p>
+          {isSignedIn ? (
+            <button
+              type="button"
+              disabled={!selectedFile}
+              className="mt-5 min-h-12 w-full rounded-full bg-brand-gradient px-5 py-3 font-bold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Tạo ảnh
+            </button>
+          ) : (
+            <Link
+              to="/tai-khoan"
+              className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-brand-gradient px-5 py-3 font-bold text-primary-foreground transition hover:opacity-90"
+            >
+              Đăng nhập để dùng app
+            </Link>
+          )}
+          <p className="mt-3 text-center text-xs leading-5 text-muted-foreground">
+            Tính năng tạo ảnh và ví sẽ được kết nối ở bước tiếp theo.
+          </p>
         </aside>
       </section>
     </main>

@@ -1298,8 +1298,8 @@ function SkillEditor({
               <span>
                 <span className="block text-sm font-bold">Có Webapp dùng ngay</span>
                 <span className="mt-1 block text-sm leading-6 text-muted-foreground">
-                  Hiển thị CTA “Dùng ngay trên app” tại trang chi tiết và mở trang Webapp riêng
-                  cho Skill này.
+                  Hiển thị CTA “Dùng ngay trên app” tại trang chi tiết và mở trang Webapp riêng cho
+                  Skill này.
                 </span>
               </span>
             </label>
