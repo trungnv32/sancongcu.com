@@ -52,6 +52,13 @@ type Skill = {
   price_usd: number;
   activation_price_vnd: number;
   webapp_enabled: boolean;
+  webapp_config: {
+    price_vnd?: number;
+    input_limit?: number;
+    output_count?: number;
+    model?: string;
+    prompt_template?: string;
+  };
   status: "draft" | "published" | "hidden";
   sort_order: number;
 };
@@ -391,6 +398,13 @@ function AdminPage() {
       price_usd: Number(form.get("price_usd") || 1.99),
       activation_price_vnd: Number(form.get("activation_price_vnd") || 51000),
       webapp_enabled: form.get("webapp_enabled") === "on",
+      webapp_config: {
+        price_vnd: Math.max(0, Number(form.get("webapp_price_vnd") || 15000)),
+        input_limit: Math.min(4, Math.max(1, Number(form.get("webapp_input_limit") || 1))),
+        output_count: Math.min(4, Math.max(1, Number(form.get("webapp_output_count") || 1))),
+        model: String(form.get("webapp_model") || "gpt-image-2").trim(),
+        prompt_template: String(form.get("webapp_prompt_template") || "").trim(),
+      },
       status: String(form.get("status")) as Skill["status"],
       sort_order: Number(form.get("sort_order") || 0),
     };
@@ -1303,6 +1317,55 @@ function SkillEditor({
                 </span>
               </span>
             </label>
+            <div className="mt-4 grid gap-4 border-t border-border pt-4 md:grid-cols-3">
+              <Field label="Giá mỗi lượt (VND)">
+                <input
+                  name="webapp_price_vnd"
+                  type="number"
+                  min="0"
+                  step="1000"
+                  defaultValue={skill.webapp_config?.price_vnd ?? 15000}
+                  className="input"
+                />
+              </Field>
+              <Field label="Tối đa ảnh đầu vào">
+                <input
+                  name="webapp_input_limit"
+                  type="number"
+                  min="1"
+                  max="4"
+                  defaultValue={skill.webapp_config?.input_limit ?? 1}
+                  className="input"
+                />
+              </Field>
+              <Field label="Số ảnh đầu ra">
+                <input
+                  name="webapp_output_count"
+                  type="number"
+                  min="1"
+                  max="4"
+                  defaultValue={skill.webapp_config?.output_count ?? 1}
+                  className="input"
+                />
+              </Field>
+              <Field label="Model tạo ảnh">
+                <input
+                  name="webapp_model"
+                  defaultValue={skill.webapp_config?.model ?? "gpt-image-2"}
+                  className="input"
+                />
+              </Field>
+              <div className="md:col-span-2">
+                <CountInput
+                  label="Prompt chuẩn của Webapp — quy tắc cố định cho Skill này"
+                  name="webapp_prompt_template"
+                  defaultValue={skill.webapp_config?.prompt_template ?? ""}
+                  maxLength={4000}
+                  multiline
+                  rows={8}
+                />
+              </div>
+            </div>
           </div>
           <Field label="Thứ tự trong danh mục">
             <input
