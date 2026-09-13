@@ -95,6 +95,7 @@ function AccountPage() {
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [ledger, setLedger] = useState<WalletLedgerItem[]>([]);
   const [topups, setTopups] = useState<Topup[]>([]);
+  const [activeTopup, setActiveTopup] = useState<Topup | null>(null);
   const [topupAmount, setTopupAmount] = useState("50.000");
   const [showTopup, setShowTopup] = useState(false);
   const [displayName, setDisplayName] = useState("");
@@ -119,6 +120,7 @@ function AccountPage() {
         setProfile(null);
         setWallet(null);
         setLedger([]);
+        setActiveTopup(null);
         return;
       }
       const [profileResult, walletResult, ledgerResult, topupResult] = await Promise.all([
@@ -307,6 +309,7 @@ function AccountPage() {
       return;
     }
     setTopups((current) => [data as Topup, ...current]);
+    setActiveTopup(data as Topup);
     setNotice("Đã tạo mã nạp tiền. Hãy chuyển khoản đúng số tiền và nội dung bên dưới.");
   }
 
@@ -408,25 +411,26 @@ function AccountPage() {
                 >
                   {busy ? "Đang tạo mã nạp…" : "Tạo mã nạp tiền"}
                 </button>
-                {topups[0] && (
+                {activeTopup && (
                   <div className="mt-5 rounded-xl bg-muted p-4 text-sm">
                     <img
-                      src={`https://img.vietqr.io/image/TCB-8663769668-compact2.png?amount=${topups[0].amount_vnd}&addInfo=${encodeURIComponent(topups[0].transfer_code)}&accountName=${encodeURIComponent("HỘ KINH DOANH SUMOI")}`}
+                      src={`https://img.vietqr.io/image/TCB-8663769668-compact2.png?amount=${activeTopup.amount_vnd}&addInfo=${encodeURIComponent(activeTopup.transfer_code)}&accountName=${encodeURIComponent("HỘ KINH DOANH SUMOI")}`}
                       alt="Mã QR nạp tiền"
                       className="mx-auto w-48 rounded-xl border border-border"
                     />
                     <p className="mt-4 flex justify-between gap-3">
                       <span>Số tiền</span>
-                      <strong>{formatVnd(topups[0].amount_vnd)}</strong>
+                      <strong>{formatVnd(activeTopup.amount_vnd)}</strong>
                     </p>
-                    {topups[0].credited_amount_vnd > topups[0].amount_vnd && (
+                    {activeTopup.credited_amount_vnd > activeTopup.amount_vnd && (
                       <p className="mt-2 font-bold text-emerald-700">
-                        Số dư nhận được: {formatVnd(topups[0].credited_amount_vnd)} · tặng thêm{" "}
-                        {formatVnd(topups[0].credited_amount_vnd - topups[0].amount_vnd)}
+                        Số dư nhận được: {formatVnd(activeTopup.credited_amount_vnd)} · tặng thêm{" "}
+                        {formatVnd(activeTopup.credited_amount_vnd - activeTopup.amount_vnd)}
                       </p>
                     )}
                     <p className="mt-2 border-t border-border pt-3">
-                      Nội dung CK: <strong className="font-mono">{topups[0].transfer_code}</strong>
+                      Nội dung CK:{" "}
+                      <strong className="font-mono">{activeTopup.transfer_code}</strong>
                     </p>
                     <p className="mt-3 text-xs leading-5 text-muted-foreground">
                       Sau khi chuyển khoản, số dư sẽ được cộng khi quản trị xác nhận.
