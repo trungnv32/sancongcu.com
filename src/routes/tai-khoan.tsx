@@ -23,6 +23,13 @@ type WalletLedgerItem = {
   note: string;
   created_at: string;
 };
+type Topup = {
+  id: string;
+  amount_vnd: number;
+  transfer_code: string;
+  status: "pending" | "confirmed" | "cancelled";
+  created_at: string;
+};
 
 function normalizePhone(value: string) {
   const cleaned = value.replace(/[\s().-]/g, "");
@@ -66,6 +73,9 @@ function AccountPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [ledger, setLedger] = useState<WalletLedgerItem[]>([]);
+  const [topups, setTopups] = useState<Topup[]>([]);
+  const [topupAmount, setTopupAmount] = useState("50000");
+  const [showTopup, setShowTopup] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [fullName, setFullName] = useState("");
@@ -89,7 +99,7 @@ function AccountPage() {
         setLedger([]);
         return;
       }
-      const [profileResult, walletResult, ledgerResult] = await Promise.all([
+      const [profileResult, walletResult, ledgerResult, topupResult] = await Promise.all([
         supabase
           .from("profiles")
           .select("display_name,email,phone")
@@ -102,11 +112,18 @@ function AccountPage() {
           .eq("user_id", id)
           .order("created_at", { ascending: false })
           .limit(50),
+        supabase
+          .from("wallet_topups")
+          .select("id,amount_vnd,transfer_code,status,created_at")
+          .eq("user_id", id)
+          .order("created_at", { ascending: false })
+          .limit(10),
       ]);
       setProfile((profileResult.data as Profile | null) ?? null);
       setDisplayName((profileResult.data as Profile | null)?.display_name ?? "");
       setWallet((walletResult.data as Wallet | null) ?? null);
       setLedger((ledgerResult.data as WalletLedgerItem[] | null) ?? []);
+      setTopups((topupResult.data as Topup[] | null) ?? []);
     };
     void supabase.auth.getUser().then(({ data }) => void load(data.user?.id ?? null));
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -249,6 +266,28 @@ function AccountPage() {
     setNotice("Đã lưu cài đặt tài khoản.");
   }
 
+  async function createTopup() {
+    if (!supabase) return;
+    const amount = Number(topupAmount.replace(/\D/g, ""));
+    if (!Number.isInteger(amount) || amount < 5000) {
+      setError("Số tiền nạp tối thiểu là 5.000đ.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    const { data, error: topupError } = await supabase.rpc("create_wallet_topup", {
+      p_amount_vnd: amount,
+    });
+    setBusy(false);
+    if (topupError || !data) {
+      setError("Không thể tạo yêu cầu nạp tiền. Vui lòng thử lại.");
+      return;
+    }
+    setTopups((current) => [data as Topup, ...current]);
+    setNotice("Đã tạo mã nạp tiền. Hãy chuyển khoản đúng số tiền và nội dung bên dưới.");
+  }
+
   if (!supabase) {
     return (
       <main className="grid min-h-screen place-items-center bg-soft-gradient p-6">
@@ -293,11 +332,65 @@ function AccountPage() {
             </p>
             <button
               type="button"
-              disabled
-              className="mt-5 min-h-11 rounded-full bg-background px-5 py-3 text-sm font-bold text-foreground opacity-60"
+              onClick={() => setShowTopup((value) => !value)}
+              className="mt-5 min-h-11 rounded-full bg-background px-5 py-3 text-sm font-bold text-foreground transition hover:bg-background/90"
             >
-              Nạp tiền — sắp mở
+              {showTopup ? "Đóng nạp tiền" : "Nạp tiền"}
             </button>
+            {showTopup && (
+              <div className="mt-5 rounded-2xl bg-background p-4 text-foreground sm:p-5">
+                <h2 className="text-lg font-bold">Nạp số dư bằng chuyển khoản</h2>
+                <label className="mt-4 block text-sm font-bold">
+                  Số tiền muốn nạp
+                  <input
+                    value={topupAmount}
+                    onChange={(event) => setTopupAmount(event.target.value.replace(/\D/g, ""))}
+                    inputMode="numeric"
+                    className="input mt-2 h-12"
+                    placeholder="Ví dụ: 50000"
+                  />
+                </label>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {[50000, 100000, 200000, 500000].map((amount) => (
+                    <button
+                      key={amount}
+                      type="button"
+                      onClick={() => setTopupAmount(String(amount))}
+                      className="min-h-10 rounded-full border border-border px-3 text-xs font-bold hover:bg-muted"
+                    >
+                      {amount.toLocaleString("vi-VN")}đ
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void createTopup()}
+                  className="mt-4 min-h-12 w-full rounded-full bg-brand-gradient px-4 font-bold text-primary-foreground disabled:opacity-60"
+                >
+                  {busy ? "Đang tạo mã nạp…" : "Tạo mã nạp tiền"}
+                </button>
+                {topups[0] && (
+                  <div className="mt-5 rounded-xl bg-muted p-4 text-sm">
+                    <img
+                      src={`https://img.vietqr.io/image/TCB-8663769668-compact2.png?amount=${topups[0].amount_vnd}&addInfo=${encodeURIComponent(topups[0].transfer_code)}&accountName=${encodeURIComponent("HỘ KINH DOANH SUMOI")}`}
+                      alt="Mã QR nạp tiền"
+                      className="mx-auto w-48 rounded-xl border border-border"
+                    />
+                    <p className="mt-4 flex justify-between gap-3">
+                      <span>Số tiền</span>
+                      <strong>{topups[0].amount_vnd.toLocaleString("vi-VN")}đ</strong>
+                    </p>
+                    <p className="mt-2 border-t border-border pt-3">
+                      Nội dung CK: <strong className="font-mono">{topups[0].transfer_code}</strong>
+                    </p>
+                    <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                      Sau khi chuyển khoản, số dư sẽ được cộng khi quản trị xác nhận.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </section>
           <section className="mt-6 grid gap-4 rounded-2xl border border-border p-5 sm:grid-cols-2">
             <div>

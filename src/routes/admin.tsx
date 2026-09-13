@@ -92,6 +92,14 @@ type Order = {
   created_at: string;
   order_items: OrderItem[];
 };
+type WalletTopup = {
+  id: string;
+  amount_vnd: number;
+  transfer_code: string;
+  status: "pending" | "confirmed" | "cancelled";
+  created_at: string;
+  confirmed_at: string | null;
+};
 
 type SkillPackage = {
   id: string;
@@ -158,6 +166,7 @@ function AdminPage() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [media, setMedia] = useState<Media[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [walletTopups, setWalletTopups] = useState<WalletTopup[]>([]);
   const [packages, setPackages] = useState<SkillPackage[]>([]);
   const [entitlements, setEntitlements] = useState<SkillEntitlement[]>([]);
   const [selectedHallId, setSelectedHallId] = useState<string | null>(null);
@@ -208,25 +217,37 @@ function AdminPage() {
     if (!supabase) return;
     setIsLoading(true);
     setError(null);
-    const [hallResult, skillResult, mediaResult, orderResult, packageResult, entitlementResult] =
-      await Promise.all([
-        supabase.from("halls").select("*").order("sort_order").order("name"),
-        supabase.from("skills").select("*").order("sort_order").order("title"),
-        supabase.from("skill_media").select("*").order("sort_order"),
-        supabase
-          .from("orders")
-          .select("*, order_items(id, skill_id, skill_title, unit_amount)")
-          .order("created_at", { ascending: false }),
-        supabase.from("skill_packages").select("*").order("created_at", { ascending: false }),
-        supabase.from("skill_entitlements").select("*"),
-      ]);
+    const [
+      hallResult,
+      skillResult,
+      mediaResult,
+      orderResult,
+      packageResult,
+      entitlementResult,
+      topupResult,
+    ] = await Promise.all([
+      supabase.from("halls").select("*").order("sort_order").order("name"),
+      supabase.from("skills").select("*").order("sort_order").order("title"),
+      supabase.from("skill_media").select("*").order("sort_order"),
+      supabase
+        .from("orders")
+        .select("*, order_items(id, skill_id, skill_title, unit_amount)")
+        .order("created_at", { ascending: false }),
+      supabase.from("skill_packages").select("*").order("created_at", { ascending: false }),
+      supabase.from("skill_entitlements").select("*"),
+      supabase
+        .from("wallet_topups")
+        .select("id,amount_vnd,transfer_code,status,created_at,confirmed_at")
+        .order("created_at", { ascending: false }),
+    ]);
     const requestError =
       hallResult.error ??
       skillResult.error ??
       mediaResult.error ??
       orderResult.error ??
       packageResult.error ??
-      entitlementResult.error;
+      entitlementResult.error ??
+      topupResult.error;
     if (requestError) {
       setError(`Không thể tải dữ liệu: ${requestError.message}`);
     } else {
@@ -238,10 +259,28 @@ function AdminPage() {
       setOrders((orderResult.data ?? []) as Order[]);
       setPackages((packageResult.data ?? []) as SkillPackage[]);
       setEntitlements((entitlementResult.data ?? []) as SkillEntitlement[]);
+      setWalletTopups((topupResult.data ?? []) as WalletTopup[]);
       setSelectedHallId((current) => current ?? nextHalls[0]?.id ?? null);
       setSelectedSkillId((current) => current ?? nextSkills[0]?.id ?? null);
     }
     setIsLoading(false);
+  }
+
+  async function confirmWalletTopup(topup: WalletTopup) {
+    if (!supabase || topup.status === "confirmed") return;
+    setIsSaving(true);
+    setError(null);
+    const { data, error: confirmError } = await supabase.rpc("confirm_wallet_topup", {
+      p_topup_id: topup.id,
+    });
+    setIsSaving(false);
+    if (confirmError || !data) setError("Không thể xác nhận nạp tiền.");
+    else {
+      setWalletTopups((current) =>
+        current.map((item) => (item.id === topup.id ? (data as WalletTopup) : item)),
+      );
+      setNotice(`Đã cộng ${topup.amount_vnd.toLocaleString("vi-VN")}đ vào số dư khách hàng.`);
+    }
   }
 
   async function updateOrderStatus(
@@ -832,6 +871,8 @@ function AdminPage() {
               onStatusChange={updateOrderStatus}
               onInstallLink={createOrCopyInstallLink}
               onRegenerateInstallLink={(order, item) => createOrCopyInstallLink(order, item, true)}
+              topups={walletTopups}
+              onConfirmTopup={confirmWalletTopup}
             />
           )}
           {adminSection === "catalog" && selectedHall && (
@@ -1026,6 +1067,8 @@ function OrdersPanel({
   onStatusChange,
   onInstallLink,
   onRegenerateInstallLink,
+  topups,
+  onConfirmTopup,
 }: {
   orders: Order[];
   entitlements: SkillEntitlement[];
@@ -1036,6 +1079,8 @@ function OrdersPanel({
   ) => Promise<void>;
   onInstallLink: (order: Order, item: OrderItem) => Promise<void>;
   onRegenerateInstallLink: (order: Order, item: OrderItem) => Promise<void>;
+  topups: WalletTopup[];
+  onConfirmTopup: (topup: WalletTopup) => Promise<void>;
 }) {
   return (
     <section
@@ -1055,6 +1100,61 @@ function OrdersPanel({
         <span className="rounded-full bg-secondary px-3 py-1 text-sm font-bold">
           {orders.length} đơn
         </span>
+      </div>
+      <div className="border-b border-border bg-muted/20 p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="font-bold">Yêu cầu nạp số dư</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Xác nhận sau khi đối chiếu giao dịch chuyển khoản.
+            </p>
+          </div>
+          <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-bold text-amber-800">
+            {topups.filter((item) => item.status === "pending").length} chờ xác nhận
+          </span>
+        </div>
+        {topups.length === 0 ? (
+          <p className="mt-4 text-sm text-muted-foreground">Chưa có yêu cầu nạp tiền.</p>
+        ) : (
+          <div className="mt-4 overflow-x-auto">
+            <table className="min-w-[680px] w-full text-left text-sm">
+              <thead className="text-xs uppercase text-muted-foreground">
+                <tr>
+                  <th className="py-2 pr-4">Mã nạp</th>
+                  <th className="py-2 pr-4">Số tiền</th>
+                  <th className="py-2 pr-4">Thời gian</th>
+                  <th className="py-2">Xác nhận</th>
+                </tr>
+              </thead>
+              <tbody>
+                {topups.map((topup) => (
+                  <tr key={topup.id} className="border-t border-border">
+                    <td className="py-3 pr-4 font-mono text-xs font-bold">{topup.transfer_code}</td>
+                    <td className="py-3 pr-4 font-bold">
+                      {topup.amount_vnd.toLocaleString("vi-VN")}đ
+                    </td>
+                    <td className="py-3 pr-4 text-muted-foreground">
+                      {new Date(topup.created_at).toLocaleString("vi-VN")}
+                    </td>
+                    <td className="py-3">
+                      {topup.status === "confirmed" ? (
+                        <span className="font-bold text-emerald-700">Đã cộng tiền</span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => void onConfirmTopup(topup)}
+                          className="min-h-10 rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground hover:opacity-90"
+                        >
+                          Đã nhận tiền · cộng số dư
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
       {orders.length === 0 ? (
         <p className="p-5 text-sm text-muted-foreground">Chưa có đơn kích hoạt nào.</p>
