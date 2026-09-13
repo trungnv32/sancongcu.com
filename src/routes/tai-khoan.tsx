@@ -151,6 +151,21 @@ function AccountPage() {
     await supabase?.auth.signOut();
   }
 
+  async function signInWithGoogle() {
+    if (!supabase) return;
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    const { error: authError } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/tai-khoan` },
+    });
+    if (authError) {
+      setError(authError.message);
+      setBusy(false);
+    }
+  }
+
   async function saveAccountSettings(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!supabase || !userId) return;
@@ -326,14 +341,16 @@ function AccountPage() {
         </p>
         <button
           type="button"
-          onClick={() =>
-            setNotice(
-              "Đăng nhập Google đang được cấu hình. Hãy dùng email hoặc số điện thoại trong lúc này.",
-            )
-          }
-          className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-border px-4 font-bold text-muted-foreground transition hover:bg-muted"
+          onClick={() => void signInWithGoogle()}
+          disabled={busy}
+          className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-border px-4 font-bold text-muted-foreground transition hover:bg-muted disabled:opacity-60"
         >
-          <CircleUserRound className="size-5" /> Tiếp tục với Google — sắp mở
+          {busy ? (
+            <LoaderCircle className="size-5 animate-spin" />
+          ) : (
+            <CircleUserRound className="size-5" />
+          )}
+          Tiếp tục với Google
         </button>
         <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
           <span className="h-px flex-1 bg-border" />
