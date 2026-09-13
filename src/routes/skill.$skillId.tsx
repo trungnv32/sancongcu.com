@@ -181,29 +181,6 @@ function Detail() {
           <p className="mt-5 break-words text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
             {intro}
           </p>
-          <section className="mt-6 rounded-2xl border border-border bg-card p-5 sm:p-6">
-            <p className="text-xs font-bold uppercase tracking-[.16em] text-primary">Lưu ý sử dụng</p>
-            <h2 className="mt-2 text-2xl">Chọn cách dùng phù hợp với bạn</h2>
-            <ul className="mt-4 space-y-3 text-base leading-7 text-muted-foreground">
-              <li>• Bản cài đặt Skill chạy trên tài khoản ChatGPT Plus hoặc Claude Pro.</li>
-              <li>• Nên chạy trên máy tính để thao tác và cài đặt thuận tiện.</li>
-            </ul>
-            {skill?.webapp_enabled && (
-              <div className="mt-5 rounded-xl border border-primary/20 bg-primary/5 p-4">
-                <p className="font-bold text-foreground">Không muốn cài đặt?</p>
-                <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                  Dùng ngay trên app, trả tiền theo lượt sử dụng, chỉ từ 5.000đ / ảnh.
-                </p>
-                <Link
-                  to="/app/$skillId"
-                  params={{ skillId }}
-                  className="mt-4 inline-flex min-h-11 items-center rounded-full bg-brand-gradient px-5 py-3 text-sm font-bold text-primary-foreground transition hover:opacity-90"
-                >
-                  Dùng ngay trên app →
-                </Link>
-              </div>
-            )}
-          </section>
           <section className="mt-8 rounded-2xl border border-border bg-card p-5 sm:p-6">
             <h2 className="text-2xl">Bạn nhận được gì</h2>
             <ul className="mt-4 space-y-3 break-words text-base leading-7">
@@ -337,6 +314,31 @@ function Detail() {
               Kích hoạt ngay
             </button>
           </div>
+        </section>
+        <section className="min-w-0 rounded-2xl border border-border bg-card p-5 sm:rounded-3xl sm:p-7">
+          <p className="text-xs font-bold uppercase tracking-[.16em] text-primary">Lưu ý sử dụng</p>
+          <h2 className="mt-2 text-2xl">Chọn cách dùng phù hợp với bạn</h2>
+          <ul className="mt-4 space-y-3 text-base leading-7 text-muted-foreground">
+            <li>• Bản cài đặt Skill chạy trên tài khoản ChatGPT Plus hoặc Claude Pro.</li>
+            <li>• Nên chạy trên máy tính để thao tác và cài đặt thuận tiện.</li>
+          </ul>
+          {skill?.webapp_enabled && (
+            <div className="mt-5 rounded-xl border border-primary/20 bg-primary/5 p-4 sm:p-5">
+              <p className="text-lg font-bold text-foreground">
+                Không muốn cài đặt, không có ChatGPT Plus?
+              </p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                Dùng ngay trên app, trả tiền theo lượt sử dụng, chỉ từ 5.000đ / ảnh.
+              </p>
+              <Link
+                to="/app/$skillId"
+                params={{ skillId }}
+                className="mt-4 inline-flex min-h-11 items-center rounded-full bg-brand-gradient px-5 py-3 text-sm font-bold text-primary-foreground transition hover:opacity-90"
+              >
+                Dùng ngay trên app →
+              </Link>
+            </div>
+          )}
         </section>
       </section>
     </main>
