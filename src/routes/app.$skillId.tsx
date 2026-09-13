@@ -23,6 +23,15 @@ type Job = {
 };
 const money = (value: number) => `${value.toLocaleString("vi-VN")}đ`;
 
+async function functionErrorMessage(error: unknown) {
+  const context = (error as { context?: unknown } | null)?.context;
+  if (context instanceof Response) {
+    const body = await context.clone().json().catch(() => null);
+    if (body && typeof body.error === "string") return body.error;
+  }
+  return "Không thể kết nối dịch vụ tạo ảnh. Vui lòng thử lại.";
+}
+
 function SkillWebapp() {
   const { skillId } = Route.useParams();
   const [skill, setSkill] = useState<Skill | null>(null);
@@ -101,48 +110,17 @@ function SkillWebapp() {
       body.set("include_cover", String(includeCover));
       body.set("logo_position", logoPosition);
       body.set("request_id", requestId);
-      body.set("session_token", `Bearer ${session.access_token}`);
-      files.forEach((file) => body.append("images[]", file));
+      files.forEach((file) => body.append("images", file));
       if (logo) body.set("logo", logo);
       return body;
     };
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (!session) {
-      setCreating(false);
-      setError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-      return;
-    }
-    let data: { error?: string; job?: Job } | null = null;
-    try {
-      for (let attempt = 0; attempt < 2; attempt += 1) {
-        try {
-          const response = await fetch(`/api/webapp-generate.php?request=${requestId}`, {
-            method: "POST",
-            cache: "no-store",
-            body: makeBody(),
-          });
-          data = (await response.json().catch(() => null)) as typeof data;
-          if (!response.ok) throw new Error(data?.error || "Dịch vụ tạo ảnh đang gặp sự cố.");
-          break;
-        } catch (error) {
-          if (attempt === 1 || !(error instanceof TypeError)) throw error;
-        }
-      }
-    } catch (requestError) {
-      setCreating(false);
-      console.error("Webapp generation failed", requestError);
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : "Không thể kết nối dịch vụ tạo ảnh. Vui lòng thử lại.",
-      );
-      return;
-    }
+    const { data, error: requestError } = await supabase.functions.invoke("webapp-generate", {
+      body: makeBody(),
+    });
     setCreating(false);
-    if (data?.error) {
-      setError(data.error);
+    if (requestError || data?.error) {
+      console.error("Webapp generation failed", requestError ?? data);
+      setError(data?.error || (await functionErrorMessage(requestError)));
       return;
     }
     if (data?.job) setJobs((current) => [data.job as Job, ...current]);
