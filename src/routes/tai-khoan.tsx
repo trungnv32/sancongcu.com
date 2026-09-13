@@ -31,6 +31,10 @@ function normalizePhone(value: string) {
   return cleaned;
 }
 
+function phoneLoginEmail(phone: string) {
+  return `phone-${phone.replace(/\D/g, "")}@phone.sancongcu.invalid`;
+}
+
 function translateAuthError(message: string) {
   const normalized = message.toLowerCase();
   if (normalized.includes("invalid login credentials")) {
@@ -132,6 +136,27 @@ function AccountPage() {
       setBusy(false);
       return;
     }
+    if (mode === "signup" && identityType === "phone") {
+      const { data, error: signupError } = await supabase.functions.invoke("phone-signup", {
+        body: { phone: normalizedIdentity, password, fullName: fullName.trim() },
+      });
+      if (signupError || data?.error) {
+        setError(data?.error || "Không thể tạo tài khoản. Vui lòng thử lại.");
+        setBusy(false);
+        return;
+      }
+      const { error: loginError } = await supabase.auth.signInWithPassword({
+        email: phoneLoginEmail(normalizedIdentity),
+        password,
+      });
+      setBusy(false);
+      if (loginError) {
+        setError(translateAuthError(loginError.message));
+        return;
+      }
+      setNotice("Tạo tài khoản thành công. Số dư của bạn đã sẵn sàng.");
+      return;
+    }
     const result =
       mode === "signup"
         ? identityType === "email"
@@ -147,7 +172,10 @@ function AccountPage() {
             })
         : identityType === "email"
           ? await supabase.auth.signInWithPassword({ email: normalizedIdentity, password })
-          : await supabase.auth.signInWithPassword({ phone: normalizedIdentity, password });
+          : await supabase.auth.signInWithPassword({
+              email: phoneLoginEmail(normalizedIdentity),
+              password,
+            });
     setBusy(false);
     if (result.error) {
       setError(translateAuthError(result.error.message));
