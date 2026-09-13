@@ -270,13 +270,17 @@ function SkillWebapp() {
             </label>
           </div>
           <label className="mt-6 block text-sm font-bold">
-            Yêu cầu thêm <span className="font-normal text-muted-foreground">(không bắt buộc)</span>
+            Yêu cầu thêm{" "}
+            <span className="font-normal text-muted-foreground">
+              (không bắt buộc, nên ghi tên bộ ga, thành phần bộ ga, ví dụ 1 ga 2 vỏ gối, 1 chăn hè
+              trần mỏng, chất liệu và đặc tính)
+            </span>
             <textarea
               value={instruction}
               onChange={(event) => setInstruction(event.target.value)}
               maxLength={1000}
               rows={5}
-              placeholder="Ví dụ: tạo ảnh chụp chính diện, phòng tối giản hiện đại, nền phòng ngủ sáng, không chèn thêm chữ..."
+              placeholder="Ví dụ: Bộ chăn ga poly cotton, 1 ga 2 vỏ gối 1 chăn hè trần mỏng, chất cotton, thấm hút tốt, giặt máy được, mọi kích thước"
               className="input mt-2 min-h-32 resize-y leading-7"
             />
           </label>
