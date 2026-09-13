@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   CircleUserRound,
+  History,
   ImagePlus,
   LoaderCircle,
   LogOut,
@@ -133,6 +134,11 @@ function SkillWebapp() {
                 <DropdownMenuItem asChild>
                   <Link to="/tai-khoan" hash="cai-dat" className="min-h-11 cursor-pointer">
                     <Settings className="size-4" /> Cài đặt tài khoản
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/tai-khoan" hash="lich-su" className="min-h-11 cursor-pointer">
+                    <History className="size-4" /> Lịch sử sử dụng
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

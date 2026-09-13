@@ -1,5 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CircleUserRound, LoaderCircle, LogOut, Save, Settings, WalletCards } from "lucide-react";
+import {
+  CircleUserRound,
+  History,
+  LoaderCircle,
+  LogOut,
+  Save,
+  Settings,
+  WalletCards,
+} from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
@@ -7,11 +15,29 @@ export const Route = createFileRoute("/tai-khoan")({ component: AccountPage });
 
 type Profile = { display_name: string; email: string | null; phone: string | null };
 type Wallet = { balance_vnd: number };
+type WalletLedgerItem = {
+  id: string;
+  entry_type: "topup" | "hold" | "charge" | "release" | "refund" | "adjustment";
+  direction: "credit" | "debit";
+  amount_vnd: number;
+  note: string;
+  created_at: string;
+};
+
+const ledgerLabels: Record<WalletLedgerItem["entry_type"], string> = {
+  topup: "Nạp tiền",
+  hold: "Tạm giữ chi phí",
+  charge: "Sử dụng Webapp",
+  release: "Hoàn giữ tiền",
+  refund: "Hoàn tiền",
+  adjustment: "Điều chỉnh số dư",
+};
 
 function AccountPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [wallet, setWallet] = useState<Wallet | null>(null);
+  const [ledger, setLedger] = useState<WalletLedgerItem[]>([]);
   const [displayName, setDisplayName] = useState("");
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [fullName, setFullName] = useState("");
@@ -30,19 +56,27 @@ function AccountPage() {
       if (!id) {
         setProfile(null);
         setWallet(null);
+        setLedger([]);
         return;
       }
-      const [profileResult, walletResult] = await Promise.all([
+      const [profileResult, walletResult, ledgerResult] = await Promise.all([
         supabase
           .from("profiles")
           .select("display_name,email,phone")
           .eq("user_id", id)
           .maybeSingle(),
         supabase.from("wallets").select("balance_vnd").eq("user_id", id).maybeSingle(),
+        supabase
+          .from("wallet_ledger")
+          .select("id,entry_type,direction,amount_vnd,note,created_at")
+          .eq("user_id", id)
+          .order("created_at", { ascending: false })
+          .limit(50),
       ]);
       setProfile((profileResult.data as Profile | null) ?? null);
       setDisplayName((profileResult.data as Profile | null)?.display_name ?? "");
       setWallet((walletResult.data as Wallet | null) ?? null);
+      setLedger((ledgerResult.data as WalletLedgerItem[] | null) ?? []);
     };
     void supabase.auth.getUser().then(({ data }) => void load(data.user?.id ?? null));
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -220,6 +254,43 @@ function AccountPage() {
                 Lưu cài đặt
               </button>
             </form>
+          </section>
+          <section id="lich-su" className="mt-6 rounded-2xl border border-border p-5 sm:p-6">
+            <div className="flex items-center gap-2">
+              <History className="size-5 text-primary" />
+              <h2 className="text-xl font-bold">Lịch sử sử dụng</h2>
+            </div>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              Mọi khoản nạp, sử dụng, hoàn tiền và điều chỉnh số dư sẽ được lưu tại đây.
+            </p>
+            {ledger.length ? (
+              <ul className="mt-5 divide-y divide-border rounded-xl border border-border">
+                {ledger.map((item) => (
+                  <li key={item.id} className="flex items-center justify-between gap-4 p-4">
+                    <div className="min-w-0">
+                      <p className="font-bold">{ledgerLabels[item.entry_type]}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {new Intl.DateTimeFormat("vi-VN", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        }).format(new Date(item.created_at))}
+                        {item.note ? ` · ${item.note}` : ""}
+                      </p>
+                    </div>
+                    <p
+                      className={`shrink-0 font-extrabold ${item.direction === "credit" ? "text-emerald-700" : "text-destructive"}`}
+                    >
+                      {item.direction === "credit" ? "+" : "−"}
+                      {item.amount_vnd.toLocaleString("vi-VN")}đ
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="mt-5 rounded-xl bg-muted p-5 text-sm leading-6 text-muted-foreground">
+                Chưa có giao dịch. Lịch sử sẽ xuất hiện sau khi bạn nạp tiền hoặc sử dụng Webapp.
+              </div>
+            )}
           </section>
           <Link
             to="/"
