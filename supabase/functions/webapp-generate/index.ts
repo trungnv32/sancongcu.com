@@ -101,6 +101,9 @@ Deno.serve(async (request) => {
   if (!skill) return json({ error: "Webapp này hiện chưa sẵn sàng." }, 404);
   const config = (skill.webapp_config ?? {}) as Record<string, unknown>;
   const limit = Math.max(1, Math.min(4, Number(config.input_limit) || 1));
+  const minInput = Math.min(limit, Math.max(1, Number(config.input_min) || 1));
+  if (files.length < minInput)
+    return json({ error: `Webapp này cần tối thiểu ${minInput} ảnh đầu vào.` }, 400);
   if (files.length > limit)
     return json({ error: `Webapp này nhận tối đa ${limit} ảnh đầu vào.` }, 400);
   const outputCount = Math.max(1, Math.min(4, requestedOutputCount));
@@ -157,8 +160,8 @@ Deno.serve(async (request) => {
       openaiForm.append("prompt", prompt);
       openaiForm.append("size", "1024x1024");
       openaiForm.append("n", String(outputCount));
-      // The first image is the visual reference. Configurable workflows can add multi-reference support later.
-      openaiForm.append("image", files[0], files[0].name);
+      // Image order matters for workflows that use an edit target and product reference.
+      files.forEach((file) => openaiForm.append("image", file, file.name));
       if (logo instanceof File && logoPosition !== "none")
         openaiForm.append("image", logo, logo.name);
       const response = await fetch("https://api.openai.com/v1/images/edits", {

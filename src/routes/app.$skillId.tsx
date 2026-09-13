@@ -5,7 +5,7 @@ import fallback from "@/assets/tue-lam-03-standing.jpg";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/app/$skillId")({ component: SkillWebapp });
-type Config = { price_vnd?: number; input_limit?: number };
+type Config = { price_vnd?: number; input_limit?: number; input_min?: number };
 type LogoPosition = "none" | "top-left" | "top-right" | "center";
 type Skill = {
   title: string;
@@ -40,6 +40,7 @@ function SkillWebapp() {
   const [error, setError] = useState<string | null>(null);
   const pricePerImage = Math.max(0, skill?.webapp_config?.price_vnd ?? 15000);
   const inputLimit = Math.min(4, Math.max(1, skill?.webapp_config?.input_limit ?? 1));
+  const inputMin = Math.min(inputLimit, Math.max(1, skill?.webapp_config?.input_min ?? 1));
   const unitPrice = logoPosition === "none" ? pricePerImage : 6000;
   const totalPrice = selectedOutputCount * unitPrice;
 
@@ -177,11 +178,21 @@ function SkillWebapp() {
             <span>
               <ImagePlus className="mx-auto size-9 text-primary" />
               <span className="mt-3 block font-bold">
-                {files.length ? `Đã chọn ${files.length} ảnh` : "Tải ảnh sản phẩm lên"}
+                {files.length
+                  ? `Đã chọn ${files.length} ảnh`
+                  : inputLimit > 1
+                    ? "Tải ảnh bối cảnh và ảnh sản phẩm"
+                    : "Tải ảnh sản phẩm lên"}
               </span>
               <span className="mt-1 block text-sm text-muted-foreground">
-                Tối đa {inputLimit} ảnh · JPG, PNG hoặc WebP · 10 MB/ảnh
+                {inputMin > 1 ? `Tối thiểu ${inputMin}` : "Tối đa 1"} · tối đa {inputLimit} ảnh ·
+                JPG, PNG hoặc WebP · 10 MB/ảnh
               </span>
+              {inputLimit > 1 && (
+                <span className="mt-2 block text-sm leading-6 text-muted-foreground">
+                  Ảnh 1: bối cảnh cần giữ nguyên · Ảnh 2: chăn ga/sản phẩm cần thay vào.
+                </span>
+              )}
             </span>
           </label>
           {files.length > 0 && (
@@ -302,16 +313,18 @@ function SkillWebapp() {
           {signedIn ? (
             <button
               type="button"
-              disabled={!files.length || creating || balance < totalPrice}
+              disabled={files.length < inputMin || creating || balance < totalPrice}
               onClick={() => void generate()}
               className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-brand-gradient px-5 py-3 font-bold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {creating && <LoaderCircle className="size-4 animate-spin" />}
               {creating
                 ? "Đang tạo ảnh…"
-                : balance < totalPrice
-                  ? "Số dư chưa đủ"
-                  : `Tạo ảnh · ${money(totalPrice)}`}
+                : files.length < inputMin
+                  ? `Cần ${inputMin} ảnh đầu vào`
+                  : balance < totalPrice
+                    ? "Số dư chưa đủ"
+                    : `Tạo ảnh · ${money(totalPrice)}`}
             </button>
           ) : (
             <Link
