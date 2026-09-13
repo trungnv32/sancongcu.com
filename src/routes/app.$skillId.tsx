@@ -181,9 +181,17 @@ function SkillWebapp() {
                 {files.length ? `Đã chọn ${files.length} ảnh` : "Tải ảnh sản phẩm lên"}
               </span>
               <span className="mt-1 block text-sm text-muted-foreground">
-                {inputMin > 1 ? `Tối thiểu ${inputMin}` : "Tối đa 1"} · tối đa {inputLimit} ảnh ·
-                JPG, PNG hoặc WebP · 10 MB/ảnh
+                {inputLimit === 1
+                  ? "Chỉ cần 1 ảnh"
+                  : `Tối thiểu ${inputMin} · tối đa ${inputLimit} ảnh`}
+                {" · JPG, PNG hoặc WebP · 10 MB/ảnh"}
               </span>
+              {inputLimit === 1 && (
+                <span className="mt-2 block max-w-xl text-sm leading-6 text-muted-foreground">
+                  Không cần ảnh đẹp, nhưng nên đầy đủ thành phần, nên lật 1 góc mặt dưới chăn để AI
+                  không tạo sai chi tiết.
+                </span>
+              )}
             </span>
           </label>
           {files.length > 0 && (
