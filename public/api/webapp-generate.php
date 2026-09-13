@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$token = $_SERVER['HTTP_X_SUPABASE_AUTHORIZATION'] ?? '';
+$token = $_POST['session_token'] ?? '';
 if (!is_string($token) || !str_starts_with($token, 'Bearer ')) {
     http_response_code(401);
     echo json_encode(['error' => 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.']);
@@ -25,6 +25,7 @@ if (!function_exists('curl_init')) {
 
 $body = [];
 foreach ($_POST as $key => $value) {
+    if ($key === 'session_token') continue;
     $body[$key] = is_array($value) ? reset($value) : $value;
 }
 

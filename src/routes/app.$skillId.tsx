@@ -101,6 +101,7 @@ function SkillWebapp() {
       body.set("include_cover", String(includeCover));
       body.set("logo_position", logoPosition);
       body.set("request_id", requestId);
+      body.set("session_token", `Bearer ${session.access_token}`);
       files.forEach((file) => body.append("images[]", file));
       if (logo) body.set("logo", logo);
       return body;
@@ -119,7 +120,6 @@ function SkillWebapp() {
         try {
           const response = await fetch("/api/webapp-generate.php", {
             method: "POST",
-            headers: { "X-Supabase-Authorization": `Bearer ${session.access_token}` },
             body: makeBody(),
           });
           data = (await response.json().catch(() => null)) as typeof data;
