@@ -27,9 +27,11 @@ type NativeGenerationResult = { error?: string; job?: Job };
 function submitNativeGeneration(body: FormData): Promise<NativeGenerationResult> {
   return new Promise((resolve, reject) => {
     const request = new XMLHttpRequest();
-    request.open("POST", "/api/webapp-generate.php");
+    request.open("POST", `/api/webapp-generate.php?t=${Date.now()}-${crypto.randomUUID()}`);
     request.responseType = "json";
     request.timeout = 120_000;
+    request.setRequestHeader("Cache-Control", "no-cache");
+    request.setRequestHeader("X-Requested-With", "XMLHttpRequest");
     request.onload = () => {
       const payload =
         request.response && typeof request.response === "object"
@@ -58,6 +60,7 @@ function SkillWebapp() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fileInputKey, setFileInputKey] = useState(0);
   const price = Math.max(0, skill?.webapp_config?.price_vnd ?? 15000);
   const inputLimit = Math.min(4, Math.max(1, skill?.webapp_config?.input_limit ?? 1));
 
@@ -110,6 +113,21 @@ function SkillWebapp() {
     setCreating(true);
     setError(null);
     const requestId = crypto.randomUUID();
+    let uploadFiles: File[];
+    try {
+      uploadFiles = await Promise.all(
+        files.map(async (file) => {
+          const buffer = await file.arrayBuffer();
+          return new File([buffer], file.name, { type: file.type, lastModified: Date.now() });
+        }),
+      );
+    } catch {
+      setCreating(false);
+      setFiles([]);
+      setFileInputKey((current) => current + 1);
+      setError("Không đọc được ảnh đã chọn. Vui lòng chọn lại ảnh rồi thử lại.");
+      return;
+    }
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -124,7 +142,7 @@ function SkillWebapp() {
       body.set("instruction", instruction);
       body.set("request_id", requestId);
       body.set("session_token", `Bearer ${session.access_token}`);
-      files.forEach((file) => body.append("images[]", file));
+      uploadFiles.forEach((file) => body.append("images[]", file));
       return body;
     };
     let data: { error?: string; job?: Job } | null = null;
@@ -138,16 +156,21 @@ function SkillWebapp() {
           ? requestError.message
           : "Không thể kết nối dịch vụ tạo ảnh. Vui lòng thử lại.",
       );
+      setFiles([]);
+      setFileInputKey((current) => current + 1);
       return;
     }
     setCreating(false);
     if (data?.error) {
       setError(data.error);
+      setFiles([]);
+      setFileInputKey((current) => current + 1);
       return;
     }
     if (data?.job) setJobs((current) => [data.job as Job, ...current]);
     setBalance((current) => Math.max(0, current - price));
     setFiles([]);
+    setFileInputKey((current) => current + 1);
     setInstruction("");
   }
   if (!loaded)
@@ -200,9 +223,11 @@ function SkillWebapp() {
           <p className="mt-4 max-w-2xl leading-7 text-muted-foreground">{skill.introduction}</p>
           <label className="mt-8 grid min-h-64 cursor-pointer place-items-center rounded-2xl border-2 border-dashed border-primary/35 bg-primary/5 p-5 text-center transition hover:bg-primary/10">
             <input
+              key={fileInputKey}
               type="file"
               accept="image/jpeg,image/png,image/webp"
               multiple
+              disabled={creating}
               className="sr-only"
               onChange={(event) => {
                 setFiles(Array.from(event.target.files ?? []).slice(0, inputLimit));
@@ -267,6 +292,7 @@ function SkillWebapp() {
                   setFiles([]);
                   setInstruction("");
                   setError(null);
+                  setFileInputKey((current) => current + 1);
                 }}
                 className="mt-3 font-bold underline underline-offset-4"
               >
