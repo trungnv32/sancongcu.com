@@ -10,7 +10,6 @@ import tueLamHall4 from "@/assets/tue-lam-hall-4-enterprise-office.png";
 import tueLamHall5 from "@/assets/tue-lam-hall-5-learning-studio.png";
 import sanCongCuLogo from "@/assets/sancongcu-logo-transparent.png";
 import techcombankPaymentQr from "@/assets/techcombank-payment-qr.jpg";
-import zaloGroupQr from "@/assets/zalo-group-qr.jpg";
 import { getProductContent } from "@/lib/product-content";
 import {
   createFallbackTransferOrder,
@@ -64,6 +63,7 @@ const skillPriceUsd = 1.99;
 const paymentZaloUrl = "https://zalo.me/0938069668";
 const supportZaloPhone = "0938.069.668";
 const supportZaloUrl = "https://zalo.me/0938069668";
+const zaloGroupUrl = "https://zalo.me/g/8nwpbixavealgevx4p1b";
 type ComboSize = 5 | 10;
 type HomeComboSection = {
   eyebrow: string;
@@ -618,23 +618,18 @@ function Landing() {
             </div>
           </div>
           <aside className="rounded-3xl bg-secondary p-6 text-center sm:p-8">
-            <img
-              src={zaloGroupQr}
-              alt="Mã QR tham gia nhóm Zalo sancongcu.com"
-              className="mx-auto aspect-[9/16] w-full max-w-56 rounded-2xl border border-primary/10 object-cover shadow-card"
-            />
-            <h3 className="mt-6 text-2xl leading-tight">Tham gia cộng đồng Sancongcu</h3>
+            <h3 className="text-2xl leading-tight">Tham gia cộng đồng kinh doanh cùng sancongcu</h3>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              Cập nhật tin tức AI, học cách ứng dụng AI vào kinh doanh và cùng nhau tìm cách biến
-              công cụ thành nguồn thu nhập bền vững hơn.
+              Cập nhật tin tức AI, tự tạo công cụ và biến kỹ năng của bạn thành thu nhập cùng
+              sancongcu.com
             </p>
             <a
-              href={supportZaloUrl}
+              href={zaloGroupUrl}
               target="_blank"
               rel="noreferrer"
               className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full bg-brand-gradient px-6 text-sm font-semibold text-primary-foreground shadow-brand transition hover:scale-[1.02]"
             >
-              Liên hệ Zalo {supportZaloPhone}
+              Tham gia ngay
             </a>
           </aside>
         </div>
