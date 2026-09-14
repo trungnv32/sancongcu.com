@@ -52,31 +52,36 @@ function Detail() {
 
   useEffect(() => {
     if (!supabase) return;
+    setLoaded(false);
     void (async () => {
-      const { data } = await supabase
-        .from("skills")
-        .select(
-          "id,title,introduction,benefits,audience,usage_steps,payment_note,thumbnail_path,price_usd,activation_price_vnd,webapp_enabled",
-        )
-        .eq("slug", skillId)
-        .eq("status", "published")
-        .maybeSingle();
-      if (data) {
-        setSkill(data as Skill);
-        const { data: gallery } = await supabase
-          .from("skill_media")
-          .select("id,path,alt,media_type,sort_order")
-          .eq("skill_id", data.id)
-          .order("sort_order");
-        const priority = { input: 0, output: 1, other: 2 };
-        setMedia(
-          ((gallery ?? []) as Media[]).sort(
-            (a, b) =>
-              priority[a.media_type] - priority[b.media_type] || a.sort_order - b.sort_order,
-          ),
-        );
+      try {
+        const { data } = await supabase
+          .from("skills")
+          .select(
+            "id,title,introduction,benefits,audience,usage_steps,payment_note,thumbnail_path,price_usd,activation_price_vnd,webapp_enabled",
+          )
+          .eq("slug", skillId)
+          .eq("status", "published")
+          .maybeSingle();
+        setSkill((data as Skill | null) ?? null);
+        setMedia([]);
+        if (data) {
+          const { data: gallery } = await supabase
+            .from("skill_media")
+            .select("id,path,alt,media_type,sort_order")
+            .eq("skill_id", data.id)
+            .order("sort_order");
+          const priority = { input: 0, output: 1, other: 2 };
+          setMedia(
+            ((gallery ?? []) as Media[]).sort(
+              (a, b) =>
+                priority[a.media_type] - priority[b.media_type] || a.sort_order - b.sort_order,
+            ),
+          );
+        }
+      } finally {
+        setLoaded(true);
       }
-      setLoaded(true);
     })();
   }, [skillId]);
 
