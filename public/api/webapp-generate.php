@@ -35,7 +35,7 @@ if (!function_exists('curl_init')) {
 
 $body = [];
 foreach ($_POST as $key => $value) {
-    if ($key === 'session_token') continue;
+    if ($key === 'session_token' || $key === 'native_form') continue;
     $body[$key] = is_array($value) ? reset($value) : $value;
 }
 
@@ -59,7 +59,13 @@ curl_setopt_array($request, [
     CURLOPT_POST => true,
     CURLOPT_POSTFIELDS => $body,
     CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_TIMEOUT => 90,
+    // Hostinger may prefer an unreachable IPv6 route for this host. Pinning
+    // the outbound relay to IPv4 prevents the request from stalling before it
+    // ever reaches the Edge Function.
+    CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+    CURLOPT_CONNECTTIMEOUT => 15,
+    CURLOPT_TIMEOUT => 75,
     CURLOPT_HTTPHEADER => [
         'Authorization: ' . $token,
         'apikey: sb_publishable_5i2cKVLcW3jcq8JKJclBqw_1VMgRfO4',
@@ -68,9 +74,13 @@ curl_setopt_array($request, [
 ]);
 $response = curl_exec($request);
 $status = (int) curl_getinfo($request, CURLINFO_RESPONSE_CODE);
+$curlError = curl_error($request);
 curl_close($request);
 
-if ($response === false) respond(['error' => 'Không thể kết nối dịch vụ tạo ảnh. Vui lòng thử lại.'], 502);
+if ($response === false) {
+    error_log('webapp-generate relay failed: ' . $curlError);
+    respond(['error' => 'Không thể kết nối dịch vụ tạo ảnh. Vui lòng thử lại.'], 502);
+}
 
 $payload = json_decode($response, true);
 if (!is_array($payload)) $payload = ['error' => 'Dịch vụ tạo ảnh trả về dữ liệu không hợp lệ.'];
