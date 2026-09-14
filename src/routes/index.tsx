@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { X } from "lucide-react";
+import { Banknote, QrCode, Sparkles, Users, Workflow, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import kolGraduation from "@/assets/kol-graduation.asset.json";
 import kolGymVideo from "@/assets/kol-gym-video.mp4.asset.json";
@@ -61,6 +61,8 @@ type Product = {
 
 const skillPriceUsd = 1.99;
 const paymentZaloUrl = "https://zalo.me/0938069668";
+const supportZaloPhone = "0938.069.668";
+const supportZaloUrl = "https://zalo.me/0938069668";
 type ComboSize = 5 | 10;
 type HomeComboSection = {
   eyebrow: string;
@@ -128,6 +130,33 @@ const defaultComboSection: HomeComboSection = {
     "Không cần tự ghép từng công cụ. Chọn combo phù hợp với công việc kinh doanh đang cần ưu tiên.",
   is_visible: true,
 };
+
+const differenceItems = [
+  {
+    title: "Thiết kế cho kết quả cụ thể",
+    description:
+      "Mỗi công cụ tập trung vào một đầu ra rõ ràng: bài bán hàng, hình ảnh, video, landing page, kịch bản, quy trình chăm sóc khách hoặc nội dung đào tạo.",
+    icon: Sparkles,
+  },
+  {
+    title: "Không chỉ bán công cụ",
+    description:
+      "Sancongcu giúp bạn hiểu cách dùng, tối ưu công cụ theo mục đích riêng và từng bước biết cách tự tạo công cụ phục vụ chính công việc của mình.",
+    icon: Users,
+  },
+  {
+    title: "Biết cách ghép thành luồng tự động",
+    description:
+      "Bạn học cách kết hợp nhiều công cụ thành một quy trình liền mạch, để ý tưởng có thể đi từ nghiên cứu, sản xuất nội dung đến bán hàng nhanh hơn.",
+    icon: Workflow,
+  },
+  {
+    title: "Tận dụng AI để tạo thu nhập",
+    description:
+      "Không dừng ở việc dùng cho bản thân, bạn có thể biến kỹ năng dùng công cụ AI thành dịch vụ, sản phẩm số hoặc quy trình kiếm tiền thực tế.",
+    icon: Banknote,
+  },
+];
 
 const categories: Category[] = [
   {
@@ -521,9 +550,7 @@ function Landing() {
                   {combo.label || `Combo ${String(index + 1).padStart(2, "0")}`}
                 </span>
                 <h3 className="mt-5 text-2xl leading-tight">{combo.title}</h3>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                  {combo.description}
-                </p>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">{combo.description}</p>
                 {combo.includes && (
                   <p className="mt-5 text-xs font-medium uppercase tracking-[0.12em] text-foreground/70">
                     {combo.includes}
@@ -558,6 +585,61 @@ function Landing() {
         </a>
       </section>
 
+      <section className="mx-auto max-w-6xl px-6 pb-24">
+        <div className="grid gap-8 rounded-3xl border border-primary/10 bg-card p-6 shadow-card sm:p-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              Sancongcu khác gì?
+            </p>
+            <h2 className="mt-3 text-3xl leading-tight sm:text-4xl">
+              Công cụ AI không chỉ để thử cho vui, mà để tạo ra kết quả thật.
+            </h2>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+              Chúng tôi xây dựng các AI Skill theo mục tiêu cụ thể, đồng thời hướng dẫn bạn làm chủ
+              công cụ, tối ưu sâu cho nhu cầu riêng và biết cách kết hợp chúng thành quy trình làm
+              việc tự động.
+            </p>
+            <div className="mt-8 grid gap-4 sm:grid-cols-2">
+              {differenceItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <article key={item.title} className="rounded-2xl border border-border p-5">
+                    <div className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">
+                      <Icon aria-hidden="true" className="size-5" />
+                    </div>
+                    <h3 className="mt-4 text-base leading-snug">{item.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      {item.description}
+                    </p>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+          <aside className="rounded-3xl bg-secondary p-6 text-center sm:p-8">
+            <div className="mx-auto grid aspect-square w-full max-w-56 place-items-center rounded-2xl border border-dashed border-primary/40 bg-background text-primary">
+              <div>
+                <QrCode aria-hidden="true" className="mx-auto size-16" />
+                <p className="mt-3 text-sm font-semibold text-foreground">QR nhóm Zalo</p>
+              </div>
+            </div>
+            <h3 className="mt-6 text-2xl leading-tight">Tham gia cộng đồng Sancongcu</h3>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              Cập nhật tin tức AI, học cách ứng dụng AI vào kinh doanh và cùng nhau tìm cách biến
+              công cụ thành nguồn thu nhập bền vững hơn.
+            </p>
+            <a
+              href={supportZaloUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full bg-brand-gradient px-6 text-sm font-semibold text-primary-foreground shadow-brand transition hover:scale-[1.02]"
+            >
+              Liên hệ Zalo {supportZaloPhone}
+            </a>
+          </aside>
+        </div>
+      </section>
+
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 py-8 text-xs text-muted-foreground sm:flex-row">
           <p>© 2026 sancongcu.com</p>
@@ -571,11 +653,13 @@ function Landing() {
               "Chính sách bảo mật",
               "Thanh toán & hoàn tiền",
               "Quy trình cung cấp Skill",
-              "Liên hệ hỗ trợ",
+              `Liên hệ hỗ trợ: Zalo ${supportZaloPhone}`,
             ].map((item) => (
               <a
                 key={item}
-                href="#faq"
+                href={item.startsWith("Liên hệ") ? supportZaloUrl : "#faq"}
+                target={item.startsWith("Liên hệ") ? "_blank" : undefined}
+                rel={item.startsWith("Liên hệ") ? "noreferrer" : undefined}
                 className="transition hover:text-foreground hover:underline"
               >
                 {item}
