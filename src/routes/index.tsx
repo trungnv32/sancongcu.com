@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Banknote, QrCode, Sparkles, Users, Workflow, X } from "lucide-react";
+import { Banknote, Sparkles, Users, Workflow, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import kolGraduation from "@/assets/kol-graduation.asset.json";
 import kolGymVideo from "@/assets/kol-gym-video.mp4.asset.json";
@@ -10,6 +10,7 @@ import tueLamHall4 from "@/assets/tue-lam-hall-4-enterprise-office.png";
 import tueLamHall5 from "@/assets/tue-lam-hall-5-learning-studio.png";
 import sanCongCuLogo from "@/assets/sancongcu-logo-transparent.png";
 import techcombankPaymentQr from "@/assets/techcombank-payment-qr.jpg";
+import zaloGroupQr from "@/assets/zalo-group-qr.jpg";
 import { getProductContent } from "@/lib/product-content";
 import {
   createFallbackTransferOrder,
@@ -617,12 +618,11 @@ function Landing() {
             </div>
           </div>
           <aside className="rounded-3xl bg-secondary p-6 text-center sm:p-8">
-            <div className="mx-auto grid aspect-square w-full max-w-56 place-items-center rounded-2xl border border-dashed border-primary/40 bg-background text-primary">
-              <div>
-                <QrCode aria-hidden="true" className="mx-auto size-16" />
-                <p className="mt-3 text-sm font-semibold text-foreground">QR nhóm Zalo</p>
-              </div>
-            </div>
+            <img
+              src={zaloGroupQr}
+              alt="Mã QR tham gia nhóm Zalo sancongcu.com"
+              className="mx-auto aspect-[9/16] w-full max-w-56 rounded-2xl border border-primary/10 object-cover shadow-card"
+            />
             <h3 className="mt-6 text-2xl leading-tight">Tham gia cộng đồng Sancongcu</h3>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
               Cập nhật tin tức AI, học cách ứng dụng AI vào kinh doanh và cùng nhau tìm cách biến
