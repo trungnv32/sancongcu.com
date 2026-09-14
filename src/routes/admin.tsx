@@ -12,6 +12,7 @@ import {
   ImagePlus,
   LoaderCircle,
   LogOut,
+  Package,
   Plus,
   Save,
   Trash2,
@@ -155,6 +156,34 @@ type SkillEntitlement = {
   revoked_at: string | null;
 };
 
+type ComboSection = {
+  id: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  is_visible: boolean;
+};
+
+type Combo = {
+  id: string;
+  slug: string;
+  label: string;
+  title: string;
+  description: string;
+  includes: string;
+  page_title: string;
+  page_description: string;
+  cta_label: string;
+  status: "draft" | "published" | "hidden";
+  sort_order: number;
+};
+
+type ComboSkill = {
+  combo_id: string;
+  skill_id: string;
+  sort_order: number;
+};
+
 const adminEmails = new Set(["sancongcu@gmail.com", "trungnv32@gmail.com"]);
 const statusLabel = { draft: "Bản nháp", published: "Đang hiển thị", hidden: "Đã ẩn" };
 
@@ -202,6 +231,9 @@ function AdminPage() {
   const [webappJobs, setWebappJobs] = useState<WebappJob[]>([]);
   const [packages, setPackages] = useState<SkillPackage[]>([]);
   const [entitlements, setEntitlements] = useState<SkillEntitlement[]>([]);
+  const [comboSection, setComboSection] = useState<ComboSection | null>(null);
+  const [combos, setCombos] = useState<Combo[]>([]);
+  const [comboSkills, setComboSkills] = useState<ComboSkill[]>([]);
   const [selectedHallId, setSelectedHallId] = useState<string | null>(null);
   const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -210,7 +242,7 @@ function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [newHallName, setNewHallName] = useState("");
   const [adminSection, setAdminSection] = useState<
-    "orders" | "topups" | "webapp-history" | "catalog"
+    "orders" | "topups" | "webapp-history" | "combos" | "catalog"
   >("orders");
 
   const selectedSkill = useMemo(
@@ -261,6 +293,9 @@ function AdminPage() {
       entitlementResult,
       topupResult,
       webappHistoryResult,
+      comboSectionResult,
+      comboResult,
+      comboSkillResult,
     ] = await Promise.all([
       supabase.from("halls").select("*").order("sort_order").order("name"),
       supabase.from("skills").select("*").order("sort_order").order("title"),
@@ -276,6 +311,9 @@ function AdminPage() {
         .select("id,amount_vnd,credited_amount_vnd,transfer_code,status,created_at,confirmed_at")
         .order("created_at", { ascending: false }),
       supabase.functions.invoke("webapp-generate", { body: { action: "admin-history" } }),
+      supabase.from("combo_sections").select("*").eq("id", "home").maybeSingle(),
+      supabase.from("combos").select("*").order("sort_order").order("title"),
+      supabase.from("combo_skills").select("*").order("sort_order"),
     ]);
     const requestError =
       hallResult.error ??
@@ -285,7 +323,10 @@ function AdminPage() {
       packageResult.error ??
       entitlementResult.error ??
       topupResult.error ??
-      webappHistoryResult.error;
+      webappHistoryResult.error ??
+      comboSectionResult.error ??
+      comboResult.error ??
+      comboSkillResult.error;
     if (requestError) {
       setError(`Không thể tải dữ liệu: ${requestError.message}`);
     } else {
@@ -298,6 +339,9 @@ function AdminPage() {
       setPackages((packageResult.data ?? []) as SkillPackage[]);
       setEntitlements((entitlementResult.data ?? []) as SkillEntitlement[]);
       setWalletTopups((topupResult.data ?? []) as WalletTopup[]);
+      setComboSection((comboSectionResult.data as ComboSection | null) ?? null);
+      setCombos((comboResult.data ?? []) as Combo[]);
+      setComboSkills((comboSkillResult.data ?? []) as ComboSkill[]);
       setWebappJobs(
         ((webappHistoryResult.data?.jobs ?? []) as WebappJob[]).map((job) => ({
           ...job,
@@ -622,6 +666,147 @@ function AdminPage() {
     }
   }
 
+  async function saveComboSection(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!supabase) return;
+    const form = new FormData(event.currentTarget);
+    setIsSaving(true);
+    setError(null);
+    const update = {
+      id: "home",
+      eyebrow: String(form.get("eyebrow") || "").trim(),
+      title: String(form.get("title") || "").trim(),
+      description: String(form.get("description") || "").trim(),
+      is_visible: form.get("is_visible") === "on",
+      updated_at: new Date().toISOString(),
+    };
+    const { data, error: saveError } = await supabase
+      .from("combo_sections")
+      .upsert(update, { onConflict: "id" })
+      .select()
+      .single();
+    setIsSaving(false);
+    if (saveError) setError(saveError.message);
+    else if (data) {
+      setComboSection(data as ComboSection);
+      setNotice("Đã lưu phần giới thiệu combo trên trang chủ.");
+    }
+  }
+
+  async function createCombo() {
+    if (!supabase) return;
+    setIsSaving(true);
+    setError(null);
+    const number = combos.length + 1;
+    const { data, error: createError } = await supabase
+      .from("combos")
+      .insert({
+        slug: `combo-moi-${Date.now()}`,
+        label: `Combo ${String(number).padStart(2, "0")}`,
+        title: `Combo mới ${number}`,
+        description: "Mô tả ngắn cho combo.",
+        includes: "",
+        page_title: `Combo mới ${number}`,
+        page_description: "Nội dung giới thiệu chi tiết cho combo.",
+        cta_label: "Khám phá combo →",
+        status: "draft",
+        sort_order: number,
+      })
+      .select()
+      .single();
+    setIsSaving(false);
+    if (createError) setError(createError.message);
+    else if (data) {
+      setCombos((current) => [...current, data as Combo]);
+      setNotice("Đã tạo combo nháp.");
+    }
+  }
+
+  async function saveCombo(event: FormEvent<HTMLFormElement>, combo: Combo) {
+    event.preventDefault();
+    if (!supabase) return;
+    const form = new FormData(event.currentTarget);
+    setIsSaving(true);
+    setError(null);
+    const update = {
+      slug: slugify(String(form.get("slug") || combo.title)),
+      label: String(form.get("label") || "").trim(),
+      title: String(form.get("title") || "").trim(),
+      description: String(form.get("description") || "").trim(),
+      includes: String(form.get("includes") || "").trim(),
+      page_title: String(form.get("page_title") || "").trim(),
+      page_description: String(form.get("page_description") || "").trim(),
+      cta_label: String(form.get("cta_label") || "").trim(),
+      status: String(form.get("status")) as Combo["status"],
+      sort_order: Number(form.get("sort_order") || 0),
+      updated_at: new Date().toISOString(),
+    };
+    const { data, error: saveError } = await supabase
+      .from("combos")
+      .update(update)
+      .eq("id", combo.id)
+      .select()
+      .single();
+    setIsSaving(false);
+    if (saveError) setError(saveError.message);
+    else if (data) {
+      setCombos((current) =>
+        current
+          .map((item) => (item.id === data.id ? (data as Combo) : item))
+          .sort((a, b) => a.sort_order - b.sort_order),
+      );
+      setNotice("Đã lưu combo.");
+    }
+  }
+
+  async function deleteCombo(combo: Combo) {
+    if (!supabase || !window.confirm(`Xóa “${combo.title}”?`)) return;
+    const { error: deleteError } = await supabase.from("combos").delete().eq("id", combo.id);
+    if (deleteError) setError(deleteError.message);
+    else {
+      setCombos((current) => current.filter((item) => item.id !== combo.id));
+      setComboSkills((current) => current.filter((item) => item.combo_id !== combo.id));
+      setNotice("Đã xóa combo.");
+    }
+  }
+
+  async function setComboSkill(combo: Combo, skill: Skill, checked: boolean) {
+    if (!supabase) return;
+    setError(null);
+    if (checked) {
+      const nextSortOrder =
+        Math.max(0, ...comboSkills.filter((item) => item.combo_id === combo.id).map((item) => item.sort_order)) +
+        1;
+      const { data, error: insertError } = await supabase
+        .from("combo_skills")
+        .upsert(
+          { combo_id: combo.id, skill_id: skill.id, sort_order: nextSortOrder },
+          { onConflict: "combo_id,skill_id" },
+        )
+        .select()
+        .single();
+      if (insertError) setError(insertError.message);
+      else if (data)
+        setComboSkills((current) => [
+          ...current.filter(
+            (item) => !(item.combo_id === combo.id && item.skill_id === skill.id),
+          ),
+          data as ComboSkill,
+        ]);
+      return;
+    }
+    const { error: deleteError } = await supabase
+      .from("combo_skills")
+      .delete()
+      .eq("combo_id", combo.id)
+      .eq("skill_id", skill.id);
+    if (deleteError) setError(deleteError.message);
+    else
+      setComboSkills((current) =>
+        current.filter((item) => !(item.combo_id === combo.id && item.skill_id === skill.id)),
+      );
+  }
+
   async function uploadFile(
     event: ChangeEvent<HTMLInputElement>,
     target: "thumbnail" | "gallery",
@@ -884,6 +1069,18 @@ function AdminPage() {
               {webappJobs.length}
             </span>
           </button>
+          <button
+            type="button"
+            onClick={() => setAdminSection("combos")}
+            aria-current={adminSection === "combos" ? "page" : undefined}
+            className={`mb-4 flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-bold transition ${adminSection === "combos" ? "bg-foreground text-background" : "border border-border hover:bg-muted"}`}
+          >
+            <Package className="size-4" />
+            Combo
+            <span className="ml-auto rounded-full bg-background/15 px-2 py-0.5 text-xs">
+              {combos.length}
+            </span>
+          </button>
           <div className="flex items-center justify-between px-2 py-2">
             <h2 className="font-bold">Danh mục</h2>
             <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold">
@@ -948,6 +1145,20 @@ function AdminPage() {
             <TopupsPanel topups={walletTopups} onConfirmTopup={confirmWalletTopup} />
           )}
           {adminSection === "webapp-history" && <WebappHistoryPanel jobs={webappJobs} />}
+          {adminSection === "combos" && (
+            <CombosPanel
+              comboSection={comboSection}
+              combos={combos}
+              skills={skills}
+              comboSkills={comboSkills}
+              isSaving={isSaving}
+              onSaveSection={saveComboSection}
+              onCreateCombo={createCombo}
+              onSaveCombo={saveCombo}
+              onDeleteCombo={deleteCombo}
+              onSetComboSkill={setComboSkill}
+            />
+          )}
           {adminSection === "catalog" && selectedHall && (
             <>
               <form
@@ -1377,6 +1588,274 @@ function TopupsPanel({
           </table>
         </div>
       )}
+    </section>
+  );
+}
+
+function CombosPanel({
+  comboSection,
+  combos,
+  skills,
+  comboSkills,
+  isSaving,
+  onSaveSection,
+  onCreateCombo,
+  onSaveCombo,
+  onDeleteCombo,
+  onSetComboSkill,
+}: {
+  comboSection: ComboSection | null;
+  combos: Combo[];
+  skills: Skill[];
+  comboSkills: ComboSkill[];
+  isSaving: boolean;
+  onSaveSection: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+  onCreateCombo: () => Promise<void>;
+  onSaveCombo: (event: FormEvent<HTMLFormElement>, combo: Combo) => Promise<void>;
+  onDeleteCombo: (combo: Combo) => Promise<void>;
+  onSetComboSkill: (combo: Combo, skill: Skill, checked: boolean) => Promise<void>;
+}) {
+  const section = comboSection ?? {
+    id: "home",
+    eyebrow: "Chọn nhanh theo mục tiêu",
+    title: "Một lộ trình sẵn sàng để bạn bắt đầu",
+    description:
+      "Không cần tự ghép từng công cụ. Chọn combo phù hợp với công việc kinh doanh đang cần ưu tiên.",
+    is_visible: true,
+  };
+  const publishedSkills = skills
+    .filter((skill) => skill.status === "published")
+    .sort((a, b) => a.sort_order - b.sort_order || a.title.localeCompare(b.title));
+
+  return (
+    <section className="space-y-5">
+      <form
+        onSubmit={(event) => void onSaveSection(event)}
+        className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6"
+      >
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+              Trang chủ
+            </p>
+            <h2 className="mt-1 text-xl font-bold">Khối giới thiệu combo</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Chỉnh tiêu đề và mô tả của phần “Một lộ trình…” trên trang chủ.
+            </p>
+          </div>
+          <button
+            disabled={isSaving}
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
+          >
+            <Save className="size-4" />
+            Lưu phần combo
+          </button>
+        </div>
+        <div className="mt-5 grid gap-4 md:grid-cols-2">
+          <CountInput
+            label="Nhãn nhỏ"
+            name="eyebrow"
+            defaultValue={section.eyebrow}
+            maxLength={120}
+          />
+          <CountInput label="Tiêu đề" name="title" defaultValue={section.title} maxLength={180} />
+          <div className="md:col-span-2">
+            <CountInput
+              label="Mô tả"
+              name="description"
+              defaultValue={section.description}
+              maxLength={500}
+              multiline
+              rows={4}
+            />
+          </div>
+        </div>
+        <label className="mt-4 flex cursor-pointer items-center gap-3 text-sm font-semibold">
+          <input
+            name="is_visible"
+            type="checkbox"
+            defaultChecked={section.is_visible}
+            className="size-4 accent-primary"
+          />
+          Hiển thị khối combo trên trang chủ
+        </label>
+      </form>
+
+      <section className="rounded-2xl border border-border bg-card shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4 sm:p-5">
+          <div>
+            <h2 className="font-bold">Các combo</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Mỗi combo có trang riêng tại /combo/đường-dẫn-combo.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void onCreateCombo()}
+            disabled={isSaving}
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-gradient px-4 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90 disabled:opacity-50"
+          >
+            <Plus className="size-4" />
+            Tạo combo
+          </button>
+        </div>
+        <div className="space-y-4 p-4 sm:p-5">
+          {combos.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">
+              Chưa có combo nào.
+            </p>
+          ) : (
+            combos.map((combo) => {
+              const selectedSkillIds = new Set(
+                comboSkills
+                  .filter((item) => item.combo_id === combo.id)
+                  .map((item) => item.skill_id),
+              );
+              return (
+                <article
+                  key={combo.id}
+                  className="rounded-2xl border border-border bg-background p-4"
+                >
+                  <form
+                    onSubmit={(event) => void onSaveCombo(event, combo)}
+                    onChange={(event) => {
+                      const input = event.target as unknown as HTMLInputElement;
+                      if (input.name === "title") {
+                        const slugInput = event.currentTarget.elements.namedItem(
+                          "slug",
+                        ) as HTMLInputElement | null;
+                        if (slugInput) slugInput.value = slugify(input.value);
+                      }
+                    }}
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[.14em] text-primary">
+                          {combo.label}
+                        </p>
+                        <h3 className="mt-1 text-lg font-bold">{combo.title}</h3>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          disabled={isSaving}
+                          className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
+                        >
+                          <Save className="size-4" />
+                          Lưu
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void onDeleteCombo(combo)}
+                          className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-destructive/30 px-4 text-sm font-bold text-destructive transition hover:bg-destructive/10"
+                        >
+                          <Trash2 className="size-4" />
+                          Xóa
+                        </button>
+                      </div>
+                    </div>
+                    <div className="mt-4 grid gap-4 md:grid-cols-2">
+                      <CountInput
+                        label="Nhãn combo"
+                        name="label"
+                        defaultValue={combo.label}
+                        maxLength={60}
+                      />
+                      <CountInput
+                        label="Đường dẫn"
+                        name="slug"
+                        defaultValue={combo.slug}
+                        maxLength={120}
+                      />
+                      <CountInput
+                        label="Tên combo"
+                        name="title"
+                        defaultValue={combo.title}
+                        maxLength={180}
+                      />
+                      <Field label="Trạng thái">
+                        <select name="status" defaultValue={combo.status} className="input">
+                          <option value="draft">Bản nháp</option>
+                          <option value="published">Hiển thị</option>
+                          <option value="hidden">Ẩn</option>
+                        </select>
+                      </Field>
+                      <Field label="Thứ tự">
+                        <input
+                          name="sort_order"
+                          type="number"
+                          defaultValue={combo.sort_order}
+                          className="input"
+                        />
+                      </Field>
+                      <CountInput
+                        label="Nút CTA"
+                        name="cta_label"
+                        defaultValue={combo.cta_label}
+                        maxLength={80}
+                      />
+                      <div className="md:col-span-2">
+                        <CountInput
+                          label="Mô tả ngắn trên trang chủ"
+                          name="description"
+                          defaultValue={combo.description}
+                          maxLength={700}
+                          multiline
+                          rows={4}
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <CountInput
+                          label="Dòng skill bao gồm"
+                          name="includes"
+                          defaultValue={combo.includes}
+                          maxLength={300}
+                        />
+                      </div>
+                      <CountInput
+                        label="Tiêu đề trang combo"
+                        name="page_title"
+                        defaultValue={combo.page_title || combo.title}
+                        maxLength={180}
+                      />
+                      <div className="md:col-span-2">
+                        <CountInput
+                          label="Mô tả trang combo"
+                          name="page_description"
+                          defaultValue={combo.page_description || combo.description}
+                          maxLength={1200}
+                          multiline
+                          rows={5}
+                        />
+                      </div>
+                    </div>
+                  </form>
+                  <div className="mt-5 border-t border-border pt-4">
+                    <p className="text-sm font-bold">Skill nằm trong combo</p>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      {publishedSkills.map((skill) => (
+                        <label
+                          key={skill.id}
+                          className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-border px-3 py-2 text-sm transition hover:bg-muted"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedSkillIds.has(skill.id)}
+                            onChange={(event) =>
+                              void onSetComboSkill(combo, skill, event.target.checked)
+                            }
+                            className="size-4 accent-primary"
+                          />
+                          <span className="line-clamp-2 font-semibold">{skill.title}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </article>
+              );
+            })
+          )}
+        </div>
+      </section>
     </section>
   );
 }

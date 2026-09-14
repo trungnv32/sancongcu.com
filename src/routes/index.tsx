@@ -62,6 +62,22 @@ type Product = {
 const skillPriceUsd = 1.99;
 const paymentZaloUrl = "https://zalo.me/0938069668";
 type ComboSize = 5 | 10;
+type HomeComboSection = {
+  eyebrow: string;
+  title: string;
+  description: string;
+  is_visible: boolean;
+};
+type HomeCombo = {
+  slug: string;
+  label: string;
+  title: string;
+  description: string;
+  includes: string;
+  cta_label: string;
+  status?: "draft" | "published" | "hidden";
+  sort_order?: number;
+};
 
 function getSavedComboSize(): ComboSize | null {
   if (typeof window === "undefined") return null;
@@ -80,24 +96,38 @@ type Category = {
 
 const combos = [
   {
-    name: "Combo Bắt đầu bán hàng với AI",
+    slug: "bat-dau-ban-hang-voi-ai",
+    label: "Combo 01",
+    title: "Combo Bắt đầu bán hàng với AI",
     description: "Đi từ định vị thương hiệu đến nội dung bán hàng rõ ràng, dễ triển khai.",
     includes: "Thương hiệu · Nội dung · Kịch bản chốt đơn",
-    href: "#danh-muc-1",
+    cta_label: "Khám phá combo →",
   },
   {
-    name: "Combo Nội dung ra đơn mỗi ngày",
+    slug: "noi-dung-ra-don-moi-ngay",
+    label: "Combo 02",
+    title: "Combo Nội dung ra đơn mỗi ngày",
     description: "Biến một ý tưởng thành bài viết, hình ảnh và video phục vụ quảng cáo.",
     includes: "Hình ảnh · Video · Quảng cáo",
-    href: "#danh-muc-2",
+    cta_label: "Khám phá combo →",
   },
   {
-    name: "Combo Tối ưu chuyển đổi",
+    slug: "toi-uu-chuyen-doi",
+    label: "Combo 03",
+    title: "Combo Tối ưu chuyển đổi",
     description: "Xây trang bán hàng, ưu đãi và hành trình theo dõi khách hàng nhất quán.",
     includes: "Landing page · Copywriting · Chăm sóc khách hàng",
-    href: "#danh-muc-4",
+    cta_label: "Khám phá combo →",
   },
-];
+] satisfies HomeCombo[];
+
+const defaultComboSection: HomeComboSection = {
+  eyebrow: "Chọn nhanh theo mục tiêu",
+  title: "Một lộ trình sẵn sàng để bạn bắt đầu",
+  description:
+    "Không cần tự ghép từng công cụ. Chọn combo phù hợp với công việc kinh doanh đang cần ưu tiên.",
+  is_visible: true,
+};
 
 const categories: Category[] = [
   {
@@ -252,10 +282,12 @@ function Landing() {
     if (cart.length === 0) setIsCartOpen(false);
   }, [cart.length]);
   const [catalog, setCatalog] = useState<Category[] | null>(null);
+  const [comboSection, setComboSection] = useState<HomeComboSection>(defaultComboSection);
+  const [homeCombos, setHomeCombos] = useState<HomeCombo[]>(combos);
   useEffect(() => {
     if (!supabase) return;
     void (async () => {
-      const [hallResult, skillResult] = await Promise.all([
+      const [hallResult, skillResult, comboSectionResult, comboResult] = await Promise.all([
         supabase
           .from("halls")
           .select("id, slug, name, description, poster_path, is_visible, sort_order")
@@ -266,7 +298,19 @@ function Landing() {
           .select("id, hall_id, slug, title, short_description, thumbnail_path, status, sort_order")
           .eq("status", "published")
           .order("sort_order"),
+        supabase
+          .from("combo_sections")
+          .select("eyebrow,title,description,is_visible")
+          .eq("id", "home")
+          .maybeSingle(),
+        supabase
+          .from("combos")
+          .select("slug,label,title,description,includes,cta_label,status,sort_order")
+          .eq("status", "published")
+          .order("sort_order"),
       ]);
+      if (comboSectionResult.data) setComboSection(comboSectionResult.data as HomeComboSection);
+      if (comboResult.data?.length) setHomeCombos(comboResult.data as HomeCombo[]);
       if (hallResult.error || skillResult.error || !skillResult.data?.length) return;
       const dynamicCatalog = hallResult.data.map((hall) => ({
         id: hall.slug,
@@ -456,42 +500,47 @@ function Landing() {
         </div>
       </section>
 
-      {/* Combo CTA */}
-      <section id="combo" className="mx-auto max-w-6xl px-6 pb-24">
-        <div className="mb-8 max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-            Chọn nhanh theo mục tiêu
-          </p>
-          <h2 className="mt-3 text-3xl sm:text-4xl">Một lộ trình sẵn sàng để bạn bắt đầu</h2>
-          <p className="mt-3 text-sm text-muted-foreground sm:text-base">
-            Không cần tự ghép từng công cụ. Chọn combo phù hợp với công việc kinh doanh đang cần ưu
-            tiên.
-          </p>
-        </div>
-        <div className="grid gap-5 lg:grid-cols-3">
-          {combos.map((combo, index) => (
-            <article
-              key={combo.name}
-              className="flex min-h-72 flex-col rounded-3xl border border-border bg-card p-7 shadow-card"
-            >
-              <span className="w-fit rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                Combo 0{index + 1}
-              </span>
-              <h3 className="mt-5 text-2xl leading-tight">{combo.name}</h3>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">{combo.description}</p>
-              <p className="mt-5 text-xs font-medium uppercase tracking-[0.12em] text-foreground/70">
-                {combo.includes}
-              </p>
-              <a
-                href={combo.href}
-                className="mt-auto pt-7 text-sm font-semibold text-primary transition hover:text-foreground"
+      {comboSection.is_visible && homeCombos.length > 0 && (
+        <section id="combo" className="mx-auto max-w-6xl px-6 pb-24">
+          <div className="mb-8 max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              {comboSection.eyebrow}
+            </p>
+            <h2 className="mt-3 text-3xl sm:text-4xl">{comboSection.title}</h2>
+            <p className="mt-3 text-sm text-muted-foreground sm:text-base">
+              {comboSection.description}
+            </p>
+          </div>
+          <div className="grid gap-5 lg:grid-cols-3">
+            {homeCombos.map((combo, index) => (
+              <article
+                key={combo.slug}
+                className="flex min-h-72 flex-col rounded-3xl border border-border bg-card p-7 shadow-card"
               >
-                Khám phá combo →
-              </a>
-            </article>
-          ))}
-        </div>
-      </section>
+                <span className="w-fit rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                  {combo.label || `Combo ${String(index + 1).padStart(2, "0")}`}
+                </span>
+                <h3 className="mt-5 text-2xl leading-tight">{combo.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                  {combo.description}
+                </p>
+                {combo.includes && (
+                  <p className="mt-5 text-xs font-medium uppercase tracking-[0.12em] text-foreground/70">
+                    {combo.includes}
+                  </p>
+                )}
+                <Link
+                  to="/combo/$comboId"
+                  params={{ comboId: combo.slug }}
+                  className="mt-auto pt-7 text-sm font-semibold text-primary transition hover:text-foreground"
+                >
+                  {combo.cta_label || "Khám phá combo →"}
+                </Link>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* FAQ / CTA */}
       <section id="faq" className="mx-auto max-w-3xl px-6 pb-32 text-center">
