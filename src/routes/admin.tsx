@@ -1867,6 +1867,7 @@ function SkillEditor({
             <div className="min-w-0 space-y-3">
               <Field label="URL ảnh">
                 <input
+                  key={`thumbnail-path-${skill.id}-${skill.thumbnail_path ?? "empty"}`}
                   name="thumbnail_path"
                   defaultValue={skill.thumbnail_path ?? ""}
                   placeholder="https://…"

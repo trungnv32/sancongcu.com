@@ -676,10 +676,10 @@ function CategoryRow({
         {visibleProducts.map((p) => (
           <ProductCard
             key={p.id}
-            product={{ ...p, image: category.poster }}
+            product={p}
             inCart={cart.includes(p.id)}
-            onChoose={() => onChoose({ ...p, image: category.poster })}
-            onActivate={() => onActivate({ ...p, image: category.poster })}
+            onChoose={() => onChoose(p)}
+            onActivate={() => onActivate(p)}
           />
         ))}
       </div>
