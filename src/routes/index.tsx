@@ -376,6 +376,7 @@ function Landing() {
   const [transferOrder, setTransferOrder] = useState<TransferOrder | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
+  const [expandedCategoryIds, setExpandedCategoryIds] = useState<string[]>([]);
   useEffect(() => {
     window.localStorage.setItem("sancongcu-cart", JSON.stringify(cart));
   }, [cart]);
@@ -600,6 +601,14 @@ function Landing() {
             anchorId={`danh-muc-${idx + 1}`}
             category={cat}
             cart={cart}
+            expanded={expandedCategoryIds.includes(cat.id)}
+            onToggleExpanded={() =>
+              setExpandedCategoryIds((current) =>
+                current.includes(cat.id)
+                  ? current.filter((id) => id !== cat.id)
+                  : [...current, cat.id],
+              )
+            }
             onChoose={handleChooseSkill}
             onActivate={handleSingleSkillCheckout}
           />
@@ -868,12 +877,16 @@ function CategoryRow({
   anchorId,
   category,
   cart,
+  expanded,
+  onToggleExpanded,
   onChoose,
   onActivate,
 }: {
   anchorId: string;
   category: Category;
   cart: string[];
+  expanded: boolean;
+  onToggleExpanded: () => void;
   onChoose: (product: Product) => void;
   onActivate: (product: Product) => void;
 }) {
@@ -891,20 +904,28 @@ function CategoryRow({
           <h2 className="hall-card__title mt-1">{category.title}</h2>
           <p className="hall-card__subtitle mt-1 text-muted-foreground">{category.subtitle}</p>
         </div>
-        <a
-          href="#faq"
+        <button
+          type="button"
+          onClick={onToggleExpanded}
           className="shrink-0 text-sm font-medium text-primary transition hover:opacity-80"
         >
-          Xem skill →
-        </a>
+          {expanded ? "Thu gọn" : "Xem skill →"}
+        </button>
       </div>
 
-      <div className="-mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 md:grid-cols-3 lg:grid-cols-6">
+      <div
+        className={
+          expanded
+            ? "grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5"
+            : "-mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-3 sm:mx-0 sm:px-0"
+        }
+      >
         {visibleProducts.map((p) => (
           <ProductCard
             key={p.id}
             product={p}
             inCart={cart.includes(p.id)}
+            expanded={expanded}
             onChoose={() => onChoose(p)}
             onActivate={() => onActivate(p)}
           />
@@ -917,11 +938,13 @@ function CategoryRow({
 function ProductCard({
   product,
   inCart,
+  expanded,
   onChoose,
   onActivate,
 }: {
   product: Product;
   inCart: boolean;
+  expanded: boolean;
   onChoose: () => void;
   onActivate: () => void;
 }) {
@@ -930,7 +953,11 @@ function ProductCard({
     getProductContent(product.id)?.summary ||
     "Thông tin Skill đang được cập nhật.";
   return (
-    <article className="group w-[220px] shrink-0 snap-start overflow-hidden rounded-2xl border border-border bg-card shadow-card transition hover:-translate-y-1 hover:shadow-brand sm:w-auto">
+    <article
+      className={`group shrink-0 snap-start overflow-hidden rounded-2xl border border-border bg-card shadow-card transition hover:-translate-y-1 hover:shadow-brand ${
+        expanded ? "w-full" : "w-[220px] sm:w-[260px] lg:w-[calc((100%-4rem)/5)]"
+      }`}
+    >
       <Link
         to="/skill/$skillId"
         params={{ skillId: product.id }}
