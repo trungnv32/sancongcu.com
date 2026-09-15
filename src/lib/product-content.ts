@@ -47,6 +47,38 @@ export const productContent: Record<string, ProductContent> = {
     "Đưa một nhân vật cố định vào bối cảnh mới, giữ nhận diện nhất quán cho bộ ảnh thương hiệu hoặc sản phẩm.",
     "một ảnh nhân vật nhất quán trong bối cảnh mới",
   ),
+  "edit-video-tu-dong": makeContent(
+    "Cắt gọn video nói chuyện, thêm thumbnail mở đầu và phụ đề động để video dễ xem hơn.",
+    "một video nói chuyện đã được dựng gọn và có phụ đề",
+  ),
+  "video-hieu-ung-cao-cap": makeContent(
+    "Dựng video talking-head với zoom theo cảm xúc, overlay, âm thanh và crop bám mặt chuyên nghiệp.",
+    "một video talking-head có hiệu ứng cao cấp",
+  ),
+  "video-coach-toi-gian": makeContent(
+    "Tạo video hướng dẫn sạch, sang với tiêu đề lớn, các bước hiện dần và nhạc nền dẫn dắt.",
+    "một video hướng dẫn tối giản cho coach hoặc chuyên gia",
+  ),
+  "video-infographic": makeContent(
+    "Thêm lớp phủ infographic xen kẽ vào video nói chuyện để nội dung rõ ý và chuyên nghiệp hơn.",
+    "một video talking-head có infographic hỗ trợ",
+  ),
+  "cat-video-dai-thanh-short": makeContent(
+    "Tìm đoạn hay trong video dài, cắt thành short 9:16 và giữ khung hình bám sát người nói.",
+    "một bộ short rút ra từ video dài",
+  ),
+  "cat-podcast-2-nguoi": makeContent(
+    "Cắt podcast hoặc phỏng vấn 2 người thành short, tự chuyển khung theo người đang nói.",
+    "một short podcast có bố cục chuyển người nói rõ ràng",
+  ),
+  "ghep-clip-theo-nhac": makeContent(
+    "Ghép nhiều clip rời thành video liền mạch, canh nhịp chuyển cảnh theo beat nhạc.",
+    "một video montage theo nhạc trend",
+  ),
+  "highlight-theo-nhac": makeContent(
+    "Chọn khoảnh khắc ấn tượng nhất từ video dài và dựng thành highlight quảng cáo theo nhạc.",
+    "một video highlight ngắn có nhịp quảng cáo",
+  ),
   graduation: makeContent(
     "Dựng thông điệp vinh danh giàu cảm xúc để nâng tầm hình ảnh chuyên gia và thương hiệu.",
     "một nội dung vinh danh thuyết phục",
@@ -180,6 +212,14 @@ export const productTitles: Record<string, string> = {
   "tang-chat-luong-4k": "Skill · Tăng Chất Lượng 4K",
   multishot: "Skill · Multishot",
   "hoan-doi-nhan-vat": "Skill · Hoán Đổi Nhân Vật",
+  "edit-video-tu-dong": "Skill · Edit Video Nói Chuyện Tự Động",
+  "video-hieu-ung-cao-cap": "Skill · Video Hiệu Ứng Cao Cấp",
+  "video-coach-toi-gian": "Skill · Video Hướng Dẫn Tối Giản",
+  "video-infographic": "Skill · Video Talking-head Infographic",
+  "cat-video-dai-thanh-short": "Skill · Cắt Video Dài Thành Short",
+  "cat-podcast-2-nguoi": "Skill · Cắt Podcast 2 Người Thành Short",
+  "ghep-clip-theo-nhac": "Skill · Ghép Nhiều Clip Theo Nhạc",
+  "highlight-theo-nhac": "Skill · AI Cắt Highlight Theo Nhạc",
   graduation: "Skill · Sân Khấu Vinh Danh",
   launch: "Skill · Ra Mắt Thương Hiệu",
   honor: "Skill · Định Vị Chuyên Gia",

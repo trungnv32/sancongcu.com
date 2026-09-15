@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Banknote, Sparkles, Users, Workflow, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import kolGraduation from "@/assets/kol-graduation.asset.json";
-import kolGymVideo from "@/assets/kol-gym-video.mp4.asset.json";
 import tueLamStanding from "@/assets/tue-lam-03-standing.jpg";
 import tueLamStraight from "@/assets/tue-lam-04-straigh.jpg";
 import tueLamHall3 from "@/assets/tue-lam-hall-3-video-studio.png";
@@ -68,6 +67,14 @@ const skillPhotoEdit = "/skill-posters/skill-chinh-sua-anh.jpg";
 const skillUpscale = "/skill-posters/skill-tang-chat-luong-4k.jpg";
 const skillMultishot = "/skill-posters/skill-multishot.jpg";
 const skillCharacterSwap = "/skill-posters/skill-hoan-doi-nhan-vat.jpg";
+const skillAutoTalkingVideo = "/skill-posters/skill-edit-video-tu-dong.jpg";
+const skillPremiumTalkingVideo = "/skill-posters/skill-video-hieu-ung-cao-cap.jpg";
+const skillCoachMinimalVideo = "/skill-posters/skill-video-coach-toi-gian.jpg";
+const skillInfographicVideo = "/skill-posters/skill-video-infographic.jpg";
+const skillLongVideoShorts = "/skill-posters/skill-cat-video-dai-thanh-short.jpg";
+const skillPodcastShorts = "/skill-posters/skill-cat-podcast-2-nguoi.jpg";
+const skillBeatSyncClips = "/skill-posters/skill-ghep-clip-theo-nhac.jpg";
+const skillMusicHighlight = "/skill-posters/skill-highlight-theo-nhac.jpg";
 const paymentZaloUrl = "https://zalo.me/0938069668";
 const supportZaloPhone = "0938.069.668";
 const supportZaloUrl = "https://zalo.me/0938069668";
@@ -225,23 +232,59 @@ const categories: Category[] = [
     ],
   },
   {
-    id: "lifestyle",
-    title: "Danh mục II · Hình ảnh & Nội dung",
-    subtitle: "Skill AI giúp bạn tạo hình ảnh, nội dung và câu chuyện bán hàng nhanh hơn.",
-    poster: tueLamStanding,
+    id: "video-edit-hall",
+    title: "Danh mục II · Edit Video Bán Hàng",
+    subtitle: "8 kiểu edit dựng sẵn để AI hỗ trợ cắt, dựng, thêm phụ đề và xuất video bán hàng.",
+    poster: skillAutoTalkingVideo,
     products: [
       {
-        id: "gym",
-        title: "Skill · Selfie Chuyển Động",
-        tag: "Video Pack",
-        image: tueLamStanding,
-        video: kolGymVideo.url,
+        id: "edit-video-tu-dong",
+        title: "Skill · Edit Video Nói Chuyện Tự Động",
+        tag: "Auto Edit",
+        image: skillAutoTalkingVideo,
       },
-      { id: "outfit", title: "Skill · Phối Đồ Bán Hàng", tag: "Style", image: tueLamStraight },
-      { id: "street", title: "Skill · Street Storytelling", tag: "Story", image: tueLamStanding },
-      { id: "studio", title: "Skill · Chân Dung Cao Cấp", tag: "Luxury", image: tueLamStraight },
-      { id: "travel", title: "Skill · Lifestyle Du Lịch", tag: "Journey", image: tueLamStanding },
-      { id: "daily", title: "Skill · Nhật Ký Đời Thường", tag: "Daily", image: tueLamStraight },
+      {
+        id: "video-hieu-ung-cao-cap",
+        title: "Skill · Video Hiệu Ứng Cao Cấp",
+        tag: "Pro FX",
+        image: skillPremiumTalkingVideo,
+      },
+      {
+        id: "video-coach-toi-gian",
+        title: "Skill · Video Hướng Dẫn Tối Giản",
+        tag: "Coach",
+        image: skillCoachMinimalVideo,
+      },
+      {
+        id: "video-infographic",
+        title: "Skill · Video Talking-head Infographic",
+        tag: "Info",
+        image: skillInfographicVideo,
+      },
+      {
+        id: "cat-video-dai-thanh-short",
+        title: "Skill · Cắt Video Dài Thành Short",
+        tag: "Shorts",
+        image: skillLongVideoShorts,
+      },
+      {
+        id: "cat-podcast-2-nguoi",
+        title: "Skill · Cắt Podcast 2 Người Thành Short",
+        tag: "Podcast",
+        image: skillPodcastShorts,
+      },
+      {
+        id: "ghep-clip-theo-nhac",
+        title: "Skill · Ghép Nhiều Clip Theo Nhạc",
+        tag: "Beat",
+        image: skillBeatSyncClips,
+      },
+      {
+        id: "highlight-theo-nhac",
+        title: "Skill · AI Cắt Highlight Theo Nhạc",
+        tag: "Highlight",
+        image: skillMusicHighlight,
+      },
     ],
   },
   {

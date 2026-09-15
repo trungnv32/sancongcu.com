@@ -13,7 +13,6 @@ type Skill = {
   benefits: string[];
   audience: string[];
   usage_steps: string[];
-  payment_note: string;
   thumbnail_path: string | null;
   price_usd: number;
   activation_price_vnd: number;
@@ -28,15 +27,20 @@ type Media = {
 };
 
 const defaultUsage = [
-  "Chuẩn bị thông tin đầu vào.",
-  "Dán câu lệnh và kiểm tra kết quả.",
-  "Lưu và áp dụng kết quả.",
+  "Cài đặt câu lệnh vào ChatGPT hoặc Claude trong lần đầu sử dụng.",
+  "Chuẩn bị ảnh, nội dung hoặc thông tin đầu vào theo đúng hướng dẫn của Skill.",
+  "Nhập yêu cầu mong muốn càng rõ càng tốt để AI hiểu đúng kết quả cần tạo.",
+  "Có thể yêu cầu thêm tính năng, phong cách hoặc giới hạn riêng nếu công việc cần.",
+  "Tải kết quả về và sử dụng cho bài đăng, quảng cáo hoặc quy trình bán hàng.",
 ];
-const defaultPaymentNote = [
-  "Chuyển khoản theo hướng dẫn.",
-  "Gửi bill qua Zalo 0938 069 668.",
-  "Sau khi được xác nhận, bạn sẽ nhận link tải Skill và hướng dẫn sử dụng riêng qua Zalo.",
-].join("\n");
+const handoffSteps = [
+  'Bấm chọn "Kích hoạt", có thể chọn nhiều skill hoặc combo giá sẽ rẻ hơn',
+  "Thanh toán bằng mã QR",
+  "Gửi bill đến số 0938.069.668",
+  "Skill sẽ được gửi đến bạn và đầy đủ hướng dẫn sử dụng bằng hình ảnh",
+  "Cài vào ChatGPT hoặc Claude của bạn và sử dụng",
+  "Bạn được add vào nhóm Zalo hỗ trợ và cập nhật free trong vòng 1 năm",
+];
 
 function mediaLabel(type: Media["media_type"]) {
   return type === "input" ? "Đầu vào" : type === "output" ? "Đầu ra" : "Minh họa";
@@ -58,7 +62,7 @@ function Detail() {
         const { data } = await supabase
           .from("skills")
           .select(
-            "id,title,introduction,benefits,audience,usage_steps,payment_note,thumbnail_path,price_usd,activation_price_vnd,webapp_enabled",
+            "id,title,introduction,benefits,audience,usage_steps,thumbnail_path,price_usd,activation_price_vnd,webapp_enabled",
           )
           .eq("slug", skillId)
           .eq("status", "published")
@@ -114,21 +118,10 @@ function Detail() {
   );
   const activeImage = images.find((image) => image.id === activeImageId) ?? images[0];
   const usageSteps = skill?.usage_steps?.filter(Boolean).length ? skill.usage_steps : defaultUsage;
-  const paymentLines = (skill?.payment_note || defaultPaymentNote)
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
   const choose = () => {
     const key = "sancongcu-cart";
     const cart = JSON.parse(localStorage.getItem(key) || "[]") as string[];
     localStorage.setItem(key, JSON.stringify(cart.includes(skillId) ? cart : [...cart, skillId]));
-    window.location.href = "/#danh-muc-1";
-  };
-  const chooseCombo = (comboSize: 5 | 10) => {
-    const key = "sancongcu-cart";
-    const cart = JSON.parse(localStorage.getItem(key) || "[]") as string[];
-    localStorage.setItem(key, JSON.stringify(cart.includes(skillId) ? cart : [...cart, skillId]));
-    localStorage.setItem("sancongcu-combo-size", String(comboSize));
     window.location.href = "/#danh-muc-1";
   };
   const activate = () => {
@@ -204,81 +197,12 @@ function Detail() {
               </ul>
             </section>
           )}
-          <section className="relative mt-6 overflow-hidden rounded-2xl bg-foreground p-5 text-background shadow-card sm:p-6">
-            <div
-              aria-hidden="true"
-              className="absolute -right-16 -top-16 size-48 rounded-full bg-primary/40 blur-3xl"
-            />
-            <div className="relative">
-              <p className="text-xs font-bold uppercase tracking-[.16em] text-primary">
-                Ưu đãi kích hoạt
-              </p>
-              <h2 className="mt-2 text-2xl leading-tight">Mua nhiều hơn, giá rẻ hơn</h2>
-              <p className="mt-3 max-w-xl text-sm leading-6 text-background/75">
-                Chọn thêm Skill để nhận mức giá ưu đãi cho cả combo.
-              </p>
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-background/20 bg-background/10 p-4">
-                  <p className="text-sm font-bold">Combo 5 Skill</p>
-                  <p className="mt-1 text-sm text-background/75">Tự chọn bất kỳ 5 Skill</p>
-                  <div className="mt-4 flex items-end justify-between gap-3">
-                    <p className="text-3xl font-extrabold">8$</p>
-                    <span className="rounded-full bg-background/15 px-3 py-1 text-xs font-bold">
-                      Tiết kiệm 20%
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => chooseCombo(5)}
-                    className="mt-4 min-h-12 w-full rounded-full border border-background/40 px-4 py-3 text-sm font-bold transition hover:bg-background hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                  >
-                    Chọn Combo 5 Skill
-                  </button>
-                </div>
-                <div className="rounded-xl border border-primary/70 bg-primary/20 p-4 shadow-[0_0_0_1px_hsl(var(--primary)/0.2)]">
-                  <p className="text-sm font-bold">Combo 10 skill + ChatGPT Plus</p>
-                  <p className="mt-1 text-sm text-background/85">Tự chọn bất kỳ 10 Skill</p>
-                  <p className="mt-2 text-xs font-semibold leading-5 text-primary-foreground">
-                    Tặng ChatGPT Plus 1 tháng, sẵn sử dụng
-                  </p>
-                  <div className="mt-3 flex items-end justify-between gap-3">
-                    <p className="text-3xl font-extrabold">25$</p>
-                    <span className="rounded-full bg-background px-3 py-1 text-xs font-bold text-foreground">
-                      Tiết kiệm 50%
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => chooseCombo(10)}
-                    className="mt-4 min-h-12 w-full rounded-full bg-background px-4 py-3 text-sm font-bold text-foreground transition hover:bg-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background"
-                  >
-                    Chọn Combo 10 skill + ChatGPT Plus
-                  </button>
-                </div>
-              </div>
-              <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-background/15 pt-5">
-                <div>
-                  <p className="text-sm text-background/70">Kích hoạt riêng Skill này</p>
-                  <p className="mt-1 text-2xl font-extrabold">
-                    {skill?.activation_price_vnd?.toLocaleString("vi-VN") ?? "51.000"}đ
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={activate}
-                  className="min-h-12 rounded-full bg-background px-5 py-3 text-sm font-bold text-foreground transition hover:bg-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-foreground"
-                >
-                  Kích hoạt Skill lẻ →
-                </button>
-              </div>
-            </div>
-          </section>
         </div>
       </section>
       <section className="skill-detail__actions mx-auto grid w-full max-w-6xl gap-6 px-4 pb-16 sm:px-6 sm:pb-20">
-        <section className="min-w-0 rounded-2xl border border-border bg-card p-5 sm:rounded-3xl sm:p-7">
-          <h2 className="text-2xl">Hướng dẫn sử dụng</h2>
-          <ol className="mt-5 space-y-3 break-words text-base leading-7">
+        <section className="min-w-0 bg-background p-0 sm:p-0">
+          <h2 className="text-3xl leading-tight">Hướng dẫn sử dụng</h2>
+          <ol className="mt-8 space-y-5 break-words text-xl leading-9">
             {usageSteps.map((step, index) => (
               <li key={`${step}-${index}`}>
                 {index + 1}. {step}
@@ -286,35 +210,35 @@ function Detail() {
             ))}
           </ol>
         </section>
-        <section className="min-w-0 rounded-2xl border border-border bg-card p-5 sm:rounded-3xl sm:p-7">
-          <p className="text-xs font-bold uppercase tracking-[.16em] text-primary">
+        <section className="min-w-0 rounded-[2rem] border border-border bg-card p-5 shadow-sm sm:p-10">
+          <p className="text-sm font-bold uppercase tracking-[.24em] text-primary">
             Kích hoạt & bàn giao
           </p>
-          <h2 className="mt-2 text-2xl">
+          <h2 className="mt-4 text-3xl leading-tight">
             Phí kích hoạt: {skill?.activation_price_vnd?.toLocaleString("vi-VN") ?? "51.000"}đ
           </h2>
-          <div className="mt-5 space-y-3">
-            {paymentLines.map((line, index) => (
+          <div className="mt-7 space-y-4">
+            {handoffSteps.map((line, index) => (
               <p
                 key={`${line}-${index}`}
-                className="break-words rounded-xl bg-muted p-3 text-base leading-7"
+                className="break-words rounded-[1.45rem] bg-muted px-5 py-4 text-xl leading-8"
               >
                 {line}
               </p>
             ))}
           </div>
-          <div className="mt-6 grid gap-3 sm:flex">
+          <div className="mt-8 grid gap-4 sm:flex">
             <button
               type="button"
               onClick={choose}
-              className="min-h-12 rounded-full border border-border px-5 py-3 font-bold transition hover:bg-muted"
+              className="min-h-14 rounded-full border border-border px-7 py-4 text-lg font-bold transition hover:bg-muted"
             >
               Chọn Skill này
             </button>
             <button
               type="button"
               onClick={activate}
-              className="min-h-12 rounded-full bg-brand-gradient px-5 py-3 font-bold text-primary-foreground transition hover:opacity-90"
+              className="min-h-14 rounded-full bg-brand-gradient px-8 py-4 text-lg font-bold text-primary-foreground transition hover:opacity-90"
             >
               Kích hoạt ngay
             </button>
