@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Banknote, Sparkles, Users, Workflow, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import kolGraduation from "@/assets/kol-graduation.asset.json";
 import kolGymVideo from "@/assets/kol-gym-video.mp4.asset.json";
 import tueLamStanding from "@/assets/tue-lam-03-standing.jpg";
@@ -312,57 +312,70 @@ function Landing() {
     if (cart.length === 0) setIsCartOpen(false);
   }, [cart.length]);
   const [catalog, setCatalog] = useState<Category[] | null>(null);
+  const [isCatalogLoading, setIsCatalogLoading] = useState(Boolean(supabase));
   const [comboSection, setComboSection] = useState<HomeComboSection>(defaultComboSection);
   const [homeCombos, setHomeCombos] = useState<HomeCombo[]>(combos);
   useEffect(() => {
-    if (!supabase) return;
+    if (!supabase) {
+      setIsCatalogLoading(false);
+      return;
+    }
     void (async () => {
-      const [hallResult, skillResult, comboSectionResult, comboResult] = await Promise.all([
-        supabase
-          .from("halls")
-          .select("id, slug, name, description, poster_path, is_visible, sort_order")
-          .eq("is_visible", true)
-          .order("sort_order"),
-        supabase
-          .from("skills")
-          .select("id, hall_id, slug, title, short_description, thumbnail_path, status, sort_order")
-          .eq("status", "published")
-          .order("sort_order"),
-        supabase
-          .from("combo_sections")
-          .select("eyebrow,title,description,is_visible")
-          .eq("id", "home")
-          .maybeSingle(),
-        supabase
-          .from("combos")
-          .select("slug,label,title,description,includes,cta_label,status,sort_order")
-          .eq("status", "published")
-          .order("sort_order"),
-      ]);
-      if (comboSectionResult.data) setComboSection(comboSectionResult.data as HomeComboSection);
-      if (comboResult.data?.length) setHomeCombos(comboResult.data as HomeCombo[]);
-      if (hallResult.error || skillResult.error || !skillResult.data?.length) return;
-      const dynamicCatalog = hallResult.data.map((hall) => ({
-        id: hall.slug,
-        title: hall.name,
-        subtitle: hall.description,
-        poster: hall.poster_path || tueLamStanding,
-        visible: hall.is_visible,
-        products: skillResult.data
-          .filter((skill) => skill.hall_id === hall.id)
-          .map((skill) => ({
-            id: skill.slug,
-            title: skill.title,
-            description: skill.short_description,
-            tag: "AI Skill",
-            image: skill.thumbnail_path || hall.poster_path || tueLamStanding,
-            visible: skill.status === "published",
-          })),
-      }));
-      setCatalog(dynamicCatalog);
+      try {
+        const [hallResult, skillResult, comboSectionResult, comboResult] = await Promise.all([
+          supabase
+            .from("halls")
+            .select("id, slug, name, description, poster_path, is_visible, sort_order")
+            .eq("is_visible", true)
+            .order("sort_order"),
+          supabase
+            .from("skills")
+            .select(
+              "id, hall_id, slug, title, short_description, thumbnail_path, status, sort_order",
+            )
+            .eq("status", "published")
+            .order("sort_order"),
+          supabase
+            .from("combo_sections")
+            .select("eyebrow,title,description,is_visible")
+            .eq("id", "home")
+            .maybeSingle(),
+          supabase
+            .from("combos")
+            .select("slug,label,title,description,includes,cta_label,status,sort_order")
+            .eq("status", "published")
+            .order("sort_order"),
+        ]);
+        if (comboSectionResult.data) setComboSection(comboSectionResult.data as HomeComboSection);
+        if (comboResult.data?.length) setHomeCombos(comboResult.data as HomeCombo[]);
+        if (hallResult.error || skillResult.error || !skillResult.data?.length) return;
+        const dynamicCatalog = hallResult.data.map((hall) => ({
+          id: hall.slug,
+          title: hall.name,
+          subtitle: hall.description,
+          poster: hall.poster_path || tueLamStanding,
+          visible: hall.is_visible,
+          products: skillResult.data
+            .filter((skill) => skill.hall_id === hall.id)
+            .map((skill) => ({
+              id: skill.slug,
+              title: skill.title,
+              description: skill.short_description,
+              tag: "AI Skill",
+              image: skill.thumbnail_path || hall.poster_path || tueLamStanding,
+              visible: skill.status === "published",
+            })),
+        }));
+        setCatalog(dynamicCatalog);
+      } finally {
+        setIsCatalogLoading(false);
+      }
     })();
   }, []);
-  const activeCategories = catalog ?? categories;
+  const activeCategories = useMemo(
+    () => catalog ?? (isCatalogLoading ? [] : categories),
+    [catalog, isCatalogLoading],
+  );
   const add = (id: string) => setCart((c) => (c.includes(id) ? c : [...c, id]));
   const remove = (id: string) => setCart((current) => current.filter((item) => item !== id));
   const clearCart = () => {
@@ -495,6 +508,14 @@ function Landing() {
 
       {/* Danh mục có thể ẩn bằng visible: false trong dữ liệu categories */}
       <div className="mx-auto max-w-6xl space-y-14 px-6 pb-24">
+        {isCatalogLoading && (
+          <section className="rounded-3xl border border-border bg-card p-8 text-center shadow-card">
+            <p className="text-sm font-semibold text-primary">Đang tải danh mục Skill...</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Sancongcu đang lấy cấu hình mới nhất cho ảnh poster và danh sách Skill.
+            </p>
+          </section>
+        )}
         {visibleCategories.map((cat, idx) => (
           <CategoryRow
             key={cat.id}
