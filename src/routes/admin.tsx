@@ -661,7 +661,7 @@ function AdminPage() {
       setHalls((current) =>
         current
           .map((hall) => (hall.id === data.id ? (data as Hall) : hall))
-          .sort((a, b) => a.sort_order - b.sort_order),
+          .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name)),
       );
       setNotice("Đã lưu tên, mô tả và thứ tự danh mục.");
     }
@@ -1232,6 +1232,7 @@ function AdminPage() {
           {adminSection === "catalog" && selectedHall && (
             <>
               <form
+                key={selectedHall.id}
                 onSubmit={(event) => void saveHall(event)}
                 onChange={(event) => {
                   const input = event.target as unknown as HTMLInputElement;
