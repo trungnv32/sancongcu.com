@@ -15,6 +15,38 @@ const makeContent = (summary: string, focus: string): ProductContent => ({
 });
 
 export const productContent: Record<string, ProductContent> = {
+  "thuong-hieu-overlay": makeContent(
+    "Chèn tiêu đề, điểm nhấn và badge thương hiệu lên ảnh để có bài đăng chỉn chu trong vài phút.",
+    "một ảnh đăng bán hàng có chữ, bố cục và nhận diện rõ ràng",
+  ),
+  "poster-san-pham": makeContent(
+    "Từ một ảnh sản phẩm, dựng bộ poster quảng cáo đồng bộ cho bài đăng, ads và chiến dịch bán hàng.",
+    "một bộ poster sản phẩm đồng nhất",
+  ),
+  "xoa-nen-anh": makeContent(
+    "Tách nền ảnh sản phẩm hoặc chân dung, xuất nền trong suốt để ghép vào poster, sàn thương mại hoặc catalogue.",
+    "một ảnh đã tách nền sạch để dùng lại linh hoạt",
+  ),
+  "xoa-logo-vat-the": makeContent(
+    "Xóa logo, watermark, chữ thừa, người lạ hoặc vật thể gây rối để ảnh trông sạch và chuyên nghiệp hơn.",
+    "một ảnh đã được làm sạch các chi tiết không mong muốn",
+  ),
+  "chinh-sua-anh": makeContent(
+    "Làm nét, cân sáng màu, làm đẹp khuôn mặt và xử lý ảnh mờ mà vẫn giữ cảm giác tự nhiên.",
+    "một ảnh sáng, rõ và dễ dùng cho truyền thông",
+  ),
+  "tang-chat-luong-4k": makeContent(
+    "Phóng to ảnh nhỏ hoặc ảnh bị vỡ hạt thành phiên bản sắc nét hơn để đăng bán, làm banner hoặc in ấn.",
+    "một ảnh độ phân giải cao hơn",
+  ),
+  multishot: makeContent(
+    "Từ một ảnh tham chiếu, tạo nhiều góc nhìn nhất quán để làm keyframe video, storyboard hoặc bộ hình chiến dịch.",
+    "một bộ nhiều góc ảnh giữ cùng nhân vật và khoảnh khắc",
+  ),
+  "hoan-doi-nhan-vat": makeContent(
+    "Đưa một nhân vật cố định vào bối cảnh mới, giữ nhận diện nhất quán cho bộ ảnh thương hiệu hoặc sản phẩm.",
+    "một ảnh nhân vật nhất quán trong bối cảnh mới",
+  ),
   graduation: makeContent(
     "Dựng thông điệp vinh danh giàu cảm xúc để nâng tầm hình ảnh chuyên gia và thương hiệu.",
     "một nội dung vinh danh thuyết phục",
@@ -140,6 +172,14 @@ export const productContent: Record<string, ProductContent> = {
 export const getProductContent = (id: string) => productContent[id];
 
 export const productTitles: Record<string, string> = {
+  "thuong-hieu-overlay": "Skill · Thương Hiệu & Text Overlay",
+  "poster-san-pham": "Skill · Poster Sản Phẩm",
+  "xoa-nen-anh": "Skill · Xóa Nền Ảnh",
+  "xoa-logo-vat-the": "Skill · Xóa Logo, Vật Thể",
+  "chinh-sua-anh": "Skill · Chỉnh Sửa Ảnh",
+  "tang-chat-luong-4k": "Skill · Tăng Chất Lượng 4K",
+  multishot: "Skill · Multishot",
+  "hoan-doi-nhan-vat": "Skill · Hoán Đổi Nhân Vật",
   graduation: "Skill · Sân Khấu Vinh Danh",
   launch: "Skill · Ra Mắt Thương Hiệu",
   honor: "Skill · Định Vị Chuyên Gia",

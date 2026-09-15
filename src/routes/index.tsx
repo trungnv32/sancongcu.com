@@ -60,6 +60,14 @@ type Product = {
 };
 
 const skillPriceUsd = 1.99;
+const skillBrandOverlay = "/skill-posters/skill-thuong-hieu-overlay.jpg";
+const skillProductPoster = "/skill-posters/skill-poster-san-pham.jpg";
+const skillRemoveBg = "/skill-posters/skill-xoa-nen-anh.jpg";
+const skillCleanup = "/skill-posters/skill-xoa-logo-vat-the.jpg";
+const skillPhotoEdit = "/skill-posters/skill-chinh-sua-anh.jpg";
+const skillUpscale = "/skill-posters/skill-tang-chat-luong-4k.jpg";
+const skillMultishot = "/skill-posters/skill-multishot.jpg";
+const skillCharacterSwap = "/skill-posters/skill-hoan-doi-nhan-vat.jpg";
 const paymentZaloUrl = "https://zalo.me/0938069668";
 const supportZaloPhone = "0938.069.668";
 const supportZaloUrl = "https://zalo.me/0938069668";
@@ -161,32 +169,59 @@ const differenceItems = [
 
 const categories: Category[] = [
   {
-    id: "poster",
-    title: "Danh mục I · Thương hiệu & Bán hàng",
-    subtitle: "Skill AI giúp người bán hàng xây thương hiệu và nội dung chạm đúng khách hàng.",
-    poster: tueLamStraight,
+    id: "image-hall",
+    title: "Danh mục I · Skill Hình Ảnh",
+    subtitle: "8 skill xử lý ảnh thường phải thuê ngoài, đóng gói để người bán hàng tự làm nhanh.",
+    poster: skillBrandOverlay,
     products: [
       {
-        id: "graduation",
-        title: "Skill · Sân Khấu Vinh Danh",
-        tag: "Signature",
-        image: tueLamStraight,
-      },
-      { id: "launch", title: "Skill · Ra Mắt Thương Hiệu", tag: "Premium", image: tueLamStanding },
-      { id: "honor", title: "Skill · Định Vị Chuyên Gia", tag: "Advanced", image: tueLamStraight },
-      {
-        id: "workshop",
-        title: "Skill · Diễn Thuyết Workshop",
-        tag: "Master",
-        image: tueLamStanding,
+        id: "thuong-hieu-overlay",
+        title: "Skill · Thương Hiệu & Text Overlay",
+        tag: "Overlay",
+        image: skillBrandOverlay,
       },
       {
-        id: "story-brand",
-        title: "Skill · Kể Chuyện Thương Hiệu",
-        tag: "Story",
-        image: tueLamStraight,
+        id: "poster-san-pham",
+        title: "Skill · Poster Sản Phẩm",
+        tag: "Poster",
+        image: skillProductPoster,
       },
-      { id: "pr-media", title: "Skill · Xuất Hiện Truyền Thông", tag: "PR", image: tueLamStanding },
+      {
+        id: "xoa-nen-anh",
+        title: "Skill · Xóa Nền Ảnh",
+        tag: "Tách nền",
+        image: skillRemoveBg,
+      },
+      {
+        id: "xoa-logo-vat-the",
+        title: "Skill · Xóa Logo, Vật Thể",
+        tag: "Làm sạch",
+        image: skillCleanup,
+      },
+      {
+        id: "chinh-sua-anh",
+        title: "Skill · Chỉnh Sửa Ảnh",
+        tag: "Làm đẹp",
+        image: skillPhotoEdit,
+      },
+      {
+        id: "tang-chat-luong-4k",
+        title: "Skill · Tăng Chất Lượng 4K",
+        tag: "Upscale",
+        image: skillUpscale,
+      },
+      {
+        id: "multishot",
+        title: "Skill · Multishot",
+        tag: "Keyframe",
+        image: skillMultishot,
+      },
+      {
+        id: "hoan-doi-nhan-vat",
+        title: "Skill · Hoán Đổi Nhân Vật",
+        tag: "Nhân vật",
+        image: skillCharacterSwap,
+      },
     ],
   },
   {
