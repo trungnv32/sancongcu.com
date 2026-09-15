@@ -180,8 +180,8 @@ function Detail() {
             {intro}
           </p>
           <section className="mt-8 rounded-2xl border border-border bg-card p-5 sm:p-6">
-            <h2 className="text-2xl">Bạn nhận được gì</h2>
-            <ul className="mt-4 space-y-3 break-words text-base leading-7">
+            <h2 className="skill-detail__section-title">Bạn nhận được gì</h2>
+            <ul className="skill-detail__body-list mt-4 space-y-2.5 break-words">
               {benefits.map((benefit, index) => (
                 <li key={`${benefit}-${index}`}>• {benefit}</li>
               ))}
@@ -189,8 +189,8 @@ function Detail() {
           </section>
           {audience.length > 0 && (
             <section className="mt-6 rounded-2xl border border-border bg-card p-5 sm:p-6">
-              <h2 className="text-2xl">Sản phẩm này phù hợp với ai</h2>
-              <ul className="mt-4 space-y-3 break-words text-base leading-7">
+              <h2 className="skill-detail__section-title">Sản phẩm này phù hợp với ai</h2>
+              <ul className="skill-detail__body-list mt-4 space-y-2.5 break-words">
                 {audience.map((item, index) => (
                   <li key={`${item}-${index}`}>• {item}</li>
                 ))}
@@ -201,8 +201,8 @@ function Detail() {
       </section>
       <section className="skill-detail__actions mx-auto grid w-full max-w-6xl gap-6 px-4 pb-16 sm:px-6 sm:pb-20">
         <section className="min-w-0 bg-background p-0 sm:p-0">
-          <h2 className="text-3xl leading-tight">Hướng dẫn sử dụng</h2>
-          <ol className="mt-8 space-y-5 break-words text-xl leading-9">
+          <h2 className="skill-detail__section-title">Hướng dẫn sử dụng</h2>
+          <ol className="skill-detail__body-list mt-6 space-y-3.5 break-words">
             {usageSteps.map((step, index) => (
               <li key={`${step}-${index}`}>
                 {index + 1}. {step}
@@ -214,14 +214,14 @@ function Detail() {
           <p className="text-sm font-bold uppercase tracking-[.24em] text-primary">
             Kích hoạt & bàn giao
           </p>
-          <h2 className="mt-4 text-3xl leading-tight">
+          <h2 className="skill-detail__section-title mt-4">
             Phí kích hoạt: {skill?.activation_price_vnd?.toLocaleString("vi-VN") ?? "51.000"}đ
           </h2>
           <div className="mt-7 space-y-4">
             {handoffSteps.map((line, index) => (
               <p
                 key={`${line}-${index}`}
-                className="break-words rounded-[1.45rem] bg-muted px-5 py-4 text-xl leading-8"
+                className="skill-detail__body-copy break-words rounded-[1.45rem] bg-muted px-5 py-4"
               >
                 {line}
               </p>
@@ -246,8 +246,8 @@ function Detail() {
         </section>
         <section className="min-w-0 rounded-2xl border border-border bg-card p-5 sm:rounded-3xl sm:p-7">
           <p className="text-xs font-bold uppercase tracking-[.16em] text-primary">Lưu ý sử dụng</p>
-          <h2 className="mt-2 text-2xl">Chọn cách dùng phù hợp với bạn</h2>
-          <ul className="mt-4 space-y-3 text-base leading-7 text-muted-foreground">
+          <h2 className="skill-detail__section-title mt-2">Chọn cách dùng phù hợp với bạn</h2>
+          <ul className="skill-detail__body-list mt-4 space-y-2.5 text-muted-foreground">
             <li>• Bản cài đặt Skill chạy trên tài khoản ChatGPT Plus hoặc Claude Pro.</li>
             <li>• Nên chạy trên máy tính để thao tác và cài đặt thuận tiện.</li>
           </ul>

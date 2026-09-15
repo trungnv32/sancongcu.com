@@ -185,6 +185,17 @@ textarea.input {
   grid-template-columns: minmax(0, 1fr);
 }
 
+.skill-detail__section-title {
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+.skill-detail__body-list,
+.skill-detail__body-copy {
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
 @media (min-width: 1024px) {
   .skill-detail__hero,
   .skill-detail__actions {
