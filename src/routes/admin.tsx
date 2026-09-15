@@ -5,6 +5,7 @@ import {
   ChevronRight,
   CircleAlert,
   Copy,
+  Download,
   History,
   Eye,
   EyeOff,
@@ -934,6 +935,75 @@ function AdminPage() {
     setIsSaving(false);
   }
 
+  async function downloadSkillPackage(itemPackage: SkillPackage) {
+    if (!supabase) return;
+    setIsSaving(true);
+    setError(null);
+    try {
+      const { data, error: downloadError } = await supabase.storage
+        .from("skill-packages")
+        .download(itemPackage.file_path);
+      if (downloadError || !data) throw downloadError ?? new Error("Không thể tải gói Skill.");
+      const url = URL.createObjectURL(data);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = itemPackage.file_name;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setNotice(`Đã tải ${itemPackage.file_name} về máy.`);
+    } catch (downloadError) {
+      setError(
+        downloadError instanceof Error ? downloadError.message : "Không thể tải gói Skill về máy.",
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function activateSkillPackage(itemPackage: SkillPackage) {
+    if (!supabase) return;
+    setIsSaving(true);
+    setError(null);
+    try {
+      const { error: deactivateError } = await supabase
+        .from("skill_packages")
+        .update({ is_active: false })
+        .eq("skill_id", itemPackage.skill_id)
+        .eq("is_active", true);
+      if (deactivateError) throw deactivateError;
+      const { data, error: activateError } = await supabase
+        .from("skill_packages")
+        .update({ is_active: true })
+        .eq("id", itemPackage.id)
+        .select()
+        .single();
+      if (activateError) throw activateError;
+      setPackages((current) =>
+        current.map((currentPackage) =>
+          currentPackage.skill_id === itemPackage.skill_id
+            ? {
+                ...currentPackage,
+                is_active:
+                  currentPackage.id === itemPackage.id ||
+                  Boolean(data && currentPackage.id === (data as SkillPackage).id),
+              }
+            : currentPackage,
+        ),
+      );
+      setNotice(`Đã đặt v${itemPackage.version} làm phiên bản Skill hiện hành.`);
+    } catch (activateError) {
+      setError(
+        activateError instanceof Error
+          ? activateError.message
+          : "Không thể đặt phiên bản Skill hiện hành.",
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   async function updateMedia(item: Media, values: Partial<Media>) {
     if (!supabase) return;
     const { data, error: updateError } = await supabase
@@ -1325,6 +1395,8 @@ function AdminPage() {
                     (itemPackage) => itemPackage.skill_id === selectedSkill.id,
                   )}
                   onUploadPackage={uploadSkillPackage}
+                  onDownloadPackage={downloadSkillPackage}
+                  onActivatePackage={activateSkillPackage}
                   onMediaUpdate={updateMedia}
                   onMediaDelete={deleteMedia}
                 />
@@ -2055,6 +2127,8 @@ function SkillEditor({
   onUpload,
   packages,
   onUploadPackage,
+  onDownloadPackage,
+  onActivatePackage,
   onMediaUpdate,
   onMediaDelete,
 }: {
@@ -2072,12 +2146,22 @@ function SkillEditor({
   ) => Promise<void>;
   packages: SkillPackage[];
   onUploadPackage: (event: ChangeEvent<HTMLInputElement>, version: string) => Promise<void>;
+  onDownloadPackage: (itemPackage: SkillPackage) => Promise<void>;
+  onActivatePackage: (itemPackage: SkillPackage) => Promise<void>;
   onMediaUpdate: (item: Media, values: Partial<Media>) => Promise<void>;
   onMediaDelete: (item: Media) => Promise<void>;
 }) {
   const [galleryType, setGalleryType] = useState<Media["media_type"]>("other");
   const [packageVersion, setPackageVersion] = useState("1.0.0");
   const activePackage = packages.find((itemPackage) => itemPackage.is_active);
+  const [selectedPackageId, setSelectedPackageId] = useState(activePackage?.id ?? packages[0]?.id ?? "");
+  const packageIdList = packages.map((itemPackage) => itemPackage.id).join("|");
+  const selectedPackage =
+    packages.find((itemPackage) => itemPackage.id === selectedPackageId) ?? activePackage ?? packages[0];
+
+  useEffect(() => {
+    setSelectedPackageId(activePackage?.id ?? packages[0]?.id ?? "");
+  }, [activePackage?.id, packageIdList, skill.id]);
   return (
     <form onSubmit={(event) => void onSave(event)} className="admin-editor min-w-0 space-y-5">
       <section className="admin-card min-w-0 overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
@@ -2290,12 +2374,59 @@ function SkillEditor({
               />
             </label>
           </div>
-          {activePackage ? (
-            <p className="admin-token mt-3 text-sm text-muted-foreground">
-              Tệp hiện hành:{" "}
-              <span className="font-semibold text-foreground">{activePackage.file_name}</span> ·{" "}
-              {Math.max(1, Math.round(activePackage.byte_size / 1024))} KB
-            </p>
+          {packages.length > 0 ? (
+            <div className="mt-4 rounded-xl border border-border bg-background p-4">
+              <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+                <Field label="Version đã tải lên">
+                  <select
+                    value={selectedPackage?.id ?? ""}
+                    onChange={(event) => setSelectedPackageId(event.target.value)}
+                    className="input"
+                  >
+                    {packages.map((itemPackage) => (
+                      <option key={itemPackage.id} value={itemPackage.id}>
+                        v{itemPackage.version}
+                        {itemPackage.is_active ? " · đang dùng" : ""} · {itemPackage.file_name}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    disabled={!selectedPackage || isSaving}
+                    onClick={() => selectedPackage && void onDownloadPackage(selectedPackage)}
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border px-4 text-sm font-bold transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Download className="size-4" />
+                    Tải về máy
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!selectedPackage || selectedPackage.is_active || isSaving}
+                    onClick={() => selectedPackage && void onActivatePackage(selectedPackage)}
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Check className="size-4" />
+                    Đặt làm hiện hành
+                  </button>
+                </div>
+              </div>
+              {selectedPackage && (
+                <div className="admin-token mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                  <span>
+                    Tệp: <span className="font-semibold text-foreground">{selectedPackage.file_name}</span>
+                  </span>
+                  <span>{Math.max(1, Math.round(selectedPackage.byte_size / 1024))} KB</span>
+                  <span>{new Date(selectedPackage.created_at).toLocaleString("vi-VN")}</span>
+                  {selectedPackage.is_active && (
+                    <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">
+                      Đang dùng
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
           ) : (
             <p className="mt-3 text-sm text-amber-700">
               Chưa có gói cài đặt; đơn hàng chưa thể tạo link bàn giao tự động.
