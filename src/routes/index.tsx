@@ -968,26 +968,26 @@ function ProductCard({
       </Link>
       <div className="space-y-2 p-3">
         <h3 className="skill-card__title font-display">{product.title}</h3>
-        <p className="skill-card__description text-xs leading-5 text-muted-foreground">
+        <p className="skill-card__description text-sm leading-6 text-muted-foreground">
           {description}
         </p>
         <Link
           to="/skill/$skillId"
           params={{ skillId: product.id }}
-          className="block w-full rounded-full border border-border px-3 py-2 text-center text-xs font-semibold text-foreground transition hover:border-primary hover:text-primary"
+          className="block w-full rounded-full border border-border px-3 py-2 text-center text-sm font-semibold text-foreground transition hover:border-primary hover:text-primary"
         >
           Xem chi tiết
         </Link>
         <button
           onClick={onChoose}
           disabled={inCart}
-          className="w-full rounded-full bg-foreground px-3 py-2 text-xs font-semibold text-background transition hover:opacity-90 disabled:cursor-default disabled:opacity-60"
+          className="w-full rounded-full bg-foreground px-3 py-2 text-sm font-semibold text-background transition hover:opacity-90 disabled:cursor-default disabled:opacity-60"
         >
           {inCart ? "Đã chọn · 1.99$" : "Chọn Skill · 1.99$"}
         </button>
         <button
           onClick={onActivate}
-          className="w-full rounded-full bg-brand-gradient px-3 py-2 text-xs font-semibold text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="w-full rounded-full bg-brand-gradient px-3 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           Kích hoạt · 1.99$
         </button>

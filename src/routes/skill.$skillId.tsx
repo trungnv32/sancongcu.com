@@ -210,24 +210,24 @@ function Detail() {
             ))}
           </ol>
         </section>
-        <section className="min-w-0 rounded-[2rem] border border-border bg-card p-5 shadow-sm sm:p-10">
+        <section className="min-w-0 rounded-[2rem] border border-border bg-card p-5 shadow-sm sm:p-7">
           <p className="text-sm font-bold uppercase tracking-[.24em] text-primary">
             Kích hoạt & bàn giao
           </p>
           <h2 className="skill-detail__section-title mt-4">
             Phí kích hoạt: {skill?.activation_price_vnd?.toLocaleString("vi-VN") ?? "51.000"}đ
           </h2>
-          <div className="mt-7 space-y-4">
+          <div className="mt-5 space-y-3">
             {handoffSteps.map((line, index) => (
               <p
                 key={`${line}-${index}`}
-                className="skill-detail__body-copy break-words rounded-[1.45rem] bg-muted px-5 py-4"
+                className="skill-detail__body-copy break-words rounded-[1.25rem] bg-muted px-4 py-3"
               >
                 {line}
               </p>
             ))}
           </div>
-          <div className="mt-8 grid gap-4 sm:flex">
+          <div className="mt-6 grid gap-3 sm:flex">
             <button
               type="button"
               onClick={choose}
