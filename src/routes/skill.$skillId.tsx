@@ -57,6 +57,7 @@ function Detail() {
   useEffect(() => {
     if (!supabase) return;
     setLoaded(false);
+    setActiveImageId("main");
     void (async () => {
       try {
         const { data } = await supabase
@@ -89,8 +90,8 @@ function Detail() {
     })();
   }, [skillId]);
 
-  if (!loaded && !local)
-    return <main className="grid min-h-screen place-items-center">Đang tải…</main>;
+  if (!loaded)
+    return <main className="grid min-h-screen place-items-center bg-soft-gradient">Đang tải…</main>;
 
   const title = skill?.title ?? productTitles[skillId];
   const intro = skill?.introduction ?? local?.introduction;
