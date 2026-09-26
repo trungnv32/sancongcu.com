@@ -10,6 +10,7 @@ import {
   Eye,
   EyeOff,
   FileText,
+  FolderDown,
   ImagePlus,
   LoaderCircle,
   LogOut,
@@ -29,6 +30,13 @@ import {
   type ReactNode,
 } from "react";
 import { isSupabaseConfigured, supabase, supabaseUrl } from "@/lib/supabase";
+import {
+  defaultMenuItems,
+  defaultSitePages,
+  type FreeResource,
+  type SiteMenuItem,
+  type SitePage,
+} from "@/lib/site-content";
 
 export const Route = createFileRoute("/admin")({ component: AdminPage });
 
@@ -235,6 +243,9 @@ function AdminPage() {
   const [comboSection, setComboSection] = useState<ComboSection | null>(null);
   const [combos, setCombos] = useState<Combo[]>([]);
   const [comboSkills, setComboSkills] = useState<ComboSkill[]>([]);
+  const [menuItems, setMenuItems] = useState<SiteMenuItem[]>(defaultMenuItems);
+  const [sitePages, setSitePages] = useState<SitePage[]>(defaultSitePages);
+  const [freeResources, setFreeResources] = useState<FreeResource[]>([]);
   const [selectedHallId, setSelectedHallId] = useState<string | null>(null);
   const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -243,7 +254,7 @@ function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [newHallName, setNewHallName] = useState("");
   const [adminSection, setAdminSection] = useState<
-    "orders" | "topups" | "webapp-history" | "combos" | "catalog"
+    "orders" | "topups" | "webapp-history" | "combos" | "pages" | "catalog"
   >("orders");
 
   const selectedSkill = useMemo(
@@ -297,6 +308,9 @@ function AdminPage() {
       comboSectionResult,
       comboResult,
       comboSkillResult,
+      menuResult,
+      pageResult,
+      resourceResult,
     ] = await Promise.all([
       supabase.from("halls").select("*").order("sort_order").order("name"),
       supabase.from("skills").select("*").order("sort_order").order("title"),
@@ -315,6 +329,9 @@ function AdminPage() {
       supabase.from("combo_sections").select("*").eq("id", "home").maybeSingle(),
       supabase.from("combos").select("*").order("sort_order").order("title"),
       supabase.from("combo_skills").select("*").order("sort_order"),
+      supabase.from("site_menu_items").select("*").order("sort_order"),
+      supabase.from("site_pages").select("*").order("sort_order"),
+      supabase.from("free_resources").select("*").order("sort_order"),
     ]);
     const requestError =
       hallResult.error ??
@@ -327,7 +344,10 @@ function AdminPage() {
       webappHistoryResult.error ??
       comboSectionResult.error ??
       comboResult.error ??
-      comboSkillResult.error;
+      comboSkillResult.error ??
+      menuResult.error ??
+      pageResult.error ??
+      resourceResult.error;
     if (requestError) {
       setError(`Không thể tải dữ liệu: ${requestError.message}`);
     } else {
@@ -343,6 +363,9 @@ function AdminPage() {
       setComboSection((comboSectionResult.data as ComboSection | null) ?? null);
       setCombos((comboResult.data ?? []) as Combo[]);
       setComboSkills((comboSkillResult.data ?? []) as ComboSkill[]);
+      setMenuItems(((menuResult.data?.length ? menuResult.data : defaultMenuItems) ?? []) as SiteMenuItem[]);
+      setSitePages(((pageResult.data?.length ? pageResult.data : defaultSitePages) ?? []) as SitePage[]);
+      setFreeResources((resourceResult.data ?? []) as FreeResource[]);
       setWebappJobs(
         ((webappHistoryResult.data?.jobs ?? []) as WebappJob[]).map((job) => ({
           ...job,
@@ -808,6 +831,165 @@ function AdminPage() {
       );
   }
 
+  async function saveSitePage(event: FormEvent<HTMLFormElement>, page: SitePage) {
+    event.preventDefault();
+    if (!supabase) return;
+    const form = new FormData(event.currentTarget);
+    setIsSaving(true);
+    setError(null);
+    const update = {
+      id: page.id,
+      slug: slugify(String(form.get("slug") || page.menu_label)),
+      menu_label: String(form.get("menu_label") || "").trim(),
+      eyebrow: String(form.get("eyebrow") || "").trim(),
+      title: String(form.get("title") || "").trim(),
+      summary: String(form.get("summary") || "").trim(),
+      content_blocks: toLines(String(form.get("content_blocks") || "")),
+      cta_label: String(form.get("cta_label") || "").trim(),
+      cta_href: String(form.get("cta_href") || "").trim(),
+      is_visible: form.get("is_visible") === "on",
+      sort_order: Number(form.get("sort_order") || 0),
+      updated_at: new Date().toISOString(),
+    };
+    const { data, error: saveError } = await supabase
+      .from("site_pages")
+      .upsert(update, { onConflict: "id" })
+      .select()
+      .single();
+    setIsSaving(false);
+    if (saveError) setError(saveError.message);
+    else if (data) {
+      setSitePages((current) =>
+        current
+          .map((item) => (item.id === data.id ? (data as SitePage) : item))
+          .sort((a, b) => a.sort_order - b.sort_order),
+      );
+      setNotice("Đã lưu nội dung trang.");
+    }
+  }
+
+  async function saveMenuItem(event: FormEvent<HTMLFormElement>, item: SiteMenuItem) {
+    event.preventDefault();
+    if (!supabase) return;
+    const form = new FormData(event.currentTarget);
+    setIsSaving(true);
+    setError(null);
+    const update = {
+      id: item.id,
+      label: String(form.get("label") || "").trim(),
+      href: String(form.get("href") || "").trim(),
+      parent_id: String(form.get("parent_id") || "").trim() || null,
+      description: String(form.get("description") || "").trim(),
+      sort_order: Number(form.get("sort_order") || 0),
+      is_visible: form.get("is_visible") === "on",
+      updated_at: new Date().toISOString(),
+    };
+    const { data, error: saveError } = await supabase
+      .from("site_menu_items")
+      .upsert(update, { onConflict: "id" })
+      .select()
+      .single();
+    setIsSaving(false);
+    if (saveError) setError(saveError.message);
+    else if (data) {
+      setMenuItems((current) =>
+        current
+          .map((menuItem) => (menuItem.id === data.id ? (data as SiteMenuItem) : menuItem))
+          .sort((a, b) => a.sort_order - b.sort_order),
+      );
+      setNotice("Đã lưu menu.");
+    }
+  }
+
+  async function createResource() {
+    if (!supabase) return;
+    setIsSaving(true);
+    setError(null);
+    const number = freeResources.length + 1;
+    const { data, error: createError } = await supabase
+      .from("free_resources")
+      .insert({
+        title: `Tài nguyên mới ${number}`,
+        description: "Mô tả ngắn cho tài nguyên.",
+        file_url: "",
+        file_name: "",
+        is_visible: false,
+        sort_order: number,
+      })
+      .select()
+      .single();
+    setIsSaving(false);
+    if (createError) setError(createError.message);
+    else if (data) {
+      setFreeResources((current) => [...current, data as FreeResource]);
+      setNotice("Đã tạo tài nguyên nháp. Hãy tải file và bật hiển thị khi sẵn sàng.");
+    }
+  }
+
+  async function saveResource(event: FormEvent<HTMLFormElement>, resource: FreeResource) {
+    event.preventDefault();
+    if (!supabase) return;
+    const form = new FormData(event.currentTarget);
+    setIsSaving(true);
+    setError(null);
+    const update = {
+      title: String(form.get("title") || "").trim(),
+      description: String(form.get("description") || "").trim(),
+      file_url: String(form.get("file_url") || "").trim(),
+      file_name: String(form.get("file_name") || "").trim(),
+      is_visible: form.get("is_visible") === "on",
+      sort_order: Number(form.get("sort_order") || 0),
+      updated_at: new Date().toISOString(),
+    };
+    const { data, error: saveError } = await supabase
+      .from("free_resources")
+      .update(update)
+      .eq("id", resource.id)
+      .select()
+      .single();
+    setIsSaving(false);
+    if (saveError) setError(saveError.message);
+    else if (data) {
+      setFreeResources((current) =>
+        current
+          .map((item) => (item.id === data.id ? (data as FreeResource) : item))
+          .sort((a, b) => a.sort_order - b.sort_order),
+      );
+      setNotice("Đã lưu tài nguyên.");
+    }
+  }
+
+  async function uploadResourceFile(event: ChangeEvent<HTMLInputElement>, resource: FreeResource) {
+    const file = event.target.files?.[0];
+    if (!supabase || !file) return;
+    setIsSaving(true);
+    setError(null);
+    try {
+      const path = `${resource.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]+/g, "-")}`;
+      const { error: uploadError } = await supabase.storage
+        .from("free-resources")
+        .upload(path, file, { contentType: file.type || "application/octet-stream" });
+      if (uploadError) throw uploadError;
+      const url = supabase.storage.from("free-resources").getPublicUrl(path).data.publicUrl;
+      const { data, error: updateError } = await supabase
+        .from("free_resources")
+        .update({ file_url: url, file_name: file.name })
+        .eq("id", resource.id)
+        .select()
+        .single();
+      if (updateError) throw updateError;
+      if (data)
+        setFreeResources((current) =>
+          current.map((item) => (item.id === data.id ? (data as FreeResource) : item)),
+        );
+      setNotice("Đã tải file tài nguyên lên.");
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Không thể tải file lên.");
+    }
+    event.target.value = "";
+    setIsSaving(false);
+  }
+
   async function uploadFile(
     event: ChangeEvent<HTMLInputElement>,
     target: "thumbnail" | "gallery",
@@ -1151,6 +1333,18 @@ function AdminPage() {
               {combos.length}
             </span>
           </button>
+          <button
+            type="button"
+            onClick={() => setAdminSection("pages")}
+            aria-current={adminSection === "pages" ? "page" : undefined}
+            className={`mb-4 flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-bold transition ${adminSection === "pages" ? "bg-foreground text-background" : "border border-border hover:bg-muted"}`}
+          >
+            <FolderDown className="size-4" />
+            Menu & trang
+            <span className="ml-auto rounded-full bg-background/15 px-2 py-0.5 text-xs">
+              {freeResources.length}
+            </span>
+          </button>
           <div className="flex items-center justify-between px-2 py-2">
             <h2 className="font-bold">Danh mục</h2>
             <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold">
@@ -1227,6 +1421,19 @@ function AdminPage() {
               onSaveCombo={saveCombo}
               onDeleteCombo={deleteCombo}
               onSetComboSkill={setComboSkill}
+            />
+          )}
+          {adminSection === "pages" && (
+            <PagesPanel
+              menuItems={menuItems}
+              sitePages={sitePages}
+              freeResources={freeResources}
+              isSaving={isSaving}
+              onSaveMenuItem={saveMenuItem}
+              onSavePage={saveSitePage}
+              onCreateResource={createResource}
+              onSaveResource={saveResource}
+              onUploadResource={uploadResourceFile}
             />
           )}
           {adminSection === "catalog" && selectedHall && (
@@ -2608,6 +2815,274 @@ function SkillEditor({
         </div>
       </section>
     </form>
+  );
+}
+
+function PagesPanel({
+  menuItems,
+  sitePages,
+  freeResources,
+  isSaving,
+  onSaveMenuItem,
+  onSavePage,
+  onCreateResource,
+  onSaveResource,
+  onUploadResource,
+}: {
+  menuItems: SiteMenuItem[];
+  sitePages: SitePage[];
+  freeResources: FreeResource[];
+  isSaving: boolean;
+  onSaveMenuItem: (event: FormEvent<HTMLFormElement>, item: SiteMenuItem) => Promise<void>;
+  onSavePage: (event: FormEvent<HTMLFormElement>, page: SitePage) => Promise<void>;
+  onCreateResource: () => Promise<void>;
+  onSaveResource: (event: FormEvent<HTMLFormElement>, resource: FreeResource) => Promise<void>;
+  onUploadResource: (
+    event: ChangeEvent<HTMLInputElement>,
+    resource: FreeResource,
+  ) => Promise<void>;
+}) {
+  return (
+    <div className="space-y-5">
+      <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+          Menu ngang
+        </p>
+        <h2 className="mt-1 text-xl font-bold">Chỉnh các mục trên thanh menu</h2>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          Mục “Dịch vụ” có các menu con. Nếu muốn một mục nằm dưới Dịch vụ, điền parent_id là
+          services.
+        </p>
+        <div className="mt-5 grid gap-4 xl:grid-cols-2">
+          {menuItems.map((item) => (
+            <form
+              key={item.id}
+              onSubmit={(event) => void onSaveMenuItem(event, item)}
+              className="rounded-2xl border border-border bg-background p-4"
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                <CountInput label="Tên menu" name="label" defaultValue={item.label} maxLength={80} />
+                <CountInput label="Đường dẫn" name="href" defaultValue={item.href} maxLength={160} />
+                <CountInput
+                  label="Menu cha"
+                  name="parent_id"
+                  defaultValue={item.parent_id ?? ""}
+                  maxLength={80}
+                />
+                <Field label="Thứ tự">
+                  <input
+                    name="sort_order"
+                    type="number"
+                    defaultValue={item.sort_order}
+                    className="input h-12"
+                  />
+                </Field>
+              </div>
+              <div className="mt-3">
+                <CountInput
+                  label="Mô tả ngắn"
+                  name="description"
+                  defaultValue={item.description}
+                  maxLength={220}
+                  multiline
+                  rows={3}
+                />
+              </div>
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                <label className="inline-flex items-center gap-2 text-sm font-bold">
+                  <input type="checkbox" name="is_visible" defaultChecked={item.is_visible} />
+                  Hiển thị
+                </label>
+                <button
+                  disabled={isSaving}
+                  className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
+                >
+                  <Save className="size-4" />
+                  Lưu menu
+                </button>
+              </div>
+            </form>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+          Nội dung trang
+        </p>
+        <h2 className="mt-1 text-xl font-bold">Chỉnh phần Về chúng tôi, Khoá huấn luyện, Quà tặng</h2>
+        <div className="mt-5 space-y-4">
+          {sitePages.map((page) => (
+            <form
+              key={page.id}
+              onSubmit={(event) => void onSavePage(event, page)}
+              className="rounded-2xl border border-border bg-background p-4"
+            >
+              <div className="grid gap-3 lg:grid-cols-3">
+                <CountInput
+                  label="Tên menu"
+                  name="menu_label"
+                  defaultValue={page.menu_label}
+                  maxLength={80}
+                />
+                <CountInput label="Slug" name="slug" defaultValue={page.slug} maxLength={120} />
+                <Field label="Thứ tự">
+                  <input
+                    name="sort_order"
+                    type="number"
+                    defaultValue={page.sort_order}
+                    className="input h-12"
+                  />
+                </Field>
+              </div>
+              <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                <CountInput label="Nhãn nhỏ" name="eyebrow" defaultValue={page.eyebrow} maxLength={120} />
+                <CountInput label="Tiêu đề" name="title" defaultValue={page.title} maxLength={180} />
+              </div>
+              <div className="mt-3">
+                <CountInput
+                  label="Mô tả chính"
+                  name="summary"
+                  defaultValue={page.summary}
+                  maxLength={500}
+                  multiline
+                  rows={4}
+                />
+              </div>
+              <div className="mt-3">
+                <CountInput
+                  label="Các đoạn nội dung — mỗi dòng là một đoạn"
+                  name="content_blocks"
+                  defaultValue={lines(page.content_blocks)}
+                  maxLength={1800}
+                  multiline
+                  rows={7}
+                />
+              </div>
+              <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                <CountInput
+                  label="Chữ trên nút"
+                  name="cta_label"
+                  defaultValue={page.cta_label}
+                  maxLength={80}
+                />
+                <CountInput
+                  label="Link của nút"
+                  name="cta_href"
+                  defaultValue={page.cta_href}
+                  maxLength={180}
+                />
+              </div>
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                <label className="inline-flex items-center gap-2 text-sm font-bold">
+                  <input type="checkbox" name="is_visible" defaultChecked={page.is_visible} />
+                  Hiển thị
+                </label>
+                <button
+                  disabled={isSaving}
+                  className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
+                >
+                  <Save className="size-4" />
+                  Lưu trang
+                </button>
+              </div>
+            </form>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+              Kho tài nguyên miễn phí
+            </p>
+            <h2 className="mt-1 text-xl font-bold">File cho khách tải về</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Tạo tài nguyên, tải file lên, rồi bật hiển thị khi đã sẵn sàng.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void onCreateResource()}
+            disabled={isSaving}
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground disabled:opacity-60"
+          >
+            <Plus className="size-4" />
+            Thêm tài nguyên
+          </button>
+        </div>
+        <div className="mt-5 grid gap-4 xl:grid-cols-2">
+          {freeResources.map((resource) => (
+            <form
+              key={resource.id}
+              onSubmit={(event) => void onSaveResource(event, resource)}
+              className="rounded-2xl border border-border bg-background p-4"
+            >
+              <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_120px]">
+                <CountInput label="Tên tài nguyên" name="title" defaultValue={resource.title} maxLength={160} />
+                <Field label="Thứ tự">
+                  <input
+                    name="sort_order"
+                    type="number"
+                    defaultValue={resource.sort_order}
+                    className="input h-12"
+                  />
+                </Field>
+              </div>
+              <div className="mt-3">
+                <CountInput
+                  label="Mô tả"
+                  name="description"
+                  defaultValue={resource.description}
+                  maxLength={420}
+                  multiline
+                  rows={4}
+                />
+              </div>
+              <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                <CountInput
+                  label="URL file"
+                  name="file_url"
+                  defaultValue={resource.file_url}
+                  maxLength={500}
+                />
+                <CountInput
+                  label="Tên file"
+                  name="file_name"
+                  defaultValue={resource.file_name}
+                  maxLength={180}
+                />
+              </div>
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                <label className="inline-flex items-center gap-2 text-sm font-bold">
+                  <input type="checkbox" name="is_visible" defaultChecked={resource.is_visible} />
+                  Hiển thị
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-border px-4 text-sm font-bold transition hover:bg-muted">
+                    <Upload className="size-4" />
+                    Tải file
+                    <input
+                      type="file"
+                      className="sr-only"
+                      onChange={(event) => void onUploadResource(event, resource)}
+                    />
+                  </label>
+                  <button
+                    disabled={isSaving}
+                    className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
+                  >
+                    <Save className="size-4" />
+                    Lưu
+                  </button>
+                </div>
+              </div>
+            </form>
+          ))}
+        </div>
+      </section>
+    </div>
   );
 }
 

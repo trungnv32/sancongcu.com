@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Banknote, Sparkles, Users, Workflow, X } from "lucide-react";
+import { Banknote, ChevronDown, Sparkles, Users, Workflow, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import kolGraduation from "@/assets/kol-graduation.asset.json";
 import tueLamStanding from "@/assets/tue-lam-03-standing.jpg";
@@ -10,6 +10,13 @@ import tueLamHall5 from "@/assets/tue-lam-hall-5-learning-studio.png";
 import sanCongCuLogo from "@/assets/sancongcu-logo-transparent.png";
 import techcombankPaymentQr from "@/assets/techcombank-payment-qr.jpg";
 import { getProductContent } from "@/lib/product-content";
+import {
+  defaultMenuItems,
+  defaultServiceItems,
+  defaultSitePages,
+  type SiteMenuItem,
+  type SitePage,
+} from "@/lib/site-content";
 import {
   createFallbackTransferOrder,
   createSavedTransferOrder,
@@ -394,6 +401,8 @@ function Landing() {
   const [isCatalogLoading, setIsCatalogLoading] = useState(Boolean(supabase));
   const [comboSection, setComboSection] = useState<HomeComboSection>(defaultComboSection);
   const [homeCombos, setHomeCombos] = useState<HomeCombo[]>(combos);
+  const [menuItems, setMenuItems] = useState<SiteMenuItem[]>(defaultMenuItems);
+  const [sitePages, setSitePages] = useState<SitePage[]>(defaultSitePages);
   useEffect(() => {
     if (!supabase) {
       setIsCatalogLoading(false);
@@ -401,7 +410,8 @@ function Landing() {
     }
     void (async () => {
       try {
-        const [hallResult, skillResult, comboSectionResult, comboResult] = await Promise.all([
+        const [hallResult, skillResult, comboSectionResult, comboResult, menuResult, pageResult] =
+          await Promise.all([
           supabase
             .from("halls")
             .select("id, slug, name, description, poster_path, is_visible, sort_order")
@@ -424,9 +434,21 @@ function Landing() {
             .select("slug,label,title,description,includes,cta_label,status,sort_order")
             .eq("status", "published")
             .order("sort_order"),
+          supabase
+            .from("site_menu_items")
+            .select("id,label,href,parent_id,description,sort_order,is_visible")
+            .eq("is_visible", true)
+            .order("sort_order"),
+          supabase
+            .from("site_pages")
+            .select("id,slug,menu_label,eyebrow,title,summary,content_blocks,cta_label,cta_href,is_visible,sort_order")
+            .eq("is_visible", true)
+            .order("sort_order"),
         ]);
         if (comboSectionResult.data) setComboSection(comboSectionResult.data as HomeComboSection);
         if (comboResult.data?.length) setHomeCombos(comboResult.data as HomeCombo[]);
+        if (menuResult.data?.length) setMenuItems(menuResult.data as SiteMenuItem[]);
+        if (pageResult.data?.length) setSitePages(pageResult.data as SitePage[]);
         if (hallResult.error || skillResult.error || !skillResult.data?.length) return;
         const dynamicCatalog = hallResult.data.map((hall) => ({
           id: hall.slug,
@@ -474,6 +496,19 @@ function Landing() {
     (category) =>
       category.visible !== false && category.products.some((product) => product.visible !== false),
   );
+  const visibleMenuItems = menuItems.filter((item) => item.is_visible !== false);
+  const topMenuItems = visibleMenuItems
+    .filter((item) => !item.parent_id)
+    .sort((a, b) => a.sort_order - b.sort_order);
+  const serviceItems = visibleMenuItems
+    .filter((item) => item.parent_id === "services")
+    .sort((a, b) => a.sort_order - b.sort_order);
+  const visibleSitePages = sitePages
+    .filter((page) => page.is_visible !== false)
+    .sort((a, b) => a.sort_order - b.sort_order);
+  const aboutPage = visibleSitePages.find((page) => page.slug === "ve-chung-toi") ?? defaultSitePages[0];
+  const trainingPage =
+    visibleSitePages.find((page) => page.slug === "khoa-huan-luyen") ?? defaultSitePages[1];
   const startCheckout = async (products: Product[], selectedComboSize: ComboSize | null = null) => {
     if (products.length === 0) return;
     setCheckoutTitle(
@@ -547,12 +582,52 @@ function Landing() {
     <main className="min-h-screen bg-soft-gradient">
       {/* Nav */}
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-4">
           <div className="flex min-w-0 items-center">
             <div className="w-44 shrink-0 sm:w-52">
               <img src={sanCongCuLogo} alt="sancongcu.com" className="h-auto w-full" />
             </div>
           </div>
+          <nav
+            aria-label="Menu chính"
+            className="order-3 flex w-full items-center gap-1 overflow-x-auto text-sm font-semibold lg:order-none lg:w-auto lg:overflow-visible"
+          >
+            {topMenuItems.map((item) =>
+              item.id === "services" ? (
+                <div key={item.id} className="group relative shrink-0">
+                  <a
+                    href={item.href}
+                    className="inline-flex min-h-10 items-center gap-1 rounded-full px-3 text-foreground transition hover:bg-muted hover:text-primary"
+                  >
+                    {item.label}
+                    <ChevronDown className="size-4" />
+                  </a>
+                  <div className="invisible absolute left-0 top-full z-40 w-80 translate-y-2 rounded-2xl border border-border bg-background p-3 opacity-0 shadow-card transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                    {(serviceItems.length ? serviceItems : defaultServiceItems).map((service) => (
+                      <a
+                        key={service.id}
+                        href={service.href}
+                        className="block rounded-xl p-3 transition hover:bg-muted"
+                      >
+                        <span className="block text-sm font-bold">{service.label}</span>
+                        <span className="mt-1 block text-xs leading-5 text-muted-foreground">
+                          {service.description}
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <a
+                  key={item.id}
+                  href={item.href}
+                  className="inline-flex min-h-10 shrink-0 items-center rounded-full px-3 text-foreground transition hover:bg-muted hover:text-primary"
+                >
+                  {item.label}
+                </a>
+              ),
+            )}
+          </nav>
           <div className="flex shrink-0 items-center gap-2 text-sm">
             <span className="hidden text-muted-foreground sm:inline">
               {comboSize
@@ -583,6 +658,86 @@ function Landing() {
           Không cần am hiểu công nghệ phức tạp. Chọn đúng skill AI cho ngành nghề của bạn, làm theo
           hướng dẫn và áp dụng ngay vào công việc kinh doanh.
         </p>
+      </section>
+
+      <section id="ve-chung-toi" className="mx-auto max-w-6xl px-6 pb-20">
+        <div className="grid gap-8 rounded-3xl border border-primary/10 bg-card p-6 shadow-card sm:p-10 lg:grid-cols-[0.9fr_1.1fr]">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              {aboutPage.eyebrow}
+            </p>
+            <h2 className="mt-3 text-3xl leading-tight sm:text-4xl">{aboutPage.title}</h2>
+            <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
+              {aboutPage.summary}
+            </p>
+            <a
+              href={aboutPage.cta_href || "#danh-muc-1"}
+              className="mt-6 inline-flex min-h-11 items-center rounded-full bg-foreground px-5 text-sm font-bold text-background transition hover:opacity-90"
+            >
+              {aboutPage.cta_label || "Khám phá công cụ"}
+            </a>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {aboutPage.content_blocks.map((block, index) => (
+              <article key={block} className="rounded-2xl border border-border bg-background p-4">
+                <span className="text-xs font-bold text-primary">0{index + 1}</span>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{block}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="dich-vu" className="mx-auto max-w-6xl px-6 pb-20">
+        <div className="mb-7 max-w-2xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+            Dịch vụ triển khai
+          </p>
+          <h2 className="mt-3 text-3xl sm:text-4xl">Đưa AI vào công việc theo đúng nhu cầu của bạn</h2>
+          <p className="mt-3 text-sm leading-7 text-muted-foreground sm:text-base">
+            Từ đào tạo, coaching đến xây website, workflow và chatbot, sancongcu.com hỗ trợ bạn biến
+            ý tưởng thành hệ thống có thể dùng trong vận hành thật.
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {(serviceItems.length ? serviceItems : defaultServiceItems).map((service) => (
+            <article key={service.id} className="rounded-2xl border border-border bg-card p-5 shadow-card">
+              <h3 className="text-lg leading-snug">{service.label}</h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">{service.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="khoa-huan-luyen" className="mx-auto max-w-6xl px-6 pb-20">
+        <div className="rounded-3xl bg-foreground p-6 text-background shadow-brand sm:p-10">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+            {trainingPage.eyebrow}
+          </p>
+          <div className="mt-3 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+            <div>
+              <h2 className="text-3xl leading-tight sm:text-4xl">{trainingPage.title}</h2>
+              <p className="mt-4 text-sm leading-7 text-background/75 sm:text-base">
+                {trainingPage.summary}
+              </p>
+              <a
+                href={trainingPage.cta_href || supportZaloUrl}
+                target={trainingPage.cta_href?.startsWith("http") ? "_blank" : undefined}
+                rel={trainingPage.cta_href?.startsWith("http") ? "noreferrer" : undefined}
+                className="mt-6 inline-flex min-h-11 items-center rounded-full bg-brand-gradient px-5 text-sm font-bold text-primary-foreground"
+              >
+                {trainingPage.cta_label || "Nhận tư vấn lộ trình"}
+              </a>
+            </div>
+            <div className="grid gap-3">
+              {trainingPage.content_blocks.map((block) => (
+                <p key={block} className="rounded-2xl bg-background/10 p-4 text-sm leading-6 text-background/80">
+                  {block}
+                </p>
+              ))}
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Danh mục có thể ẩn bằng visible: false trong dữ liệu categories */}
