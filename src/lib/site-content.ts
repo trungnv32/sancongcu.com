@@ -68,12 +68,12 @@ export const defaultSitePages: SitePage[] = [
     cta_label: "Nhận tư vấn lộ trình",
     cta_href: "https://zalo.me/0938069668",
     is_visible: true,
-    sort_order: 3,
+    sort_order: 4,
   },
   {
     id: "free-resources",
     slug: "tai-nguyen-mien-phi",
-    menu_label: "Quà tặng miễn phí",
+    menu_label: "Kho miễn phí",
     eyebrow: "Kho tài nguyên miễn phí",
     title: "Tải tài liệu, mẫu prompt và file hướng dẫn miễn phí",
     summary:
@@ -85,7 +85,7 @@ export const defaultSitePages: SitePage[] = [
     cta_label: "Xem kho tài nguyên",
     cta_href: "/tai-nguyen-mien-phi",
     is_visible: true,
-    sort_order: 4,
+    sort_order: 2,
   },
 ];
 
@@ -153,7 +153,7 @@ export const defaultTopMenuItems: SiteMenuItem[] = [
     href: "#dich-vu",
     parent_id: null,
     description: "",
-    sort_order: 2,
+    sort_order: 3,
     is_visible: true,
   },
   {
@@ -162,16 +162,16 @@ export const defaultTopMenuItems: SiteMenuItem[] = [
     href: "#khoa-huan-luyen",
     parent_id: null,
     description: "",
-    sort_order: 3,
+    sort_order: 4,
     is_visible: true,
   },
   {
     id: "free-resources",
-    label: "Quà tặng miễn phí",
+    label: "Kho miễn phí",
     href: "/tai-nguyen-mien-phi",
     parent_id: null,
     description: "",
-    sort_order: 4,
+    sort_order: 2,
     is_visible: true,
   },
 ];
