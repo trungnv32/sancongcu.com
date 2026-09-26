@@ -369,6 +369,10 @@ const categories: Category[] = [
 ];
 
 function Landing() {
+  const [activeMenuSection, setActiveMenuSection] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return window.location.hash.replace("#", "");
+  });
   const [cart, setCart] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
     try {
@@ -397,6 +401,12 @@ function Landing() {
   useEffect(() => {
     if (cart.length === 0) setIsCartOpen(false);
   }, [cart.length]);
+  useEffect(() => {
+    const syncHash = () => setActiveMenuSection(window.location.hash.replace("#", ""));
+    syncHash();
+    window.addEventListener("hashchange", syncHash);
+    return () => window.removeEventListener("hashchange", syncHash);
+  }, []);
   const [catalog, setCatalog] = useState<Category[] | null>(null);
   const [isCatalogLoading, setIsCatalogLoading] = useState(Boolean(supabase));
   const [comboSection, setComboSection] = useState<HomeComboSection>(defaultComboSection);
@@ -660,85 +670,101 @@ function Landing() {
         </p>
       </section>
 
-      <section id="ve-chung-toi" className="mx-auto max-w-6xl px-6 pb-20">
-        <div className="grid gap-8 rounded-3xl border border-primary/10 bg-card p-6 shadow-card sm:p-10 lg:grid-cols-[0.9fr_1.1fr]">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-              {aboutPage.eyebrow}
-            </p>
-            <h2 className="mt-3 text-3xl leading-tight sm:text-4xl">{aboutPage.title}</h2>
-            <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
-              {aboutPage.summary}
-            </p>
-            <a
-              href={aboutPage.cta_href || "#danh-muc-1"}
-              className="mt-6 inline-flex min-h-11 items-center rounded-full bg-foreground px-5 text-sm font-bold text-background transition hover:opacity-90"
-            >
-              {aboutPage.cta_label || "Khám phá công cụ"}
-            </a>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {aboutPage.content_blocks.map((block, index) => (
-              <article key={block} className="rounded-2xl border border-border bg-background p-4">
-                <span className="text-xs font-bold text-primary">0{index + 1}</span>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">{block}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="dich-vu" className="mx-auto max-w-6xl px-6 pb-20">
-        <div className="mb-7 max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-            Dịch vụ triển khai
-          </p>
-          <h2 className="mt-3 text-3xl sm:text-4xl">Đưa AI vào công việc theo đúng nhu cầu của bạn</h2>
-          <p className="mt-3 text-sm leading-7 text-muted-foreground sm:text-base">
-            Từ đào tạo, coaching đến xây website, workflow và chatbot, sancongcu.com hỗ trợ bạn biến
-            ý tưởng thành hệ thống có thể dùng trong vận hành thật.
-          </p>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {(serviceItems.length ? serviceItems : defaultServiceItems).map((service) => (
-            <article key={service.id} className="rounded-2xl border border-border bg-card p-5 shadow-card">
-              <h3 className="text-lg leading-snug">{service.label}</h3>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">{service.description}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section id="khoa-huan-luyen" className="mx-auto max-w-6xl px-6 pb-20">
-        <div className="rounded-3xl bg-foreground p-6 text-background shadow-brand sm:p-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-            {trainingPage.eyebrow}
-          </p>
-          <div className="mt-3 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+      {activeMenuSection === "ve-chung-toi" && (
+        <section id="ve-chung-toi" className="mx-auto max-w-6xl px-6 pb-20">
+          <div className="grid gap-8 rounded-3xl border border-primary/10 bg-card p-6 shadow-card sm:p-10 lg:grid-cols-[0.9fr_1.1fr]">
             <div>
-              <h2 className="text-3xl leading-tight sm:text-4xl">{trainingPage.title}</h2>
-              <p className="mt-4 text-sm leading-7 text-background/75 sm:text-base">
-                {trainingPage.summary}
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                {aboutPage.eyebrow}
+              </p>
+              <h2 className="mt-3 text-3xl leading-tight sm:text-4xl">{aboutPage.title}</h2>
+              <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
+                {aboutPage.summary}
               </p>
               <a
-                href={trainingPage.cta_href || supportZaloUrl}
-                target={trainingPage.cta_href?.startsWith("http") ? "_blank" : undefined}
-                rel={trainingPage.cta_href?.startsWith("http") ? "noreferrer" : undefined}
-                className="mt-6 inline-flex min-h-11 items-center rounded-full bg-brand-gradient px-5 text-sm font-bold text-primary-foreground"
+                href={aboutPage.cta_href || "#danh-muc-1"}
+                className="mt-6 inline-flex min-h-11 items-center rounded-full bg-foreground px-5 text-sm font-bold text-background transition hover:opacity-90"
               >
-                {trainingPage.cta_label || "Nhận tư vấn lộ trình"}
+                {aboutPage.cta_label || "Khám phá công cụ"}
               </a>
             </div>
-            <div className="grid gap-3">
-              {trainingPage.content_blocks.map((block) => (
-                <p key={block} className="rounded-2xl bg-background/10 p-4 text-sm leading-6 text-background/80">
-                  {block}
-                </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {aboutPage.content_blocks.map((block, index) => (
+                <article key={block} className="rounded-2xl border border-border bg-background p-4">
+                  <span className="text-xs font-bold text-primary">0{index + 1}</span>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{block}</p>
+                </article>
               ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {activeMenuSection === "dich-vu" && (
+        <section id="dich-vu" className="mx-auto max-w-6xl px-6 pb-20">
+          <div className="mb-7 max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              Dịch vụ triển khai
+            </p>
+            <h2 className="mt-3 text-3xl sm:text-4xl">
+              Đưa AI vào công việc theo đúng nhu cầu của bạn
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-muted-foreground sm:text-base">
+              Từ đào tạo, coaching đến xây website, workflow và chatbot, sancongcu.com hỗ trợ bạn
+              biến ý tưởng thành hệ thống có thể dùng trong vận hành thật.
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {(serviceItems.length ? serviceItems : defaultServiceItems).map((service) => (
+              <article
+                key={service.id}
+                className="rounded-2xl border border-border bg-card p-5 shadow-card"
+              >
+                <h3 className="text-lg leading-snug">{service.label}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  {service.description}
+                </p>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {activeMenuSection === "khoa-huan-luyen" && (
+        <section id="khoa-huan-luyen" className="mx-auto max-w-6xl px-6 pb-20">
+          <div className="rounded-3xl bg-foreground p-6 text-background shadow-brand sm:p-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              {trainingPage.eyebrow}
+            </p>
+            <div className="mt-3 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+              <div>
+                <h2 className="text-3xl leading-tight sm:text-4xl">{trainingPage.title}</h2>
+                <p className="mt-4 text-sm leading-7 text-background/75 sm:text-base">
+                  {trainingPage.summary}
+                </p>
+                <a
+                  href={trainingPage.cta_href || supportZaloUrl}
+                  target={trainingPage.cta_href?.startsWith("http") ? "_blank" : undefined}
+                  rel={trainingPage.cta_href?.startsWith("http") ? "noreferrer" : undefined}
+                  className="mt-6 inline-flex min-h-11 items-center rounded-full bg-brand-gradient px-5 text-sm font-bold text-primary-foreground"
+                >
+                  {trainingPage.cta_label || "Nhận tư vấn lộ trình"}
+                </a>
+              </div>
+              <div className="grid gap-3">
+                {trainingPage.content_blocks.map((block) => (
+                  <p
+                    key={block}
+                    className="rounded-2xl bg-background/10 p-4 text-sm leading-6 text-background/80"
+                  >
+                    {block}
+                  </p>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Danh mục có thể ẩn bằng visible: false trong dữ liệu categories */}
       <div className="mx-auto max-w-6xl space-y-14 px-6 pb-24">
