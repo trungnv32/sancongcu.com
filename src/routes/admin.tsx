@@ -1895,6 +1895,7 @@ function CombosPanel({
   onDeleteCombo: (combo: Combo) => Promise<void>;
   onSetComboSkill: (combo: Combo, skill: Skill, checked: boolean) => Promise<void>;
 }) {
+  const [activeComboId, setActiveComboId] = useState<string>("section");
   const section = comboSection ?? {
     id: "home",
     eyebrow: "Chọn nhanh theo mục tiêu",
@@ -1906,236 +1907,196 @@ function CombosPanel({
   const publishedSkills = skills
     .filter((skill) => skill.status === "published")
     .sort((a, b) => a.sort_order - b.sort_order || a.title.localeCompare(b.title));
+  const activeCombo = combos.find((combo) => combo.id === activeComboId) ?? combos[0] ?? null;
+  const selectedSkillIds = activeCombo
+    ? new Set(
+        comboSkills
+          .filter((item) => item.combo_id === activeCombo.id)
+          .map((item) => item.skill_id),
+      )
+    : new Set<string>();
 
   return (
-    <section className="space-y-5">
-      <form
-        onSubmit={(event) => void onSaveSection(event)}
-        className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6"
-      >
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-              Trang chủ
-            </p>
-            <h2 className="mt-1 text-xl font-bold">Khối giới thiệu combo</h2>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">
-              Chỉnh tiêu đề và mô tả của phần “Một lộ trình…” trên trang chủ.
-            </p>
-          </div>
-          <button
-            disabled={isSaving}
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
-          >
-            <Save className="size-4" />
-            Lưu phần combo
-          </button>
+    <section className="rounded-2xl border border-border bg-card shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4 sm:p-5">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+            Combo
+          </p>
+          <h2 className="mt-1 text-xl font-bold">Quản lý theo menu con</h2>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            Chọn một mục bên trái, bên phải chỉ hiện phần cần chỉnh.
+          </p>
         </div>
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <CountInput
-            label="Nhãn nhỏ"
-            name="eyebrow"
-            defaultValue={section.eyebrow}
-            maxLength={120}
-          />
-          <CountInput label="Tiêu đề" name="title" defaultValue={section.title} maxLength={180} />
-          <div className="md:col-span-2">
-            <CountInput
-              label="Mô tả"
-              name="description"
-              defaultValue={section.description}
-              maxLength={500}
-              multiline
-              rows={4}
-            />
-          </div>
-        </div>
-        <label className="mt-4 flex cursor-pointer items-center gap-3 text-sm font-semibold">
-          <input
-            name="is_visible"
-            type="checkbox"
-            defaultChecked={section.is_visible}
-            className="size-4 accent-primary"
-          />
-          Hiển thị khối combo trên trang chủ
-        </label>
-      </form>
+        <button
+          type="button"
+          onClick={() => void onCreateCombo()}
+          disabled={isSaving}
+          className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-gradient px-4 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90 disabled:opacity-50"
+        >
+          <Plus className="size-4" />
+          Tạo combo
+        </button>
+      </div>
 
-      <section className="rounded-2xl border border-border bg-card shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4 sm:p-5">
-          <div>
-            <h2 className="font-bold">Các combo</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Mỗi combo có trang riêng tại /combo/đường-dẫn-combo.
-            </p>
-          </div>
+      <div className="grid gap-0 lg:grid-cols-[280px_1fr]">
+        <aside className="border-b border-border p-3 lg:border-b-0 lg:border-r">
           <button
             type="button"
-            onClick={() => void onCreateCombo()}
-            disabled={isSaving}
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-gradient px-4 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90 disabled:opacity-50"
+            onClick={() => setActiveComboId("section")}
+            className={`flex min-h-12 w-full items-center justify-between rounded-xl px-3 text-left text-sm font-bold transition ${
+              activeComboId === "section" ? "bg-foreground text-background" : "hover:bg-muted"
+            }`}
           >
-            <Plus className="size-4" />
-            Tạo combo
+            Khối giới thiệu Combo
+            <ChevronRight className="size-4" />
           </button>
-        </div>
-        <div className="space-y-4 p-4 sm:p-5">
-          {combos.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">
-              Chưa có combo nào.
-            </p>
-          ) : (
-            combos.map((combo) => {
-              const selectedSkillIds = new Set(
-                comboSkills
-                  .filter((item) => item.combo_id === combo.id)
-                  .map((item) => item.skill_id),
-              );
-              return (
-                <article
+          <div className="mt-2 space-y-1">
+            {combos.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-border p-3 text-sm text-muted-foreground">
+                Chưa có combo nào.
+              </p>
+            ) : (
+              combos.map((combo, index) => (
+                <button
                   key={combo.id}
-                  className="rounded-2xl border border-border bg-background p-4"
+                  type="button"
+                  onClick={() => setActiveComboId(combo.id)}
+                  className={`flex min-h-12 w-full items-center justify-between rounded-xl px-3 text-left text-sm transition ${
+                    activeComboId === combo.id ? "bg-muted font-bold text-foreground" : "hover:bg-muted"
+                  }`}
                 >
-                  <form
-                    onSubmit={(event) => void onSaveCombo(event, combo)}
-                    onChange={(event) => {
-                      const input = event.target as unknown as HTMLInputElement;
-                      if (input.name === "title") {
-                        const slugInput = event.currentTarget.elements.namedItem(
-                          "slug",
-                        ) as HTMLInputElement | null;
-                        if (slugInput) slugInput.value = slugify(input.value);
-                      }
-                    }}
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-[.14em] text-primary">
-                          {combo.label}
-                        </p>
-                        <h3 className="mt-1 text-lg font-bold">{combo.title}</h3>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          disabled={isSaving}
-                          className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
-                        >
-                          <Save className="size-4" />
-                          Lưu
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => void onDeleteCombo(combo)}
-                          className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-destructive/30 px-4 text-sm font-bold text-destructive transition hover:bg-destructive/10"
-                        >
-                          <Trash2 className="size-4" />
-                          Xóa
-                        </button>
-                      </div>
-                    </div>
-                    <div className="mt-4 grid gap-4 md:grid-cols-2">
-                      <CountInput
-                        label="Nhãn combo"
-                        name="label"
-                        defaultValue={combo.label}
-                        maxLength={60}
-                      />
-                      <CountInput
-                        label="Đường dẫn"
-                        name="slug"
-                        defaultValue={combo.slug}
-                        maxLength={120}
-                      />
-                      <CountInput
-                        label="Tên combo"
-                        name="title"
-                        defaultValue={combo.title}
-                        maxLength={180}
-                      />
-                      <Field label="Trạng thái">
-                        <select name="status" defaultValue={combo.status} className="input">
-                          <option value="draft">Bản nháp</option>
-                          <option value="published">Hiển thị</option>
-                          <option value="hidden">Ẩn</option>
-                        </select>
-                      </Field>
-                      <Field label="Thứ tự">
-                        <input
-                          name="sort_order"
-                          type="number"
-                          defaultValue={combo.sort_order}
-                          className="input"
-                        />
-                      </Field>
-                      <CountInput
-                        label="Nút CTA"
-                        name="cta_label"
-                        defaultValue={combo.cta_label}
-                        maxLength={80}
-                      />
-                      <div className="md:col-span-2">
-                        <CountInput
-                          label="Mô tả ngắn trên trang chủ"
-                          name="description"
-                          defaultValue={combo.description}
-                          maxLength={700}
-                          multiline
-                          rows={4}
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <CountInput
-                          label="Dòng skill bao gồm"
-                          name="includes"
-                          defaultValue={combo.includes}
-                          maxLength={300}
-                        />
-                      </div>
-                      <CountInput
-                        label="Tiêu đề trang combo"
-                        name="page_title"
-                        defaultValue={combo.page_title || combo.title}
-                        maxLength={180}
-                      />
-                      <div className="md:col-span-2">
-                        <CountInput
-                          label="Mô tả trang combo"
-                          name="page_description"
-                          defaultValue={combo.page_description || combo.description}
-                          maxLength={1200}
-                          multiline
-                          rows={5}
-                        />
-                      </div>
-                    </div>
-                  </form>
-                  <div className="mt-5 border-t border-border pt-4">
-                    <p className="text-sm font-bold">Skill nằm trong combo</p>
-                    <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                      {publishedSkills.map((skill) => (
-                        <label
-                          key={skill.id}
-                          className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-border px-3 py-2 text-sm transition hover:bg-muted"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedSkillIds.has(skill.id)}
-                            onChange={(event) =>
-                              void onSetComboSkill(combo, skill, event.target.checked)
-                            }
-                            className="size-4 accent-primary"
-                          />
-                          <span className="line-clamp-2 font-semibold">{skill.title}</span>
-                        </label>
-                      ))}
-                    </div>
+                  <span>
+                    {combo.label || `Combo ${index + 1}`}
+                    <span className="block text-xs font-normal text-muted-foreground">
+                      {combo.title}
+                    </span>
+                  </span>
+                  <ChevronRight className="size-4 shrink-0" />
+                </button>
+              ))
+            )}
+          </div>
+        </aside>
+
+        <div className="p-4 sm:p-5">
+          {activeComboId === "section" ? (
+            <form onSubmit={(event) => void onSaveSection(event)}>
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                    Trang chủ
+                  </p>
+                  <h2 className="mt-1 text-xl font-bold">Khối giới thiệu combo</h2>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    Chỉnh tiêu đề và mô tả của phần “Một lộ trình…” trên trang chủ.
+                  </p>
+                </div>
+                <button
+                  disabled={isSaving}
+                  className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
+                >
+                  <Save className="size-4" />
+                  Lưu phần combo
+                </button>
+              </div>
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+                <CountInput label="Nhãn nhỏ" name="eyebrow" defaultValue={section.eyebrow} maxLength={120} />
+                <CountInput label="Tiêu đề" name="title" defaultValue={section.title} maxLength={180} />
+                <div className="md:col-span-2">
+                  <CountInput label="Mô tả" name="description" defaultValue={section.description} maxLength={500} multiline rows={4} />
+                </div>
+              </div>
+              <label className="mt-4 flex cursor-pointer items-center gap-3 text-sm font-semibold">
+                <input name="is_visible" type="checkbox" defaultChecked={section.is_visible} className="size-4 accent-primary" />
+                Hiển thị khối combo trên trang chủ
+              </label>
+            </form>
+          ) : activeCombo ? (
+            <article>
+              <form
+                key={activeCombo.id}
+                onSubmit={(event) => void onSaveCombo(event, activeCombo)}
+                onChange={(event) => {
+                  const input = event.target as unknown as HTMLInputElement;
+                  if (input.name === "title") {
+                    const slugInput = event.currentTarget.elements.namedItem("slug") as HTMLInputElement | null;
+                    if (slugInput) slugInput.value = slugify(input.value);
+                  }
+                }}
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[.14em] text-primary">
+                      {activeCombo.label}
+                    </p>
+                    <h3 className="mt-1 text-xl font-bold">{activeCombo.title}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Trang riêng: /combo/{activeCombo.slug}
+                    </p>
                   </div>
-                </article>
-              );
-            })
+                  <div className="flex gap-2">
+                    <button disabled={isSaving} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60">
+                      <Save className="size-4" />
+                      Lưu
+                    </button>
+                    <button type="button" onClick={() => void onDeleteCombo(activeCombo)} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-destructive/30 px-4 text-sm font-bold text-destructive transition hover:bg-destructive/10">
+                      <Trash2 className="size-4" />
+                      Xóa
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <CountInput label="Nhãn combo" name="label" defaultValue={activeCombo.label} maxLength={60} />
+                  <CountInput label="Đường dẫn" name="slug" defaultValue={activeCombo.slug} maxLength={120} />
+                  <CountInput label="Tên combo" name="title" defaultValue={activeCombo.title} maxLength={180} />
+                  <Field label="Trạng thái">
+                    <select name="status" defaultValue={activeCombo.status} className="input">
+                      <option value="draft">Bản nháp</option>
+                      <option value="published">Hiển thị</option>
+                      <option value="hidden">Ẩn</option>
+                    </select>
+                  </Field>
+                  <Field label="Thứ tự">
+                    <input name="sort_order" type="number" defaultValue={activeCombo.sort_order} className="input" />
+                  </Field>
+                  <CountInput label="Nút CTA" name="cta_label" defaultValue={activeCombo.cta_label} maxLength={80} />
+                  <div className="md:col-span-2">
+                    <CountInput label="Mô tả ngắn trên trang chủ" name="description" defaultValue={activeCombo.description} maxLength={700} multiline rows={4} />
+                  </div>
+                  <div className="md:col-span-2">
+                    <CountInput label="Dòng skill bao gồm" name="includes" defaultValue={activeCombo.includes} maxLength={300} />
+                  </div>
+                  <CountInput label="Tiêu đề trang combo" name="page_title" defaultValue={activeCombo.page_title || activeCombo.title} maxLength={180} />
+                  <div className="md:col-span-2">
+                    <CountInput label="Mô tả trang combo" name="page_description" defaultValue={activeCombo.page_description || activeCombo.description} maxLength={1200} multiline rows={5} />
+                  </div>
+                </div>
+              </form>
+              <div className="mt-5 border-t border-border pt-4">
+                <p className="text-sm font-bold">Skill nằm trong combo</p>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {publishedSkills.map((skill) => (
+                    <label key={skill.id} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-border px-3 py-2 text-sm transition hover:bg-muted">
+                      <input
+                        type="checkbox"
+                        checked={selectedSkillIds.has(skill.id)}
+                        onChange={(event) => void onSetComboSkill(activeCombo, skill, event.target.checked)}
+                        className="size-4 accent-primary"
+                      />
+                      <span className="line-clamp-2 font-semibold">{skill.title}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </article>
+          ) : (
+            <p className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">
+              Chọn hoặc tạo một combo để chỉnh sửa.
+            </p>
           )}
         </div>
-      </section>
+      </div>
     </section>
   );
 }
@@ -2842,67 +2803,158 @@ function PagesPanel({
     resource: FreeResource,
   ) => Promise<void>;
 }) {
+  const parentMenuItems = menuItems
+    .filter((item) => !item.parent_id)
+    .sort((a, b) => a.sort_order - b.sort_order || a.label.localeCompare(b.label));
+  const [activeMenuParentId, setActiveMenuParentId] = useState<string>(
+    parentMenuItems[0]?.id ?? menuItems[0]?.id ?? "",
+  );
+  const activeParentMenu =
+    parentMenuItems.find((item) => item.id === activeMenuParentId) ?? parentMenuItems[0] ?? null;
+  const childMenuItems = activeParentMenu
+    ? menuItems
+        .filter((item) => item.parent_id === activeParentMenu.id)
+        .sort((a, b) => a.sort_order - b.sort_order || a.label.localeCompare(b.label))
+    : [];
+  const orphanMenuItems = menuItems
+    .filter(
+      (item) =>
+        item.parent_id && !parentMenuItems.some((parentItem) => parentItem.id === item.parent_id),
+    )
+    .sort((a, b) => a.sort_order - b.sort_order || a.label.localeCompare(b.label));
+
+  function MenuItemForm({ item }: { item: SiteMenuItem }) {
+    return (
+      <form
+        key={item.id}
+        onSubmit={(event) => void onSaveMenuItem(event, item)}
+        className="rounded-2xl border border-border bg-background p-4"
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <CountInput label="Tên menu" name="label" defaultValue={item.label} maxLength={80} />
+          <CountInput label="Đường dẫn" name="href" defaultValue={item.href} maxLength={160} />
+          <CountInput
+            label="Menu cha"
+            name="parent_id"
+            defaultValue={item.parent_id ?? ""}
+            maxLength={80}
+          />
+          <Field label="Thứ tự">
+            <input
+              name="sort_order"
+              type="number"
+              defaultValue={item.sort_order}
+              className="input h-12"
+            />
+          </Field>
+        </div>
+        <div className="mt-3">
+          <CountInput
+            label="Mô tả ngắn"
+            name="description"
+            defaultValue={item.description}
+            maxLength={220}
+            multiline
+            rows={3}
+          />
+        </div>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <label className="inline-flex items-center gap-2 text-sm font-bold">
+            <input type="checkbox" name="is_visible" defaultChecked={item.is_visible} />
+            Hiển thị
+          </label>
+          <button
+            disabled={isSaving}
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
+          >
+            <Save className="size-4" />
+            Lưu menu
+          </button>
+        </div>
+      </form>
+    );
+  }
+
   return (
     <div className="space-y-5">
-      <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-          Menu ngang
-        </p>
-        <h2 className="mt-1 text-xl font-bold">Chỉnh các mục trên thanh menu</h2>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Mục “Dịch vụ” có các menu con. Nếu muốn một mục nằm dưới Dịch vụ, điền parent_id là
-          services.
-        </p>
-        <div className="mt-5 grid gap-4 xl:grid-cols-2">
-          {menuItems.map((item) => (
-            <form
-              key={item.id}
-              onSubmit={(event) => void onSaveMenuItem(event, item)}
-              className="rounded-2xl border border-border bg-background p-4"
-            >
-              <div className="grid gap-3 sm:grid-cols-2">
-                <CountInput label="Tên menu" name="label" defaultValue={item.label} maxLength={80} />
-                <CountInput label="Đường dẫn" name="href" defaultValue={item.href} maxLength={160} />
-                <CountInput
-                  label="Menu cha"
-                  name="parent_id"
-                  defaultValue={item.parent_id ?? ""}
-                  maxLength={80}
-                />
-                <Field label="Thứ tự">
-                  <input
-                    name="sort_order"
-                    type="number"
-                    defaultValue={item.sort_order}
-                    className="input h-12"
-                  />
-                </Field>
-              </div>
-              <div className="mt-3">
-                <CountInput
-                  label="Mô tả ngắn"
-                  name="description"
-                  defaultValue={item.description}
-                  maxLength={220}
-                  multiline
-                  rows={3}
-                />
-              </div>
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                <label className="inline-flex items-center gap-2 text-sm font-bold">
-                  <input type="checkbox" name="is_visible" defaultChecked={item.is_visible} />
-                  Hiển thị
-                </label>
-                <button
-                  disabled={isSaving}
-                  className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
-                >
-                  <Save className="size-4" />
-                  Lưu menu
-                </button>
-              </div>
-            </form>
-          ))}
+      <section className="rounded-2xl border border-border bg-card shadow-sm">
+        <div className="border-b border-border p-4 sm:p-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+            Menu ngang
+          </p>
+          <h2 className="mt-1 text-xl font-bold">Quản lý theo Menu cha / Menu con</h2>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Chọn menu cha ở cột trái, bên phải sẽ hiện thông tin của menu đó và các menu con bên dưới.
+          </p>
+        </div>
+        <div className="grid gap-0 lg:grid-cols-[280px_1fr]">
+          <aside className="border-b border-border p-3 lg:border-b-0 lg:border-r">
+            <p className="px-3 pb-2 text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">
+              Menu cha
+            </p>
+            <div className="space-y-1">
+              {parentMenuItems.map((item) => {
+                const childCount = menuItems.filter((child) => child.parent_id === item.id).length;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setActiveMenuParentId(item.id)}
+                    className={`flex min-h-12 w-full items-center justify-between gap-3 rounded-xl px-3 text-left text-sm transition ${
+                      activeMenuParentId === item.id
+                        ? "bg-foreground font-bold text-background"
+                        : "hover:bg-muted"
+                    }`}
+                  >
+                    <span>
+                      {item.label}
+                      <span className={`block text-xs font-normal ${activeMenuParentId === item.id ? "text-background/70" : "text-muted-foreground"}`}>
+                        {childCount > 0 ? `${childCount} menu con` : "Không có menu con"}
+                      </span>
+                    </span>
+                    <ChevronRight className="size-4 shrink-0" />
+                  </button>
+                );
+              })}
+            </div>
+          </aside>
+
+          <div className="space-y-5 p-4 sm:p-5">
+            {activeParentMenu ? (
+              <>
+                <div>
+                  <p className="text-sm font-bold">Menu cha</p>
+                  <div className="mt-3">
+                    <MenuItemForm item={activeParentMenu} />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-bold">Menu con của “{activeParentMenu.label}”</p>
+                  <div className="mt-3 grid gap-4 xl:grid-cols-2">
+                    {childMenuItems.length > 0 ? (
+                      childMenuItems.map((item) => <MenuItemForm key={item.id} item={item} />)
+                    ) : (
+                      <p className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground xl:col-span-2">
+                        Menu này hiện chưa có menu con.
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {orphanMenuItems.length > 0 && (
+                  <div>
+                    <p className="text-sm font-bold">Menu con chưa khớp menu cha</p>
+                    <div className="mt-3 grid gap-4 xl:grid-cols-2">
+                      {orphanMenuItems.map((item) => <MenuItemForm key={item.id} item={item} />)}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">
+                Chưa có menu cha nào.
+              </p>
+            )}
+          </div>
         </div>
       </section>
 
