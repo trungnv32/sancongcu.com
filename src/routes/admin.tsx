@@ -2822,6 +2822,11 @@ function PagesPanel({
         item.parent_id && !parentMenuItems.some((parentItem) => parentItem.id === item.parent_id),
     )
     .sort((a, b) => a.sort_order - b.sort_order || a.label.localeCompare(b.label));
+  const sortedSitePages = [...sitePages].sort(
+    (a, b) => a.sort_order - b.sort_order || a.menu_label.localeCompare(b.menu_label),
+  );
+  const [activePageId, setActivePageId] = useState<string>(sortedSitePages[0]?.id ?? "");
+  const activePage = sortedSitePages.find((page) => page.id === activePageId) ?? sortedSitePages[0] ?? null;
 
   function MenuItemForm({ item }: { item: SiteMenuItem }) {
     return (
@@ -2869,6 +2874,85 @@ function PagesPanel({
           >
             <Save className="size-4" />
             Lưu menu
+          </button>
+        </div>
+      </form>
+    );
+  }
+
+  function PageForm({ page }: { page: SitePage }) {
+    return (
+      <form
+        key={page.id}
+        onSubmit={(event) => void onSavePage(event, page)}
+        className="rounded-2xl border border-border bg-background p-4"
+      >
+        <div className="grid gap-3 lg:grid-cols-3">
+          <CountInput
+            label="Tên menu"
+            name="menu_label"
+            defaultValue={page.menu_label}
+            maxLength={80}
+          />
+          <CountInput label="Slug" name="slug" defaultValue={page.slug} maxLength={120} />
+          <Field label="Thứ tự">
+            <input
+              name="sort_order"
+              type="number"
+              defaultValue={page.sort_order}
+              className="input h-12"
+            />
+          </Field>
+        </div>
+        <div className="mt-3 grid gap-3 lg:grid-cols-2">
+          <CountInput label="Nhãn nhỏ" name="eyebrow" defaultValue={page.eyebrow} maxLength={120} />
+          <CountInput label="Tiêu đề" name="title" defaultValue={page.title} maxLength={180} />
+        </div>
+        <div className="mt-3">
+          <CountInput
+            label="Mô tả chính"
+            name="summary"
+            defaultValue={page.summary}
+            maxLength={500}
+            multiline
+            rows={4}
+          />
+        </div>
+        <div className="mt-3">
+          <CountInput
+            label="Các đoạn nội dung - mỗi dòng là một đoạn"
+            name="content_blocks"
+            defaultValue={lines(page.content_blocks)}
+            maxLength={1800}
+            multiline
+            rows={7}
+          />
+        </div>
+        <div className="mt-3 grid gap-3 lg:grid-cols-2">
+          <CountInput
+            label="Chữ trên nút"
+            name="cta_label"
+            defaultValue={page.cta_label}
+            maxLength={80}
+          />
+          <CountInput
+            label="Link của nút"
+            name="cta_href"
+            defaultValue={page.cta_href}
+            maxLength={180}
+          />
+        </div>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <label className="inline-flex items-center gap-2 text-sm font-bold">
+            <input type="checkbox" name="is_visible" defaultChecked={page.is_visible} />
+            Hiển thị
+          </label>
+          <button
+            disabled={isSaving}
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
+          >
+            <Save className="size-4" />
+            Lưu trang
           </button>
         </div>
       </form>
@@ -2958,88 +3042,59 @@ function PagesPanel({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-          Nội dung trang
-        </p>
-        <h2 className="mt-1 text-xl font-bold">Chỉnh phần Về chúng tôi, Khoá huấn luyện, Quà tặng</h2>
-        <div className="mt-5 space-y-4">
-          {sitePages.map((page) => (
-            <form
-              key={page.id}
-              onSubmit={(event) => void onSavePage(event, page)}
-              className="rounded-2xl border border-border bg-background p-4"
-            >
-              <div className="grid gap-3 lg:grid-cols-3">
-                <CountInput
-                  label="Tên menu"
-                  name="menu_label"
-                  defaultValue={page.menu_label}
-                  maxLength={80}
-                />
-                <CountInput label="Slug" name="slug" defaultValue={page.slug} maxLength={120} />
-                <Field label="Thứ tự">
-                  <input
-                    name="sort_order"
-                    type="number"
-                    defaultValue={page.sort_order}
-                    className="input h-12"
-                  />
-                </Field>
-              </div>
-              <div className="mt-3 grid gap-3 lg:grid-cols-2">
-                <CountInput label="Nhãn nhỏ" name="eyebrow" defaultValue={page.eyebrow} maxLength={120} />
-                <CountInput label="Tiêu đề" name="title" defaultValue={page.title} maxLength={180} />
-              </div>
-              <div className="mt-3">
-                <CountInput
-                  label="Mô tả chính"
-                  name="summary"
-                  defaultValue={page.summary}
-                  maxLength={500}
-                  multiline
-                  rows={4}
-                />
-              </div>
-              <div className="mt-3">
-                <CountInput
-                  label="Các đoạn nội dung — mỗi dòng là một đoạn"
-                  name="content_blocks"
-                  defaultValue={lines(page.content_blocks)}
-                  maxLength={1800}
-                  multiline
-                  rows={7}
-                />
-              </div>
-              <div className="mt-3 grid gap-3 lg:grid-cols-2">
-                <CountInput
-                  label="Chữ trên nút"
-                  name="cta_label"
-                  defaultValue={page.cta_label}
-                  maxLength={80}
-                />
-                <CountInput
-                  label="Link của nút"
-                  name="cta_href"
-                  defaultValue={page.cta_href}
-                  maxLength={180}
-                />
-              </div>
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                <label className="inline-flex items-center gap-2 text-sm font-bold">
-                  <input type="checkbox" name="is_visible" defaultChecked={page.is_visible} />
-                  Hiển thị
-                </label>
-                <button
-                  disabled={isSaving}
-                  className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
-                >
-                  <Save className="size-4" />
-                  Lưu trang
-                </button>
-              </div>
-            </form>
-          ))}
+      <section className="rounded-2xl border border-border bg-card shadow-sm">
+        <div className="border-b border-border p-4 sm:p-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+            Nội dung trang
+          </p>
+          <h2 className="mt-1 text-xl font-bold">Quản lý từng trang riêng</h2>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Chọn trang ở cột trái, bên phải chỉ hiện nội dung của đúng trang đó.
+          </p>
+        </div>
+        <div className="grid gap-0 lg:grid-cols-[280px_1fr]">
+          <aside className="border-b border-border p-3 lg:border-b-0 lg:border-r">
+            <p className="px-3 pb-2 text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">
+              Trang
+            </p>
+            <div className="space-y-1">
+              {sortedSitePages.length > 0 ? (
+                sortedSitePages.map((page) => (
+                  <button
+                    key={page.id}
+                    type="button"
+                    onClick={() => setActivePageId(page.id)}
+                    className={`flex min-h-12 w-full items-center justify-between gap-3 rounded-xl px-3 text-left text-sm transition ${
+                      activePage?.id === page.id
+                        ? "bg-foreground font-bold text-background"
+                        : "hover:bg-muted"
+                    }`}
+                  >
+                    <span>
+                      {page.menu_label}
+                      <span className={`block text-xs font-normal ${activePage?.id === page.id ? "text-background/70" : "text-muted-foreground"}`}>
+                        {page.is_visible ? "Đang hiển thị" : "Đang ẩn"}
+                      </span>
+                    </span>
+                    <ChevronRight className="size-4 shrink-0" />
+                  </button>
+                ))
+              ) : (
+                <p className="rounded-xl border border-dashed border-border p-3 text-sm text-muted-foreground">
+                  Chưa có trang nào.
+                </p>
+              )}
+            </div>
+          </aside>
+          <div className="p-4 sm:p-5">
+            {activePage ? (
+              <PageForm page={activePage} />
+            ) : (
+              <p className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">
+                Chọn một trang để chỉnh sửa.
+              </p>
+            )}
+          </div>
         </div>
       </section>
 
