@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { defaultSiteConfig, type SiteConfig } from "@/lib/site-content";
+import { defaultSiteConfig, siteConfigFromPage, type SiteConfig, type SitePage } from "@/lib/site-content";
 
 export const Route = createFileRoute("/tai-khoan")({ component: AccountPage });
 
@@ -116,14 +116,14 @@ function AccountPage() {
 
   useEffect(() => {
     if (!supabase) return;
-    void supabase
-      .from("site_config")
-      .select("*")
-      .eq("id", "main")
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data) setSiteConfig({ ...defaultSiteConfig, ...(data as SiteConfig) });
-      });
+    void (async () => {
+      const [configResult, configPageResult] = await Promise.all([
+        supabase.from("site_config").select("*").eq("id", "main").maybeSingle(),
+        supabase.from("site_pages").select("*").eq("id", "site-config").maybeSingle(),
+      ]);
+      if (configResult.data) setSiteConfig({ ...defaultSiteConfig, ...(configResult.data as SiteConfig) });
+      else if (configPageResult.data) setSiteConfig(siteConfigFromPage(configPageResult.data as SitePage));
+    })();
   }, []);
 
   useEffect(() => {

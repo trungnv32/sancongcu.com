@@ -16,6 +16,7 @@ import {
   defaultSiteConfig,
   defaultSitePages,
   mergeSitePages,
+  siteConfigFromPage,
   type SiteConfig,
   type SiteMenuItem,
   type SitePage,
@@ -426,7 +427,16 @@ function Landing() {
     }
     void (async () => {
       try {
-        const [hallResult, skillResult, comboSectionResult, comboResult, menuResult, pageResult, configResult] =
+        const [
+          hallResult,
+          skillResult,
+          comboSectionResult,
+          comboResult,
+          menuResult,
+          pageResult,
+          configResult,
+          configPageResult,
+        ] =
           await Promise.all([
           supabase
             .from("halls")
@@ -460,13 +470,15 @@ function Landing() {
             .select("id,slug,menu_label,eyebrow,title,summary,content_blocks,cta_label,cta_href,is_visible,sort_order")
             .eq("is_visible", true)
             .order("sort_order"),
-          supabase.from("site_config").select("*").eq("id", "main").maybeSingle(),
+            supabase.from("site_config").select("*").eq("id", "main").maybeSingle(),
+            supabase.from("site_pages").select("*").eq("id", "site-config").maybeSingle(),
         ]);
         if (comboSectionResult.data) setComboSection(comboSectionResult.data as HomeComboSection);
         if (comboResult.data?.length) setHomeCombos(comboResult.data as HomeCombo[]);
         if (menuResult.data?.length) setMenuItems(menuResult.data as SiteMenuItem[]);
         if (pageResult.data?.length) setSitePages(mergeSitePages(pageResult.data as SitePage[]));
         if (configResult.data) setSiteConfig({ ...defaultSiteConfig, ...(configResult.data as SiteConfig) });
+        else if (configPageResult.data) setSiteConfig(siteConfigFromPage(configPageResult.data as SitePage));
         if (hallResult.error || skillResult.error || !skillResult.data?.length) return;
         const dynamicCatalog = hallResult.data.map((hall) => ({
           id: hall.slug,

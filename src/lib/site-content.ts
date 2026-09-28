@@ -50,6 +50,35 @@ export const defaultSiteConfig: SiteConfig = {
   payment_qr_url: "",
 };
 
+export function siteConfigFromPage(page: SitePage | null | undefined): SiteConfig {
+  if (!page) return defaultSiteConfig;
+  return {
+    id: "main",
+    zalo_group_url: page.eyebrow || defaultSiteConfig.zalo_group_url,
+    zalo_group_qr_url: page.title || "",
+    support_zalo_url: page.summary || defaultSiteConfig.support_zalo_url,
+    support_zalo_qr_url: page.cta_label || "",
+    payment_qr_url: page.cta_href || "",
+  };
+}
+
+export function siteConfigToPage(config: SiteConfig) {
+  return {
+    id: "site-config",
+    slug: "site-config",
+    menu_label: "Cấu hình chung",
+    eyebrow: config.zalo_group_url,
+    title: config.zalo_group_qr_url,
+    summary: config.support_zalo_url,
+    content_blocks: [],
+    cta_label: config.support_zalo_qr_url,
+    cta_href: config.payment_qr_url,
+    is_visible: false,
+    sort_order: 999,
+    updated_at: new Date().toISOString(),
+  };
+}
+
 export const defaultSitePages: SitePage[] = [
   {
     id: "about",
