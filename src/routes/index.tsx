@@ -13,10 +13,8 @@ import { getProductContent } from "@/lib/product-content";
 import {
   defaultMenuItems,
   defaultServiceItems,
-  defaultSiteConfig,
   defaultSitePages,
   mergeSitePages,
-  type SiteConfig,
   type SiteMenuItem,
   type SitePage,
 } from "@/lib/site-content";
@@ -85,7 +83,10 @@ const skillLongVideoShorts = "/skill-posters/skill-cat-video-dai-thanh-short.jpg
 const skillPodcastShorts = "/skill-posters/skill-cat-podcast-2-nguoi.jpg";
 const skillBeatSyncClips = "/skill-posters/skill-ghep-clip-theo-nhac.jpg";
 const skillMusicHighlight = "/skill-posters/skill-highlight-theo-nhac.jpg";
+const paymentZaloUrl = "https://zalo.me/0938069668";
 const supportZaloPhone = "0938.069.668";
+const supportZaloUrl = "https://zalo.me/0938069668";
+const zaloGroupUrl = "https://zalo.me/g/8nwpbixavealgevx4p1b";
 type ComboSize = 5 | 10;
 type HomeComboSection = {
   eyebrow: string;
@@ -413,7 +414,6 @@ function Landing() {
   const [homeCombos, setHomeCombos] = useState<HomeCombo[]>(combos);
   const [menuItems, setMenuItems] = useState<SiteMenuItem[]>(defaultMenuItems);
   const [sitePages, setSitePages] = useState<SitePage[]>(defaultSitePages);
-  const [siteConfig, setSiteConfig] = useState<SiteConfig>(defaultSiteConfig);
   useEffect(() => {
     if (!supabase) {
       setIsCatalogLoading(false);
@@ -421,7 +421,7 @@ function Landing() {
     }
     void (async () => {
       try {
-        const [hallResult, skillResult, comboSectionResult, comboResult, menuResult, pageResult, configResult] =
+        const [hallResult, skillResult, comboSectionResult, comboResult, menuResult, pageResult] =
           await Promise.all([
           supabase
             .from("halls")
@@ -455,13 +455,11 @@ function Landing() {
             .select("id,slug,menu_label,eyebrow,title,summary,content_blocks,cta_label,cta_href,is_visible,sort_order")
             .eq("is_visible", true)
             .order("sort_order"),
-          supabase.from("site_config").select("*").eq("id", "main").maybeSingle(),
         ]);
         if (comboSectionResult.data) setComboSection(comboSectionResult.data as HomeComboSection);
         if (comboResult.data?.length) setHomeCombos(comboResult.data as HomeCombo[]);
         if (menuResult.data?.length) setMenuItems(menuResult.data as SiteMenuItem[]);
         if (pageResult.data?.length) setSitePages(mergeSitePages(pageResult.data as SitePage[]));
-        if (configResult.data) setSiteConfig({ ...defaultSiteConfig, ...(configResult.data as SiteConfig) });
         if (hallResult.error || skillResult.error || !skillResult.data?.length) return;
         const dynamicCatalog = hallResult.data.map((hall) => ({
           id: hall.slug,
@@ -528,9 +526,6 @@ function Landing() {
     visibleSitePages.find((page) => page.slug === "khoa-huan-luyen") ??
     defaultSitePages.find((page) => page.slug === "khoa-huan-luyen") ??
     defaultSitePages[2];
-  const supportZaloUrl = siteConfig.support_zalo_url || defaultSiteConfig.support_zalo_url;
-  const zaloGroupUrl = siteConfig.zalo_group_url || defaultSiteConfig.zalo_group_url;
-  const paymentZaloUrl = supportZaloUrl;
   const startCheckout = async (products: Product[], selectedComboSize: ComboSize | null = null) => {
     if (products.length === 0) return;
     setCheckoutTitle(
@@ -1266,7 +1261,7 @@ function PaymentDialog({
         ) : (
           <div className="mt-6 space-y-5">
             <img
-              src={siteConfig.payment_qr_url || order.payment.qrUrl || techcombankPaymentQr}
+              src={order.payment.qrUrl ?? techcombankPaymentQr}
               alt="Mã QR thanh toán chuyển khoản"
               className="mx-auto w-52 rounded-2xl border border-border"
             />
