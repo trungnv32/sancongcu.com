@@ -2809,6 +2809,9 @@ function PagesPanel({
   const [activeMenuParentId, setActiveMenuParentId] = useState<string>(
     parentMenuItems[0]?.id ?? menuItems[0]?.id ?? "",
   );
+  const [activePagesGroup, setActivePagesGroup] = useState<"menu" | "pages" | "resources">(
+    "menu",
+  );
   const activeParentMenu =
     parentMenuItems.find((item) => item.id === activeMenuParentId) ?? parentMenuItems[0] ?? null;
   const childMenuItems = activeParentMenu
@@ -2961,6 +2964,37 @@ function PagesPanel({
 
   return (
     <div className="space-y-5">
+      <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+          Menu & trang
+        </p>
+        <h2 className="mt-1 text-xl font-bold">Chọn nhóm cần quản lý</h2>
+        <div className="mt-4 grid gap-2 md:grid-cols-3">
+          {[
+            { id: "menu", label: "Menu ngang", note: "Menu cha / menu con" },
+            { id: "pages", label: "Nội dung trang", note: "Từng trang riêng" },
+            { id: "resources", label: "Kho tài nguyên", note: "File tải miễn phí" },
+          ].map((group) => (
+            <button
+              key={group.id}
+              type="button"
+              onClick={() => setActivePagesGroup(group.id as "menu" | "pages" | "resources")}
+              className={`min-h-16 rounded-xl border px-4 text-left text-sm transition ${
+                activePagesGroup === group.id
+                  ? "border-foreground bg-foreground font-bold text-background"
+                  : "border-border hover:bg-muted"
+              }`}
+            >
+              {group.label}
+              <span className={`mt-1 block text-xs font-normal ${activePagesGroup === group.id ? "text-background/70" : "text-muted-foreground"}`}>
+                {group.note}
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {activePagesGroup === "menu" && (
       <section className="rounded-2xl border border-border bg-card shadow-sm">
         <div className="border-b border-border p-4 sm:p-6">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
@@ -3041,7 +3075,9 @@ function PagesPanel({
           </div>
         </div>
       </section>
+      )}
 
+      {activePagesGroup === "pages" && (
       <section className="rounded-2xl border border-border bg-card shadow-sm">
         <div className="border-b border-border p-4 sm:p-6">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
@@ -3097,7 +3133,9 @@ function PagesPanel({
           </div>
         </div>
       </section>
+      )}
 
+      {activePagesGroup === "resources" && (
       <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -3189,6 +3227,7 @@ function PagesPanel({
           ))}
         </div>
       </section>
+      )}
     </div>
   );
 }
