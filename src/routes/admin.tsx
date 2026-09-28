@@ -242,6 +242,15 @@ function isMissingSiteConfigTable(error: { message?: string; code?: string } | n
   );
 }
 
+function readFileAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("Không thể đọc file ảnh QR."));
+    reader.readAsDataURL(file);
+  });
+}
+
 function AdminPage() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
@@ -1060,15 +1069,8 @@ function AdminPage() {
     setIsSaving(true);
     setError(null);
     try {
-      const extension = file.name.split(".").pop() || "png";
-      const bucket = isSiteConfigReady ? "site-assets" : "free-resources";
-      const path = `config/${field}-${Date.now()}.${extension}`;
-      const { error: uploadError } = await supabase.storage
-        .from(bucket)
-        .upload(path, file, { contentType: file.type || "image/png" });
-      if (uploadError) throw uploadError;
-      const url = supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
-      const update = { ...siteConfig, [field]: url, updated_at: new Date().toISOString() };
+      const imageUrl = await readFileAsDataUrl(file);
+      const update = { ...siteConfig, [field]: imageUrl, updated_at: new Date().toISOString() };
       const saveQuery = isSiteConfigReady
         ? supabase.from("site_config").upsert(update, { onConflict: "id" }).select().single()
         : supabase
@@ -1085,7 +1087,13 @@ function AdminPage() {
       );
       setNotice("Đã tải ảnh QR và cập nhật cấu hình.");
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "Không thể tải ảnh QR lên.");
+      const message =
+        uploadError instanceof Error
+          ? uploadError.message
+          : typeof uploadError === "object" && uploadError && "message" in uploadError
+            ? String((uploadError as { message?: unknown }).message)
+            : "Không thể tải ảnh QR lên.";
+      setError(message);
     } finally {
       setIsSaving(false);
       event.target.value = "";
@@ -3390,7 +3398,7 @@ function SiteConfigPanel({
       {!isReady && (
         <p className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-800">
           Database chưa có bảng cấu hình mới, nên hệ thống đang lưu tạm vào bảng nội dung trang có
-          sẵn. Anh vẫn có thể upload QR và lưu cấu hình bình thường.
+          sẵn. Ảnh QR sẽ được lưu trực tiếp vào cấu hình, không cần upload qua kho file.
         </p>
       )}
 
@@ -3415,7 +3423,7 @@ function SiteConfigPanel({
                 label={field.label}
                 name={field.name}
                 defaultValue={field.value}
-                maxLength={700}
+                maxLength={200000}
               />
               {field.value && (
                 <>
