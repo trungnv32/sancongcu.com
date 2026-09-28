@@ -35,8 +35,6 @@ import {
   defaultSiteConfig,
   defaultSitePages,
   mergeSitePages,
-  siteConfigFromPage,
-  siteConfigToPage,
   type FreeResource,
   type SiteConfig,
   type SiteMenuItem,
@@ -233,15 +231,6 @@ function installUrl(token: string) {
   return `${supabaseUrl}/functions/v1/skill-install?token=${encodeURIComponent(token)}`;
 }
 
-function isMissingSiteConfigTable(error: { message?: string; code?: string } | null | undefined) {
-  return Boolean(
-    error &&
-      (error.code === "PGRST205" ||
-        error.message?.includes("site_config") ||
-        error.message?.includes("schema cache")),
-  );
-}
-
 function AdminPage() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
@@ -261,7 +250,6 @@ function AdminPage() {
   const [sitePages, setSitePages] = useState<SitePage[]>(defaultSitePages);
   const [siteConfig, setSiteConfig] = useState<SiteConfig>(defaultSiteConfig);
   const [freeResources, setFreeResources] = useState<FreeResource[]>([]);
-  const [isSiteConfigReady, setIsSiteConfigReady] = useState(true);
   const [selectedHallId, setSelectedHallId] = useState<string | null>(null);
   const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -365,6 +353,7 @@ function AdminPage() {
       comboSkillResult.error ??
       menuResult.error ??
       pageResult.error ??
+      configResult.error ??
       resourceResult.error;
     if (requestError) {
       setError(`Không thể tải dữ liệu: ${requestError.message}`);
@@ -381,15 +370,9 @@ function AdminPage() {
       setComboSection((comboSectionResult.data as ComboSection | null) ?? null);
       setCombos((comboResult.data ?? []) as Combo[]);
       setComboSkills((comboSkillResult.data ?? []) as ComboSkill[]);
-      const loadedPages = (pageResult.data ?? []) as SitePage[];
       setMenuItems(((menuResult.data?.length ? menuResult.data : defaultMenuItems) ?? []) as SiteMenuItem[]);
-      setSitePages(mergeSitePages(loadedPages.filter((page) => page.id !== "site-config")));
-      setIsSiteConfigReady(!isMissingSiteConfigTable(configResult.error));
-      if (configResult.data) {
-        setSiteConfig({ ...defaultSiteConfig, ...(configResult.data as SiteConfig) });
-      } else {
-        setSiteConfig(siteConfigFromPage(loadedPages.find((page) => page.id === "site-config")));
-      }
+      setSitePages(mergeSitePages((pageResult.data ?? []) as SitePage[]));
+      setSiteConfig({ ...defaultSiteConfig, ...((configResult.data as SiteConfig | null) ?? {}) });
       setFreeResources((resourceResult.data ?? []) as FreeResource[]);
       setWebappJobs(
         ((webappHistoryResult.data?.jobs ?? []) as WebappJob[]).map((job) => ({
@@ -1031,22 +1014,15 @@ function AdminPage() {
     };
     setIsSaving(true);
     setError(null);
-    const saveQuery = isSiteConfigReady
-      ? supabase.from("site_config").upsert(update, { onConflict: "id" }).select().single()
-      : supabase
-          .from("site_pages")
-          .upsert(siteConfigToPage(update), { onConflict: "id" })
-          .select()
-          .single();
-    const { data, error: saveError } = await saveQuery;
+    const { data, error: saveError } = await supabase
+      .from("site_config")
+      .upsert(update, { onConflict: "id" })
+      .select()
+      .single();
     setIsSaving(false);
     if (saveError) setError(saveError.message);
     else if (data) {
-      setSiteConfig(
-        isSiteConfigReady
-          ? { ...defaultSiteConfig, ...(data as SiteConfig) }
-          : siteConfigFromPage(data as SitePage),
-      );
+      setSiteConfig({ ...defaultSiteConfig, ...(data as SiteConfig) });
       setNotice("Đã lưu cấu hình liên hệ và thanh toán.");
     }
   }
@@ -1061,28 +1037,20 @@ function AdminPage() {
     setError(null);
     try {
       const extension = file.name.split(".").pop() || "png";
-      const bucket = isSiteConfigReady ? "site-assets" : "free-resources";
       const path = `config/${field}-${Date.now()}.${extension}`;
       const { error: uploadError } = await supabase.storage
-        .from(bucket)
+        .from("site-assets")
         .upload(path, file, { contentType: file.type || "image/png" });
       if (uploadError) throw uploadError;
-      const url = supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+      const url = supabase.storage.from("site-assets").getPublicUrl(path).data.publicUrl;
       const update = { ...siteConfig, [field]: url, updated_at: new Date().toISOString() };
-      const saveQuery = isSiteConfigReady
-        ? supabase.from("site_config").upsert(update, { onConflict: "id" }).select().single()
-        : supabase
-            .from("site_pages")
-            .upsert(siteConfigToPage(update), { onConflict: "id" })
-            .select()
-            .single();
-      const { data, error: saveError } = await saveQuery;
+      const { data, error: saveError } = await supabase
+        .from("site_config")
+        .upsert(update, { onConflict: "id" })
+        .select()
+        .single();
       if (saveError) throw saveError;
-      setSiteConfig(
-        isSiteConfigReady
-          ? { ...defaultSiteConfig, ...(data as SiteConfig) }
-          : siteConfigFromPage(data as SitePage),
-      );
+      setSiteConfig({ ...defaultSiteConfig, ...(data as SiteConfig) });
       setNotice("Đã tải ảnh QR và cập nhật cấu hình.");
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : "Không thể tải ảnh QR lên.");
@@ -1550,7 +1518,6 @@ function AdminPage() {
           {adminSection === "settings" && (
             <SiteConfigPanel
               config={siteConfig}
-              isReady={isSiteConfigReady}
               isSaving={isSaving}
               onSave={saveSiteConfig}
               onUploadImage={uploadSiteConfigImage}
@@ -3354,13 +3321,11 @@ function PagesPanel({
 
 function SiteConfigPanel({
   config,
-  isReady,
   isSaving,
   onSave,
   onUploadImage,
 }: {
   config: SiteConfig;
-  isReady: boolean;
   isSaving: boolean;
   onSave: (event: FormEvent<HTMLFormElement>) => Promise<void>;
   onUploadImage: (
@@ -3387,12 +3352,6 @@ function SiteConfigPanel({
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
         Các thông tin này sẽ được dùng trên trang khách hàng. Khách bấm hỗ trợ hoặc tham gia nhóm sẽ thấy mã QR để quét.
       </p>
-      {!isReady && (
-        <p className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-800">
-          Database chưa có bảng cấu hình mới, nên hệ thống đang lưu tạm vào bảng nội dung trang có
-          sẵn. Anh vẫn có thể upload QR và lưu cấu hình bình thường.
-        </p>
-      )}
 
       <form onSubmit={(event) => void onSave(event)} className="mt-5 space-y-5">
         <input type="hidden" name="support_zalo_url" value={config.support_zalo_url} />
@@ -3435,7 +3394,6 @@ function SiteConfigPanel({
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/webp"
-                  disabled={isSaving}
                   className="sr-only"
                   onChange={(event) => void onUploadImage(event, field.name)}
                 />
