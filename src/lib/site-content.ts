@@ -52,16 +52,6 @@ export const defaultSiteConfig: SiteConfig = {
 
 export function siteConfigFromPage(page: SitePage | null | undefined): SiteConfig {
   if (!page) return defaultSiteConfig;
-  if (page.content_blocks.length >= 5) {
-    return {
-      id: "main",
-      zalo_group_url: page.content_blocks[0] || defaultSiteConfig.zalo_group_url,
-      zalo_group_qr_url: page.content_blocks[1] || "",
-      support_zalo_url: page.content_blocks[2] || defaultSiteConfig.support_zalo_url,
-      support_zalo_qr_url: page.content_blocks[3] || "",
-      payment_qr_url: page.content_blocks[4] || "",
-    };
-  }
   return {
     id: "main",
     zalo_group_url: page.eyebrow || defaultSiteConfig.zalo_group_url,
@@ -77,18 +67,12 @@ export function siteConfigToPage(config: SiteConfig) {
     id: "site-config",
     slug: "site-config",
     menu_label: "Cấu hình chung",
-    eyebrow: "Cấu hình liên hệ",
-    title: "Cấu hình QR Zalo và thanh toán",
-    summary: "Dữ liệu cấu hình dùng tạm khi bảng site_config chưa được tạo.",
-    content_blocks: [
-      config.zalo_group_url,
-      config.zalo_group_qr_url,
-      config.support_zalo_url,
-      config.support_zalo_qr_url,
-      config.payment_qr_url,
-    ],
-    cta_label: "",
-    cta_href: "",
+    eyebrow: config.zalo_group_url,
+    title: config.zalo_group_qr_url,
+    summary: config.support_zalo_url,
+    content_blocks: [],
+    cta_label: config.support_zalo_qr_url,
+    cta_href: config.payment_qr_url,
     is_visible: false,
     sort_order: 999,
     updated_at: new Date().toISOString(),
