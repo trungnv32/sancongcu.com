@@ -53,6 +53,20 @@ export const defaultSitePages: SitePage[] = [
     sort_order: 1,
   },
   {
+    id: "services",
+    slug: "dich-vu",
+    menu_label: "Dịch vụ",
+    eyebrow: "Dịch vụ triển khai",
+    title: "Đưa AI vào công việc theo đúng nhu cầu của bạn",
+    summary:
+      "Từ đào tạo, coaching đến xây website, workflow và chatbot, sancongcu.com hỗ trợ bạn biến ý tưởng thành hệ thống có thể dùng trong vận hành thật.",
+    content_blocks: [],
+    cta_label: "",
+    cta_href: "",
+    is_visible: true,
+    sort_order: 3,
+  },
+  {
     id: "training",
     slug: "khoa-huan-luyen",
     menu_label: "Khoá huấn luyện",
@@ -177,3 +191,11 @@ export const defaultTopMenuItems: SiteMenuItem[] = [
 ];
 
 export const defaultMenuItems: SiteMenuItem[] = [...defaultTopMenuItems, ...defaultServiceItems];
+
+export function mergeSitePages(savedPages: SitePage[] | null | undefined) {
+  const saved = savedPages ?? [];
+  const savedIds = new Set(saved.map((page) => page.id));
+  return [...saved, ...defaultSitePages.filter((page) => !savedIds.has(page.id))].sort(
+    (a, b) => a.sort_order - b.sort_order || a.menu_label.localeCompare(b.menu_label),
+  );
+}

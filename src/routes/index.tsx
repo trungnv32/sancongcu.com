@@ -14,6 +14,7 @@ import {
   defaultMenuItems,
   defaultServiceItems,
   defaultSitePages,
+  mergeSitePages,
   type SiteMenuItem,
   type SitePage,
 } from "@/lib/site-content";
@@ -458,7 +459,7 @@ function Landing() {
         if (comboSectionResult.data) setComboSection(comboSectionResult.data as HomeComboSection);
         if (comboResult.data?.length) setHomeCombos(comboResult.data as HomeCombo[]);
         if (menuResult.data?.length) setMenuItems(menuResult.data as SiteMenuItem[]);
-        if (pageResult.data?.length) setSitePages(pageResult.data as SitePage[]);
+        if (pageResult.data?.length) setSitePages(mergeSitePages(pageResult.data as SitePage[]));
         if (hallResult.error || skillResult.error || !skillResult.data?.length) return;
         const dynamicCatalog = hallResult.data.map((hall) => ({
           id: hall.slug,
@@ -517,8 +518,14 @@ function Landing() {
     .filter((page) => page.is_visible !== false)
     .sort((a, b) => a.sort_order - b.sort_order);
   const aboutPage = visibleSitePages.find((page) => page.slug === "ve-chung-toi") ?? defaultSitePages[0];
+  const servicesPage =
+    visibleSitePages.find((page) => page.slug === "dich-vu") ??
+    defaultSitePages.find((page) => page.slug === "dich-vu") ??
+    defaultSitePages[1];
   const trainingPage =
-    visibleSitePages.find((page) => page.slug === "khoa-huan-luyen") ?? defaultSitePages[1];
+    visibleSitePages.find((page) => page.slug === "khoa-huan-luyen") ??
+    defaultSitePages.find((page) => page.slug === "khoa-huan-luyen") ??
+    defaultSitePages[2];
   const startCheckout = async (products: Product[], selectedComboSize: ComboSize | null = null) => {
     if (products.length === 0) return;
     setCheckoutTitle(
@@ -704,14 +711,11 @@ function Landing() {
         <section id="dich-vu" className="mx-auto max-w-6xl px-6 pb-20">
           <div className="mb-7 max-w-2xl">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-              Dịch vụ triển khai
+              {servicesPage.eyebrow}
             </p>
-            <h2 className="mt-3 text-3xl sm:text-4xl">
-              Đưa AI vào công việc theo đúng nhu cầu của bạn
-            </h2>
+            <h2 className="mt-3 text-3xl sm:text-4xl">{servicesPage.title}</h2>
             <p className="mt-3 text-sm leading-7 text-muted-foreground sm:text-base">
-              Từ đào tạo, coaching đến xây website, workflow và chatbot, sancongcu.com hỗ trợ bạn
-              biến ý tưởng thành hệ thống có thể dùng trong vận hành thật.
+              {servicesPage.summary}
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

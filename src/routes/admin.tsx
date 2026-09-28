@@ -33,6 +33,7 @@ import { isSupabaseConfigured, supabase, supabaseUrl } from "@/lib/supabase";
 import {
   defaultMenuItems,
   defaultSitePages,
+  mergeSitePages,
   type FreeResource,
   type SiteMenuItem,
   type SitePage,
@@ -364,7 +365,7 @@ function AdminPage() {
       setCombos((comboResult.data ?? []) as Combo[]);
       setComboSkills((comboSkillResult.data ?? []) as ComboSkill[]);
       setMenuItems(((menuResult.data?.length ? menuResult.data : defaultMenuItems) ?? []) as SiteMenuItem[]);
-      setSitePages(((pageResult.data?.length ? pageResult.data : defaultSitePages) ?? []) as SitePage[]);
+      setSitePages(mergeSitePages((pageResult.data ?? []) as SitePage[]));
       setFreeResources((resourceResult.data ?? []) as FreeResource[]);
       setWebappJobs(
         ((webappHistoryResult.data?.jobs ?? []) as WebappJob[]).map((job) => ({
@@ -860,9 +861,10 @@ function AdminPage() {
     if (saveError) setError(saveError.message);
     else if (data) {
       setSitePages((current) =>
-        current
-          .map((item) => (item.id === data.id ? (data as SitePage) : item))
-          .sort((a, b) => a.sort_order - b.sort_order),
+        mergeSitePages([
+          ...current.filter((item) => item.id !== data.id),
+          data as SitePage,
+        ]),
       );
       setNotice("Đã lưu nội dung trang.");
     }
