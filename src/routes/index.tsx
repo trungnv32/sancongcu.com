@@ -86,7 +86,7 @@ const skillMusicHighlight = "/skill-posters/skill-highlight-theo-nhac.jpg";
 const paymentZaloUrl = "https://zalo.me/0938069668";
 const supportZaloPhone = "0938.069.668";
 const supportZaloUrl = "https://zalo.me/0938069668";
-const zaloGroupUrl = "https://zalo.me/g/8nwpbixavealgevx4p1b";
+const zaloGroupUrl = "https://zalo.me/g/ahx8hvvgmtc84e1inuys";
 type ComboSize = 5 | 10;
 type HomeComboSection = {
   eyebrow: string;
