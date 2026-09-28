@@ -32,6 +32,24 @@ export type FreeResource = {
   is_visible: boolean;
 };
 
+export type SiteConfig = {
+  id: "main";
+  zalo_group_url: string;
+  zalo_group_qr_url: string;
+  support_zalo_url: string;
+  support_zalo_qr_url: string;
+  payment_qr_url: string;
+};
+
+export const defaultSiteConfig: SiteConfig = {
+  id: "main",
+  zalo_group_url: "https://zalo.me/g/8nwpbixavealgevx4p1b",
+  zalo_group_qr_url: "",
+  support_zalo_url: "https://zalo.me/0938069668",
+  support_zalo_qr_url: "",
+  payment_qr_url: "",
+};
+
 export const defaultSitePages: SitePage[] = [
   {
     id: "about",

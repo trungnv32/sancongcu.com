@@ -32,9 +32,11 @@ import {
 import { isSupabaseConfigured, supabase, supabaseUrl } from "@/lib/supabase";
 import {
   defaultMenuItems,
+  defaultSiteConfig,
   defaultSitePages,
   mergeSitePages,
   type FreeResource,
+  type SiteConfig,
   type SiteMenuItem,
   type SitePage,
 } from "@/lib/site-content";
@@ -246,6 +248,7 @@ function AdminPage() {
   const [comboSkills, setComboSkills] = useState<ComboSkill[]>([]);
   const [menuItems, setMenuItems] = useState<SiteMenuItem[]>(defaultMenuItems);
   const [sitePages, setSitePages] = useState<SitePage[]>(defaultSitePages);
+  const [siteConfig, setSiteConfig] = useState<SiteConfig>(defaultSiteConfig);
   const [freeResources, setFreeResources] = useState<FreeResource[]>([]);
   const [selectedHallId, setSelectedHallId] = useState<string | null>(null);
   const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
@@ -255,7 +258,7 @@ function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [newHallName, setNewHallName] = useState("");
   const [adminSection, setAdminSection] = useState<
-    "orders" | "topups" | "webapp-history" | "combos" | "pages" | "catalog"
+    "orders" | "topups" | "webapp-history" | "combos" | "pages" | "settings" | "catalog"
   >("orders");
 
   const selectedSkill = useMemo(
@@ -311,6 +314,7 @@ function AdminPage() {
       comboSkillResult,
       menuResult,
       pageResult,
+      configResult,
       resourceResult,
     ] = await Promise.all([
       supabase.from("halls").select("*").order("sort_order").order("name"),
@@ -332,6 +336,7 @@ function AdminPage() {
       supabase.from("combo_skills").select("*").order("sort_order"),
       supabase.from("site_menu_items").select("*").order("sort_order"),
       supabase.from("site_pages").select("*").order("sort_order"),
+      supabase.from("site_config").select("*").eq("id", "main").maybeSingle(),
       supabase.from("free_resources").select("*").order("sort_order"),
     ]);
     const requestError =
@@ -348,6 +353,7 @@ function AdminPage() {
       comboSkillResult.error ??
       menuResult.error ??
       pageResult.error ??
+      configResult.error ??
       resourceResult.error;
     if (requestError) {
       setError(`Không thể tải dữ liệu: ${requestError.message}`);
@@ -366,6 +372,7 @@ function AdminPage() {
       setComboSkills((comboSkillResult.data ?? []) as ComboSkill[]);
       setMenuItems(((menuResult.data?.length ? menuResult.data : defaultMenuItems) ?? []) as SiteMenuItem[]);
       setSitePages(mergeSitePages((pageResult.data ?? []) as SitePage[]));
+      setSiteConfig({ ...defaultSiteConfig, ...((configResult.data as SiteConfig | null) ?? {}) });
       setFreeResources((resourceResult.data ?? []) as FreeResource[]);
       setWebappJobs(
         ((webappHistoryResult.data?.jobs ?? []) as WebappJob[]).map((job) => ({
@@ -992,6 +999,67 @@ function AdminPage() {
     setIsSaving(false);
   }
 
+  async function saveSiteConfig(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!supabase) return;
+    const form = new FormData(event.currentTarget);
+    const update: SiteConfig & { updated_at: string } = {
+      id: "main",
+      zalo_group_url: String(form.get("zalo_group_url") || "").trim(),
+      zalo_group_qr_url: String(form.get("zalo_group_qr_url") || "").trim(),
+      support_zalo_url: String(form.get("support_zalo_url") || "").trim(),
+      support_zalo_qr_url: String(form.get("support_zalo_qr_url") || "").trim(),
+      payment_qr_url: String(form.get("payment_qr_url") || "").trim(),
+      updated_at: new Date().toISOString(),
+    };
+    setIsSaving(true);
+    setError(null);
+    const { data, error: saveError } = await supabase
+      .from("site_config")
+      .upsert(update, { onConflict: "id" })
+      .select()
+      .single();
+    setIsSaving(false);
+    if (saveError) setError(saveError.message);
+    else if (data) {
+      setSiteConfig({ ...defaultSiteConfig, ...(data as SiteConfig) });
+      setNotice("Đã lưu cấu hình liên hệ và thanh toán.");
+    }
+  }
+
+  async function uploadSiteConfigImage(
+    event: ChangeEvent<HTMLInputElement>,
+    field: keyof Pick<SiteConfig, "zalo_group_qr_url" | "support_zalo_qr_url" | "payment_qr_url">,
+  ) {
+    const file = event.target.files?.[0];
+    if (!file || !supabase) return;
+    setIsSaving(true);
+    setError(null);
+    try {
+      const extension = file.name.split(".").pop() || "png";
+      const path = `config/${field}-${Date.now()}.${extension}`;
+      const { error: uploadError } = await supabase.storage
+        .from("site-assets")
+        .upload(path, file, { contentType: file.type || "image/png" });
+      if (uploadError) throw uploadError;
+      const url = supabase.storage.from("site-assets").getPublicUrl(path).data.publicUrl;
+      const update = { ...siteConfig, [field]: url, updated_at: new Date().toISOString() };
+      const { data, error: saveError } = await supabase
+        .from("site_config")
+        .upsert(update, { onConflict: "id" })
+        .select()
+        .single();
+      if (saveError) throw saveError;
+      setSiteConfig({ ...defaultSiteConfig, ...(data as SiteConfig) });
+      setNotice("Đã tải ảnh QR và cập nhật cấu hình.");
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Không thể tải ảnh QR lên.");
+    } finally {
+      setIsSaving(false);
+      event.target.value = "";
+    }
+  }
+
   async function uploadFile(
     event: ChangeEvent<HTMLInputElement>,
     target: "thumbnail" | "gallery",
@@ -1347,6 +1415,15 @@ function AdminPage() {
               {freeResources.length}
             </span>
           </button>
+          <button
+            type="button"
+            onClick={() => setAdminSection("settings")}
+            aria-current={adminSection === "settings" ? "page" : undefined}
+            className={`mb-4 flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-bold transition ${adminSection === "settings" ? "bg-foreground text-background" : "border border-border hover:bg-muted"}`}
+          >
+            <FileText className="size-4" />
+            Cấu hình chung
+          </button>
           <div className="flex items-center justify-between px-2 py-2">
             <h2 className="font-bold">Danh mục</h2>
             <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold">
@@ -1436,6 +1513,14 @@ function AdminPage() {
               onCreateResource={createResource}
               onSaveResource={saveResource}
               onUploadResource={uploadResourceFile}
+            />
+          )}
+          {adminSection === "settings" && (
+            <SiteConfigPanel
+              config={siteConfig}
+              isSaving={isSaving}
+              onSave={saveSiteConfig}
+              onUploadImage={uploadSiteConfigImage}
             />
           )}
           {adminSection === "catalog" && selectedHall && (
@@ -3231,6 +3316,98 @@ function PagesPanel({
       </section>
       )}
     </div>
+  );
+}
+
+function SiteConfigPanel({
+  config,
+  isSaving,
+  onSave,
+  onUploadImage,
+}: {
+  config: SiteConfig;
+  isSaving: boolean;
+  onSave: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+  onUploadImage: (
+    event: ChangeEvent<HTMLInputElement>,
+    field: keyof Pick<SiteConfig, "zalo_group_qr_url" | "support_zalo_qr_url" | "payment_qr_url">,
+  ) => Promise<void>;
+}) {
+  const qrFields: Array<{
+    label: string;
+    name: keyof Pick<SiteConfig, "zalo_group_qr_url" | "support_zalo_qr_url" | "payment_qr_url">;
+    value: string;
+  }> = [
+    { label: "Ảnh QR nhóm Zalo", name: "zalo_group_qr_url", value: config.zalo_group_qr_url },
+    { label: "Mã QR Zalo hỗ trợ", name: "support_zalo_qr_url", value: config.support_zalo_qr_url },
+    { label: "Ảnh mã QR nhận tiền", name: "payment_qr_url", value: config.payment_qr_url },
+  ];
+
+  return (
+    <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+        Cấu hình chung
+      </p>
+      <h2 className="mt-1 text-xl font-bold">Liên hệ Zalo và QR thanh toán</h2>
+      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+        Các thông tin này sẽ được dùng trên trang khách hàng. Khi cần đổi link hoặc QR, chỉ cần sửa ở đây.
+      </p>
+
+      <form onSubmit={(event) => void onSave(event)} className="mt-5 space-y-5">
+        <div className="grid gap-4 lg:grid-cols-2">
+          <CountInput
+            label="Đường link nhóm Zalo"
+            name="zalo_group_url"
+            defaultValue={config.zalo_group_url}
+            maxLength={500}
+          />
+          <CountInput
+            label="Đường link Zalo hỗ trợ 0938.069.668"
+            name="support_zalo_url"
+            defaultValue={config.support_zalo_url}
+            maxLength={500}
+          />
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-3">
+          {qrFields.map((field) => (
+            <div key={field.name} className="rounded-2xl border border-border bg-background p-4">
+              <CountInput
+                label={field.label}
+                name={field.name}
+                defaultValue={field.value}
+                maxLength={700}
+              />
+              {field.value && (
+                <img
+                  src={field.value}
+                  alt={field.label}
+                  className="mt-3 aspect-square w-32 rounded-xl border border-border object-contain"
+                />
+              )}
+              <label className="mt-3 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-border px-4 text-sm font-bold transition hover:bg-muted">
+                <Upload className="size-4" />
+                Tải ảnh lên
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="sr-only"
+                  onChange={(event) => void onUploadImage(event, field.name)}
+                />
+              </label>
+            </div>
+          ))}
+        </div>
+
+        <button
+          disabled={isSaving}
+          className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
+        >
+          <Save className="size-4" />
+          Lưu cấu hình
+        </button>
+      </form>
+    </section>
   );
 }
 

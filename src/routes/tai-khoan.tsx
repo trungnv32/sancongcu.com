@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { defaultSiteConfig, type SiteConfig } from "@/lib/site-content";
 
 export const Route = createFileRoute("/tai-khoan")({ component: AccountPage });
 
@@ -111,6 +112,19 @@ function AccountPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [siteConfig, setSiteConfig] = useState<SiteConfig>(defaultSiteConfig);
+
+  useEffect(() => {
+    if (!supabase) return;
+    void supabase
+      .from("site_config")
+      .select("*")
+      .eq("id", "main")
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setSiteConfig({ ...defaultSiteConfig, ...(data as SiteConfig) });
+      });
+  }, []);
 
   useEffect(() => {
     if (!supabase) return;
@@ -414,7 +428,7 @@ function AccountPage() {
                 {activeTopup && (
                   <div className="mt-5 rounded-xl bg-muted p-4 text-sm">
                     <img
-                      src={`https://img.vietqr.io/image/TCB-8663769668-compact2.png?amount=${activeTopup.amount_vnd}&addInfo=${encodeURIComponent(activeTopup.transfer_code)}&accountName=${encodeURIComponent("HỘ KINH DOANH SUMOI")}`}
+                      src={siteConfig.payment_qr_url || `https://img.vietqr.io/image/TCB-8663769668-compact2.png?amount=${activeTopup.amount_vnd}&addInfo=${encodeURIComponent(activeTopup.transfer_code)}&accountName=${encodeURIComponent("HỘ KINH DOANH SUMOI")}`}
                       alt="Mã QR nạp tiền"
                       className="mx-auto w-48 rounded-xl border border-border"
                     />
@@ -433,8 +447,16 @@ function AccountPage() {
                       <strong className="font-mono">{activeTopup.transfer_code}</strong>
                     </p>
                     <p className="mt-3 text-xs leading-5 text-muted-foreground">
-                      Sau khi chuyển khoản, gửi bill tới Zalo 0938.069.668. Giao dịch sẽ được xử lý
-                      nhanh hơn.
+                      Sau khi chuyển khoản, gửi bill tới{" "}
+                      <a
+                        href={siteConfig.support_zalo_url || defaultSiteConfig.support_zalo_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-bold text-primary"
+                      >
+                        Zalo 0938.069.668
+                      </a>
+                      . Giao dịch sẽ được xử lý nhanh hơn.
                     </p>
                   </div>
                 )}
