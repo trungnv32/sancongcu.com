@@ -3350,10 +3350,11 @@ function SiteConfigPanel({
       </p>
       <h2 className="mt-1 text-xl font-bold">Liên hệ Zalo và QR thanh toán</h2>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
-        Các thông tin này sẽ được dùng trên trang khách hàng. Khi cần đổi link hoặc QR, chỉ cần sửa ở đây.
+        Các thông tin này sẽ được dùng trên trang khách hàng. Khách bấm hỗ trợ hoặc tham gia nhóm sẽ thấy mã QR để quét.
       </p>
 
       <form onSubmit={(event) => void onSave(event)} className="mt-5 space-y-5">
+        <input type="hidden" name="support_zalo_url" value={config.support_zalo_url} />
         <div className="grid gap-4 lg:grid-cols-2">
           <CountInput
             label="Đường link nhóm Zalo"
@@ -3361,12 +3362,9 @@ function SiteConfigPanel({
             defaultValue={config.zalo_group_url}
             maxLength={500}
           />
-          <CountInput
-            label="Đường link Zalo hỗ trợ 0938.069.668"
-            name="support_zalo_url"
-            defaultValue={config.support_zalo_url}
-            maxLength={500}
-          />
+          <p className="rounded-2xl border border-dashed border-border bg-background p-4 text-sm leading-6 text-muted-foreground">
+            Zalo hỗ trợ cá nhân không dùng đường link trực tiếp. Hãy tải ảnh QR ở ô “Mã QR Zalo hỗ trợ”.
+          </p>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-3">
@@ -3379,15 +3377,20 @@ function SiteConfigPanel({
                 maxLength={700}
               />
               {field.value && (
-                <img
-                  src={field.value}
-                  alt={field.label}
-                  className="mt-3 aspect-square w-32 rounded-xl border border-border object-contain"
-                />
+                <>
+                  <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">
+                    Đã có ảnh QR
+                  </p>
+                  <img
+                    src={field.value}
+                    alt={field.label}
+                    className="mt-3 aspect-square w-40 rounded-xl border border-border object-contain"
+                  />
+                </>
               )}
               <label className="mt-3 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-border px-4 text-sm font-bold transition hover:bg-muted">
                 <Upload className="size-4" />
-                Tải ảnh lên
+                {field.value ? "Đổi ảnh QR" : "Tải ảnh lên"}
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/webp"

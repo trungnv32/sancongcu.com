@@ -447,17 +447,16 @@ function AccountPage() {
                       <strong className="font-mono">{activeTopup.transfer_code}</strong>
                     </p>
                     <p className="mt-3 text-xs leading-5 text-muted-foreground">
-                      Sau khi chuyển khoản, gửi bill tới{" "}
-                      <a
-                        href={siteConfig.support_zalo_url || defaultSiteConfig.support_zalo_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-bold text-primary"
-                      >
-                        Zalo 0938.069.668
-                      </a>
-                      . Giao dịch sẽ được xử lý nhanh hơn.
+                      Sau khi chuyển khoản, quét mã QR Zalo hỗ trợ để gửi bill. Giao dịch sẽ được
+                      xử lý nhanh hơn.
                     </p>
+                    {siteConfig.support_zalo_qr_url && (
+                      <img
+                        src={siteConfig.support_zalo_qr_url}
+                        alt="Mã QR Zalo hỗ trợ"
+                        className="mx-auto mt-3 w-32 rounded-xl border border-border bg-background"
+                      />
+                    )}
                   </div>
                 )}
               </div>
