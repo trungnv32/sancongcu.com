@@ -387,11 +387,6 @@ function Landing() {
   const [transferOrder, setTransferOrder] = useState<TransferOrder | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
-  const [qrDialog, setQrDialog] = useState<{
-    title: string;
-    description: string;
-    imageUrl: string;
-  } | null>(null);
   const [expandedCategoryIds, setExpandedCategoryIds] = useState<string[]>([]);
   useEffect(() => {
     window.localStorage.setItem("sancongcu-cart", JSON.stringify(cart));
@@ -533,20 +528,9 @@ function Landing() {
     visibleSitePages.find((page) => page.slug === "khoa-huan-luyen") ??
     defaultSitePages.find((page) => page.slug === "khoa-huan-luyen") ??
     defaultSitePages[2];
-  const supportQrUrl = siteConfig.support_zalo_qr_url;
-  const groupQrUrl = siteConfig.zalo_group_qr_url;
-  const openSupportQr = () =>
-    setQrDialog({
-      title: "Quét QR Zalo hỗ trợ",
-      description: "Dùng Zalo quét mã này để mở cuộc chat mới với sancongcu.com.",
-      imageUrl: supportQrUrl,
-    });
-  const openGroupQr = () =>
-    setQrDialog({
-      title: "Quét QR nhóm Zalo hỗ trợ",
-      description: "Dùng Zalo quét mã này để gửi yêu cầu tham gia nhóm hỗ trợ.",
-      imageUrl: groupQrUrl,
-    });
+  const supportZaloUrl = siteConfig.support_zalo_url || defaultSiteConfig.support_zalo_url;
+  const zaloGroupUrl = siteConfig.zalo_group_url || defaultSiteConfig.zalo_group_url;
+  const paymentZaloUrl = supportZaloUrl;
   const startCheckout = async (products: Product[], selectedComboSize: ComboSize | null = null) => {
     if (products.length === 0) return;
     setCheckoutTitle(
@@ -767,13 +751,14 @@ function Landing() {
                 <p className="mt-4 text-sm leading-7 text-background/75 sm:text-base">
                   {trainingPage.summary}
                 </p>
-                <button
-                  type="button"
-                  onClick={openSupportQr}
+                <a
+                  href={trainingPage.cta_href || supportZaloUrl}
+                  target={trainingPage.cta_href?.startsWith("http") ? "_blank" : undefined}
+                  rel={trainingPage.cta_href?.startsWith("http") ? "noreferrer" : undefined}
                   className="mt-6 inline-flex min-h-11 items-center rounded-full bg-brand-gradient px-5 text-sm font-bold text-primary-foreground"
                 >
                   {trainingPage.cta_label || "Nhận tư vấn lộ trình"}
-                </button>
+                </a>
               </div>
               <div className="grid gap-3">
                 {trainingPage.content_blocks.map((block) => (
@@ -936,13 +921,14 @@ function Landing() {
               Cập nhật tin tức AI, tự tạo công cụ và biến kỹ năng của bạn thành thu nhập cùng
               sancongcu.com
             </p>
-            <button
-              type="button"
-              onClick={openGroupQr}
+            <a
+              href={zaloGroupUrl}
+              target="_blank"
+              rel="noreferrer"
               className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full bg-brand-gradient px-6 text-sm font-semibold text-primary-foreground shadow-brand transition hover:scale-[1.02]"
             >
               Tham gia ngay
-            </button>
+            </a>
           </aside>
         </div>
       </section>
@@ -962,14 +948,15 @@ function Landing() {
               "Quy trình cung cấp Skill",
               `Liên hệ hỗ trợ: Zalo ${supportZaloPhone}`,
             ].map((item) => (
-              <button
+              <a
                 key={item}
-                type="button"
-                onClick={item.startsWith("Liên hệ") ? openSupportQr : undefined}
+                href={item.startsWith("Liên hệ") ? supportZaloUrl : "#faq"}
+                target={item.startsWith("Liên hệ") ? "_blank" : undefined}
+                rel={item.startsWith("Liên hệ") ? "noreferrer" : undefined}
                 className="transition hover:text-foreground hover:underline"
               >
                 {item}
-              </button>
+              </a>
             ))}
           </nav>
           <p>AI skill cho người bán hàng</p>
@@ -1066,15 +1053,12 @@ function Landing() {
         order={transferOrder}
         error={checkoutError}
         isSavingOrder={isSavingOrder}
-        paymentQrUrl={siteConfig.payment_qr_url}
-        onSendBill={openSupportQr}
         onClose={() => {
           setCheckoutTitle(null);
           setCheckoutError(null);
           setIsSavingOrder(false);
         }}
       />
-      <QrDialog qr={qrDialog} onClose={() => setQrDialog(null)} />
     </main>
   );
 }
@@ -1234,16 +1218,12 @@ function PaymentDialog({
   order,
   error,
   isSavingOrder,
-  paymentQrUrl,
-  onSendBill,
   onClose,
 }: {
   title: string | null;
   order: TransferOrder | null;
   error: string | null;
   isSavingOrder: boolean;
-  paymentQrUrl: string;
-  onSendBill: () => void;
   onClose: () => void;
 }) {
   if (!title) return null;
@@ -1286,7 +1266,7 @@ function PaymentDialog({
         ) : (
           <div className="mt-6 space-y-5">
             <img
-              src={paymentQrUrl || order.payment.qrUrl || techcombankPaymentQr}
+              src={siteConfig.payment_qr_url || order.payment.qrUrl || techcombankPaymentQr}
               alt="Mã QR thanh toán chuyển khoản"
               className="mx-auto w-52 rounded-2xl border border-border"
             />
@@ -1297,13 +1277,14 @@ function PaymentDialog({
           <p className="mt-3 text-center text-xs text-muted-foreground">Đang lưu mã đơn…</p>
         )}
         {order && (
-          <button
-            type="button"
-            onClick={onSendBill}
+          <a
+            href={paymentZaloUrl}
+            target="_blank"
+            rel="noreferrer"
             className="mt-5 block w-full rounded-full bg-brand-gradient px-4 py-3 text-center text-sm font-semibold text-primary-foreground shadow-brand transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             Gửi bill qua Zalo 0938 069 668 →
-          </button>
+          </a>
         )}
         {order && (
           <p className="mt-3 text-center text-xs leading-5 text-muted-foreground">
@@ -1317,55 +1298,6 @@ function PaymentDialog({
         >
           Tôi đã hiểu
         </button>
-      </section>
-    </div>
-  );
-}
-
-function QrDialog({
-  qr,
-  onClose,
-}: {
-  qr: { title: string; description: string; imageUrl: string } | null;
-  onClose: () => void;
-}) {
-  if (!qr) return null;
-  return (
-    <div className="fixed inset-0 z-[60] grid place-items-center bg-foreground/60 p-4 backdrop-blur-sm">
-      <section
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="qr-dialog-title"
-        className="w-full max-w-sm rounded-3xl bg-background p-6 text-center shadow-2xl"
-      >
-        <div className="flex items-start justify-between gap-4 text-left">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Zalo</p>
-            <h2 id="qr-dialog-title" className="mt-2 text-2xl">
-              {qr.title}
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Đóng mã QR"
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-border text-xl transition hover:bg-muted"
-          >
-            ×
-          </button>
-        </div>
-        {qr.imageUrl ? (
-          <img
-            src={qr.imageUrl}
-            alt={qr.title}
-            className="mx-auto mt-5 aspect-square w-60 rounded-2xl border border-border object-contain"
-          />
-        ) : (
-          <p className="mt-5 rounded-2xl border border-dashed border-border p-5 text-sm text-muted-foreground">
-            Chưa có ảnh QR. Vui lòng cập nhật trong trang quản trị.
-          </p>
-        )}
-        <p className="mt-4 text-sm leading-6 text-muted-foreground">{qr.description}</p>
       </section>
     </div>
   );
