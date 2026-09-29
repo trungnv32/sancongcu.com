@@ -1199,7 +1199,9 @@ function AdminPage() {
     if (updateError) setError(updateError.message);
     else if (data)
       setMedia((current) =>
-        current.map((mediaItem) => (mediaItem.id === item.id ? (data as Media) : mediaItem)),
+        current
+          .map((mediaItem) => (mediaItem.id === item.id ? (data as Media) : mediaItem))
+          .sort((a, b) => a.sort_order - b.sort_order),
       );
   }
 
@@ -2718,6 +2720,21 @@ function SkillEditor({
                     <option value="output">Đầu ra</option>
                     <option value="other">Khác</option>
                   </select>
+                  <label className="block text-xs font-bold text-muted-foreground">
+                    Thứ tự
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      defaultValue={item.sort_order}
+                      onBlur={(event) => {
+                        const nextSortOrder = Number(event.currentTarget.value || 0);
+                        if (nextSortOrder !== item.sort_order) {
+                          void onMediaUpdate(item, { sort_order: nextSortOrder });
+                        }
+                      }}
+                      className="mt-1 h-9 w-full rounded-lg border border-input bg-background px-2 text-xs text-foreground"
+                    />
+                  </label>
                   <button
                     type="button"
                     onClick={() => void onMediaDelete(item)}
@@ -2832,6 +2849,13 @@ function PagesPanel({
   );
   const [activePageId, setActivePageId] = useState<string>(sortedSitePages[0]?.id ?? "");
   const activePage = sortedSitePages.find((page) => page.id === activePageId) ?? sortedSitePages[0] ?? null;
+  const activeMenuPageSlug = activeParentMenu?.href.startsWith("#")
+    ? activeParentMenu.href.slice(1)
+    : "";
+  const activeMenuPage =
+    sortedSitePages.find((page) => page.slug === activeMenuPageSlug) ??
+    sortedSitePages.find((page) => page.id === activeParentMenu?.id) ??
+    null;
 
   function MenuItemForm({ item }: { item: SiteMenuItem }) {
     return (
@@ -3048,6 +3072,19 @@ function PagesPanel({
                     <MenuItemForm item={activeParentMenu} />
                   </div>
                 </div>
+                {activeMenuPage && (
+                  <div>
+                    <p className="text-sm font-bold">
+                      Nội dung hiển thị của “{activeMenuPage.menu_label}”
+                    </p>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                      Phần này là nội dung đang xuất hiện ngoài trang chủ khi bấm menu này.
+                    </p>
+                    <div className="mt-3">
+                      <PageForm page={activeMenuPage} />
+                    </div>
+                  </div>
+                )}
                 <div>
                   <p className="text-sm font-bold">Menu con của “{activeParentMenu.label}”</p>
                   <div className="mt-3 grid gap-4 xl:grid-cols-2">

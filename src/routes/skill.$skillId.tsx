@@ -76,13 +76,7 @@ function Detail() {
             .select("id,path,alt,media_type,sort_order")
             .eq("skill_id", data.id)
             .order("sort_order");
-          const priority = { input: 0, output: 1, other: 2 };
-          setMedia(
-            ((gallery ?? []) as Media[]).sort(
-              (a, b) =>
-                priority[a.media_type] - priority[b.media_type] || a.sort_order - b.sort_order,
-            ),
-          );
+          setMedia((gallery ?? []) as Media[]);
         }
       } finally {
         setLoaded(true);
@@ -106,7 +100,6 @@ function Detail() {
       </main>
     );
 
-  const priority: Record<Media["media_type"], number> = { input: 0, output: 1, other: 2 };
   const hero: Media = {
     id: "main",
     path: skill?.thumbnail_path || fallback,
@@ -114,9 +107,7 @@ function Detail() {
     media_type: "output",
     sort_order: -1,
   };
-  const images: Media[] = [hero, ...media].sort(
-    (a, b) => priority[a.media_type] - priority[b.media_type] || a.sort_order - b.sort_order,
-  );
+  const images: Media[] = [hero, ...media];
   const activeImage = images.find((image) => image.id === activeImageId) ?? images[0];
   const usageSteps = skill?.usage_steps?.filter(Boolean).length ? skill.usage_steps : defaultUsage;
   const choose = () => {
