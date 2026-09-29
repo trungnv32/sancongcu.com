@@ -116,6 +116,13 @@ function Detail() {
     localStorage.setItem(key, JSON.stringify(cart.includes(skillId) ? cart : [...cart, skillId]));
     window.location.href = "/#danh-muc-1";
   };
+  const chooseCombo = (comboSize: 5 | 10) => {
+    const key = "sancongcu-cart";
+    const cart = JSON.parse(localStorage.getItem(key) || "[]") as string[];
+    localStorage.setItem(key, JSON.stringify(cart.includes(skillId) ? cart : [...cart, skillId]));
+    localStorage.setItem("sancongcu-combo-size", String(comboSize));
+    window.location.href = "/#danh-muc-1";
+  };
   const activate = () => {
     window.location.href = `/?activate=${encodeURIComponent(skillId)}#danh-muc-1`;
   };
@@ -189,6 +196,71 @@ function Detail() {
               </ul>
             </section>
           )}
+          <section className="mt-6 rounded-2xl border border-foreground/10 bg-foreground p-5 text-background shadow-card sm:rounded-3xl sm:p-6">
+            <p className="text-xs font-bold uppercase tracking-[.16em] text-primary">
+              Ưu đãi kích hoạt
+            </p>
+            <h2 className="skill-detail__section-title mt-2 text-background">
+              Mua nhiều hơn, giá rẻ hơn
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-background/75">
+              Chọn thêm Skill để nhận mức giá ưu đãi cho cả combo.
+            </p>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-xl border border-background/20 bg-background/10 p-4">
+                <p className="text-sm font-bold">Combo 5 Skill</p>
+                <p className="mt-1 text-sm text-background/75">Tự chọn bất kỳ 5 Skill</p>
+                <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
+                  <p className="text-3xl font-extrabold">8$</p>
+                  <span className="rounded-full bg-background/15 px-3 py-1 text-xs font-bold">
+                    Tiết kiệm 20%
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => chooseCombo(5)}
+                  className="mt-4 min-h-12 w-full rounded-full border border-background/40 px-4 py-3 text-sm font-bold transition hover:bg-background hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  Chọn Combo 5 Skill
+                </button>
+              </div>
+              <div className="rounded-xl border border-primary/70 bg-primary/20 p-4">
+                <p className="text-sm font-bold">Combo 10 Skill + ChatGPT Plus</p>
+                <p className="mt-1 text-sm text-background/85">Tự chọn bất kỳ 10 Skill</p>
+                <p className="mt-2 text-xs font-semibold leading-5 text-primary-foreground">
+                  Tặng ChatGPT Plus 1 tháng, sẵn sử dụng
+                </p>
+                <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
+                  <p className="text-3xl font-extrabold">25$</p>
+                  <span className="rounded-full bg-background px-3 py-1 text-xs font-bold text-foreground">
+                    Tiết kiệm 50%
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => chooseCombo(10)}
+                  className="mt-4 min-h-12 w-full rounded-full bg-background px-4 py-3 text-sm font-bold text-foreground transition hover:bg-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background"
+                >
+                  Chọn Combo 10 Skill
+                </button>
+              </div>
+            </div>
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-background/15 pt-5">
+              <div>
+                <p className="text-sm text-background/70">Kích hoạt riêng Skill này</p>
+                <p className="mt-1 text-2xl font-extrabold">
+                  {skill?.activation_price_vnd?.toLocaleString("vi-VN") ?? "51.000"}đ
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={activate}
+                className="min-h-12 rounded-full bg-background px-5 py-3 text-sm font-bold text-foreground transition hover:bg-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-foreground"
+              >
+                Kích hoạt Skill lẻ →
+              </button>
+            </div>
+          </section>
         </div>
       </section>
       <section className="skill-detail__actions mx-auto grid w-full max-w-6xl gap-6 px-4 pb-16 sm:px-6 sm:pb-20">
