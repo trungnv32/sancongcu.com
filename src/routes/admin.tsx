@@ -1646,6 +1646,11 @@ function OrdersPanel({
   onInstallLink: (order: Order, item: OrderItem) => Promise<void>;
   onRegenerateInstallLink: (order: Order, item: OrderItem) => Promise<void>;
 }) {
+  const [activeOrderTab, setActiveOrderTab] = useState<"new" | "processed">("new");
+  const processedOrders = orders.filter((order) => order.confirmed_at && order.delivered_at);
+  const newOrders = orders.filter((order) => !order.confirmed_at || !order.delivered_at);
+  const visibleOrders = activeOrderTab === "new" ? newOrders : processedOrders;
+
   return (
     <section
       id="orders"
@@ -1665,8 +1670,36 @@ function OrdersPanel({
           {orders.length} đơn
         </span>
       </div>
-      {orders.length === 0 ? (
-        <p className="p-5 text-sm text-muted-foreground">Chưa có đơn kích hoạt nào.</p>
+      <div className="flex flex-wrap gap-2 border-b border-border p-4 sm:p-5">
+        <button
+          type="button"
+          onClick={() => setActiveOrderTab("new")}
+          className={`min-h-10 rounded-lg px-4 text-sm font-bold transition ${
+            activeOrderTab === "new"
+              ? "bg-foreground text-background"
+              : "border border-border hover:bg-muted"
+          }`}
+        >
+          Đơn hàng mới ({newOrders.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveOrderTab("processed")}
+          className={`min-h-10 rounded-lg px-4 text-sm font-bold transition ${
+            activeOrderTab === "processed"
+              ? "bg-foreground text-background"
+              : "border border-border hover:bg-muted"
+          }`}
+        >
+          Đơn đã xử lý ({processedOrders.length})
+        </button>
+      </div>
+      {visibleOrders.length === 0 ? (
+        <p className="p-5 text-sm text-muted-foreground">
+          {activeOrderTab === "new"
+            ? "Chưa có đơn hàng mới."
+            : "Chưa có đơn đã xử lý."}
+        </p>
       ) : (
         <div className="min-w-0 max-w-full overflow-x-auto">
           <table className="min-w-[1080px] w-full text-left text-sm">
@@ -1682,7 +1715,7 @@ function OrdersPanel({
               </tr>
             </thead>
             <tbody>
-              {orders.map((order) => (
+              {visibleOrders.map((order) => (
                 <tr key={order.id} className="border-t border-border align-top">
                   <td className="px-5 py-4 font-bold">{order.order_code}</td>
                   <td className="px-5 py-4">
