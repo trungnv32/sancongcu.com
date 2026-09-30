@@ -8,7 +8,7 @@ import tueLamHall3 from "@/assets/tue-lam-hall-3-video-studio.png";
 import tueLamHall4 from "@/assets/tue-lam-hall-4-enterprise-office.png";
 import tueLamHall5 from "@/assets/tue-lam-hall-5-learning-studio.png";
 import sanCongCuLogo from "@/assets/sancongcu-logo-transparent.png";
-import techcombankPaymentQr from "@/assets/techcombank-payment-qr.jpg";
+import vietcombankPaymentQr from "@/assets/vietcombank-payment-qr.png";
 import { getProductContent } from "@/lib/product-content";
 import {
   defaultMenuItems,
@@ -21,6 +21,8 @@ import {
 import {
   createFallbackTransferOrder,
   createSavedTransferOrder,
+  getComboSizeForProductCount,
+  type ComboSize,
   type TransferOrder,
 } from "@/lib/commerce";
 import { supabase } from "@/lib/supabase";
@@ -87,7 +89,6 @@ const paymentZaloUrl = "https://zalo.me/0938069668";
 const supportZaloPhone = "0938.069.668";
 const supportZaloUrl = "https://zalo.me/0938069668";
 const zaloGroupUrl = "https://zalo.me/g/ahx8hvvgmtc84e1inuys";
-type ComboSize = 5 | 10;
 type HomeComboSection = {
   eyebrow: string;
   title: string;
@@ -494,9 +495,11 @@ function Landing() {
     setCart([]);
     setComboSize(null);
   };
-  const total = comboSize === 5 ? 8 : comboSize === 10 ? 25 : cart.length * skillPriceUsd;
+  const effectiveComboSize = getComboSizeForProductCount(cart.length, comboSize);
+  const total =
+    effectiveComboSize === 5 ? 8 : effectiveComboSize === 10 ? 25 : cart.length * skillPriceUsd;
   const comboReady = !comboSize || cart.length === comboSize;
-  const comboGift = comboSize === 10;
+  const comboGift = effectiveComboSize === 10;
   const cartItems = cart.map((id) => ({
     id,
     title:
@@ -528,6 +531,7 @@ function Landing() {
     defaultSitePages[2];
   const startCheckout = async (products: Product[], selectedComboSize: ComboSize | null = null) => {
     if (products.length === 0) return;
+    const checkoutComboSize = getComboSizeForProductCount(products.length, selectedComboSize);
     setCheckoutTitle(
       products.length === 1 ? products[0].title : `${products.length} Skill đã chọn`,
     );
@@ -538,7 +542,7 @@ function Landing() {
     // passed to Supabase immediately after the first paint.
     const immediateOrder = createFallbackTransferOrder(
       products.map((product) => product.id),
-      selectedComboSize,
+      checkoutComboSize,
     );
     setTransferOrder(immediateOrder);
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
@@ -550,7 +554,7 @@ function Landing() {
       const { data, error } = await supabase.rpc("create_pending_order", {
         p_skill_slugs: products.map((product) => product.id),
         p_order_code: immediateOrder.orderCode,
-        p_combo_size: selectedComboSize ?? null,
+        p_combo_size: checkoutComboSize,
       });
       const savedOrder = data?.[0];
       if (error) throw error;
@@ -1261,7 +1265,7 @@ function PaymentDialog({
         ) : (
           <div className="mt-6 space-y-5">
             <img
-              src={order.payment.qrUrl ?? techcombankPaymentQr}
+              src={order.payment.qrUrl ?? vietcombankPaymentQr}
               alt="Mã QR thanh toán chuyển khoản"
               className="mx-auto w-52 rounded-2xl border border-border"
             />

@@ -414,7 +414,7 @@ function AccountPage() {
                 {activeTopup && (
                   <div className="mt-5 rounded-xl bg-muted p-4 text-sm">
                     <img
-                      src={`https://img.vietqr.io/image/TCB-8663769668-compact2.png?amount=${activeTopup.amount_vnd}&addInfo=${encodeURIComponent(activeTopup.transfer_code)}&accountName=${encodeURIComponent("HỘ KINH DOANH SUMOI")}`}
+                      src={`https://img.vietqr.io/image/VCB-0011000830384-compact2.png?amount=${activeTopup.amount_vnd}&addInfo=${encodeURIComponent(activeTopup.transfer_code)}&accountName=${encodeURIComponent("NGUYEN VAN TRUNG")}`}
                       alt="Mã QR nạp tiền"
                       className="mx-auto w-48 rounded-xl border border-border"
                     />

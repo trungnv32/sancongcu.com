@@ -13,6 +13,8 @@ type PaymentSettings = {
   accountName: string;
 };
 
+export type ComboSize = 5 | 10;
+
 export type TransferOrder = {
   orderCode: string;
   amount: number;
@@ -24,16 +26,16 @@ export type TransferOrder = {
 };
 
 const defaultPaymentSettings: PaymentSettings = {
-  bankName: "Techcombank",
-  bankCode: "TCB",
-  accountNumber: "8663769668",
-  accountName: "HỘ KINH DOANH SUMOI",
+  bankName: "Vietcombank",
+  bankCode: "VCB",
+  accountNumber: "0011000830384",
+  accountName: "NGUYEN VAN TRUNG",
 };
 
 function buildTransferOrder(
   productIds: string[],
   paymentSettings: PaymentSettings,
-  comboSize?: 5 | 10 | null,
+  comboSize?: ComboSize | null,
 ): TransferOrder {
   const uniqueProductIds = [...new Set(productIds)];
   const orderCode = `SC${Date.now().toString().slice(-8)}`;
@@ -62,9 +64,19 @@ function buildTransferOrder(
 
 export function createFallbackTransferOrder(
   productIds: string[],
-  comboSize?: 5 | 10 | null,
+  comboSize?: ComboSize | null,
 ): TransferOrder {
   return buildTransferOrder(productIds, defaultPaymentSettings, comboSize);
+}
+
+export function getComboSizeForProductCount(
+  productCount: number,
+  preferredComboSize?: ComboSize | null,
+): ComboSize | null {
+  if (preferredComboSize && productCount === preferredComboSize) return preferredComboSize;
+  if (productCount === 10) return 10;
+  if (productCount === 5) return 5;
+  return null;
 }
 
 export function createSavedTransferOrder({
