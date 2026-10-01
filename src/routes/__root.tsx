@@ -77,18 +77,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "sancongcu.com — AI Skill cho người bán hàng" },
+      {
+        name: "description",
+        content:
+          "Công cụ AI viết sẵn theo từng ngành nghề, giúp người bán hàng áp dụng ngay mà không cần giỏi công nghệ.",
+      },
+      { name: "author", content: "sancongcu.com" },
+      { property: "og:title", content: "sancongcu.com — AI Skill cho người bán hàng" },
+      {
+        property: "og:description",
+        content: "Công cụ AI viết sẵn theo từng ngành nghề, dễ dùng và ứng dụng ngay.",
+      },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { property: "og:image", content: "https://sancongcu.com/sancongcu-og.png" },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:image", content: "https://sancongcu.com/sancongcu-og.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/sancongcu-icon.png", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/sancongcu-icon.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {

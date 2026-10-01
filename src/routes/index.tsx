@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Banknote, ChevronDown, Sparkles, Users, Workflow, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import kolGraduation from "@/assets/kol-graduation.asset.json";
 import tueLamStanding from "@/assets/tue-lam-03-standing.jpg";
 import tueLamStraight from "@/assets/tue-lam-04-straigh.jpg";
 import tueLamHall3 from "@/assets/tue-lam-hall-3-video-studio.png";
@@ -34,6 +33,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+const sanCongCuShareImage = "https://sancongcu.com/sancongcu-og.png";
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -49,9 +50,15 @@ export const Route = createFileRoute("/")({
         content: "Công cụ AI viết sẵn theo từng ngành nghề, dễ dùng và ứng dụng ngay.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: kolGraduation.url },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: kolGraduation.url },
+      { property: "og:url", content: "https://sancongcu.com/" },
+      { property: "og:image", content: sanCongCuShareImage },
+      { property: "og:image:secure_url", content: sanCongCuShareImage },
+      { property: "og:image:type", content: "image/png" },
+      { property: "og:image:width", content: "1024" },
+      { property: "og:image:height", content: "1024" },
+      { property: "og:image:alt", content: "Logo chữ S xanh của sancongcu.com" },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:image", content: sanCongCuShareImage },
     ],
   }),
   component: Landing,
