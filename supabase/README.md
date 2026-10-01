@@ -21,3 +21,16 @@ The browser only uses `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. N
 ## Skill installation links
 
 After a payment is confirmed, the Dashboard can create an installation link for each Skill in the order. The link is a bearer credential and must be sent only to the customer. It is served by the `skill-install` Edge Function, is not cached or indexed, and can return either the raw `SKILL.md` or a short-lived download link for a ZIP package.
+
+## SePay webhook
+
+Deploy the `sepay-webhook` Edge Function and give SePay this URL:
+
+`https://hxcucycjemuudlvaxhdk.supabase.co/functions/v1/sepay-webhook`
+
+Recommended security:
+
+- HMAC-SHA256: set Supabase secret `SEPAY_WEBHOOK_SECRET` to the same secret configured in SePay.
+- API Key: alternatively set Supabase secret `SEPAY_WEBHOOK_API_KEY` to the same API key configured in SePay.
+
+The webhook reads incoming bank transactions, finds `SC...` order codes or `NAP...` wallet top-up codes in the transfer content, stores the SePay transaction for duplicate protection, then confirms the matching order/top-up when the received amount is enough.
