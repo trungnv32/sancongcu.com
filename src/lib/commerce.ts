@@ -26,10 +26,10 @@ export type TransferOrder = {
 };
 
 const defaultPaymentSettings: PaymentSettings = {
-  bankName: "Vietcombank",
-  bankCode: "VCB",
-  accountNumber: "0011000830384",
-  accountName: "NGUYEN VAN TRUNG",
+  bankName: "Techcombank",
+  bankCode: "TCB",
+  accountNumber: "8663769668",
+  accountName: "HO KINH DOANH SUMOI",
 };
 
 function buildTransferOrder(

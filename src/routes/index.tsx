@@ -7,7 +7,6 @@ import tueLamHall3 from "@/assets/tue-lam-hall-3-video-studio.png";
 import tueLamHall4 from "@/assets/tue-lam-hall-4-enterprise-office.png";
 import tueLamHall5 from "@/assets/tue-lam-hall-5-learning-studio.png";
 import sanCongCuLogo from "@/assets/sancongcu-logo-transparent.png";
-import vietcombankPaymentQr from "@/assets/vietcombank-payment-qr.png";
 import { getProductContent } from "@/lib/product-content";
 import {
   defaultMenuItems,
@@ -1271,11 +1270,13 @@ function PaymentDialog({
           </p>
         ) : (
           <div className="mt-6 space-y-5">
-            <img
-              src={order.payment.qrUrl ?? vietcombankPaymentQr}
-              alt="Mã QR thanh toán chuyển khoản"
-              className="mx-auto w-52 rounded-2xl border border-border"
-            />
+            {order.payment.qrUrl && (
+              <img
+                src={order.payment.qrUrl}
+                alt="Mã QR thanh toán chuyển khoản"
+                className="mx-auto w-52 rounded-2xl border border-border"
+              />
+            )}
             <TransferInstructions order={order} />
           </div>
         )}
