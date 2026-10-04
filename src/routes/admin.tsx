@@ -12,8 +12,10 @@ import {
   FileText,
   FolderDown,
   ImagePlus,
+  KeyRound,
   LoaderCircle,
   LogOut,
+  Mail,
   Package,
   Plus,
   Save,
@@ -231,7 +233,8 @@ function installUrl(token: string) {
 
 function AdminPage() {
   const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
+  const [password, setPassword] = useState("");
+  const [resetSent, setResetSent] = useState(false);
   const [sessionEmail, setSessionEmail] = useState<string | null>(null);
   const [halls, setHalls] = useState<Hall[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
@@ -255,7 +258,7 @@ function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [newHallName, setNewHallName] = useState("");
   const [adminSection, setAdminSection] = useState<
-    "orders" | "topups" | "webapp-history" | "combos" | "pages" | "catalog"
+    "orders" | "topups" | "webapp-history" | "combos" | "pages" | "catalog" | "account"
   >("orders");
 
   const selectedSkill = useMemo(
@@ -517,7 +520,29 @@ function AdminPage() {
     }
   }
 
-  async function sendMagicLink(event: FormEvent<HTMLFormElement>) {
+  async function signInAdmin(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!supabase) return;
+    const normalized = email.trim().toLowerCase();
+    if (!adminEmails.has(normalized)) {
+      setError("Email này chưa có quyền quản trị.");
+      return;
+    }
+    if (!password) {
+      setError("Anh nhập mật khẩu để đăng nhập.");
+      return;
+    }
+    setError(null);
+    setIsSaving(true);
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email: normalized,
+      password,
+    });
+    setIsSaving(false);
+    if (authError) setError("Email hoặc mật khẩu chưa đúng.");
+  }
+
+  async function sendPasswordReset(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!supabase) return;
     const normalized = email.trim().toLowerCase();
@@ -526,14 +551,40 @@ function AdminPage() {
       return;
     }
     setError(null);
+    setResetSent(false);
     setIsSaving(true);
-    const { error: authError } = await supabase.auth.signInWithOtp({
-      email: normalized,
-      options: { emailRedirectTo: `${window.location.origin}/admin` },
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(normalized, {
+      redirectTo: `${window.location.origin}/admin`,
     });
     setIsSaving(false);
-    if (authError) setError(authError.message);
-    else setSent(true);
+    if (resetError) setError(resetError.message);
+    else setResetSent(true);
+  }
+
+  async function updateAdminPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!supabase) return;
+    const form = new FormData(event.currentTarget);
+    const newPassword = String(form.get("new_password") ?? "");
+    const confirmPassword = String(form.get("confirm_password") ?? "");
+    if (newPassword.length < 6) {
+      setError("Mật khẩu mới cần ít nhất 6 ký tự.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError("Hai ô mật khẩu mới chưa giống nhau.");
+      return;
+    }
+    setError(null);
+    setNotice(null);
+    setIsSaving(true);
+    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+    setIsSaving(false);
+    if (updateError) setError(updateError.message);
+    else {
+      event.currentTarget.reset();
+      setNotice("Đã đổi mật khẩu quản trị.");
+    }
   }
 
   async function saveSkill(event: FormEvent<HTMLFormElement>) {
@@ -1246,9 +1297,12 @@ function AdminPage() {
         email={email}
         setEmail={setEmail}
         isSaving={isSaving}
-        sent={sent}
         error={error}
-        onSubmit={sendMagicLink}
+        password={password}
+        setPassword={setPassword}
+        resetSent={resetSent}
+        onSubmit={signInAdmin}
+        onPasswordReset={sendPasswordReset}
       />
     );
   if (!adminEmails.has(sessionEmail))
@@ -1300,6 +1354,15 @@ function AdminPage() {
             <span className="ml-auto rounded-full bg-background/15 px-2 py-0.5 text-xs">
               {orders.length}
             </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setAdminSection("account")}
+            aria-current={adminSection === "account" ? "page" : undefined}
+            className={`mb-4 flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-bold transition ${adminSection === "account" ? "bg-foreground text-background" : "border border-border hover:bg-muted"}`}
+          >
+            <KeyRound className="size-4" />
+            Tài khoản
           </button>
           <button
             type="button"
@@ -1400,6 +1463,13 @@ function AdminPage() {
         <section className="admin-content min-w-0 space-y-5">
           {error && <Alert tone="error" text={error} onClose={() => setError(null)} />}
           {notice && <Alert tone="success" text={notice} onClose={() => setNotice(null)} />}
+          {adminSection === "account" && (
+            <AccountPanel
+              sessionEmail={sessionEmail}
+              isSaving={isSaving}
+              onPasswordChange={updateAdminPassword}
+            />
+          )}
           {adminSection === "orders" && (
             <OrdersPanel
               orders={orders}
@@ -3416,17 +3486,23 @@ function SetupMessage({ title, message }: { title: string; message: string }) {
 function LoginPage({
   email,
   setEmail,
+  password,
+  setPassword,
   isSaving,
-  sent,
+  resetSent,
   error,
   onSubmit,
+  onPasswordReset,
 }: {
   email: string;
   setEmail: (value: string) => void;
+  password: string;
+  setPassword: (value: string) => void;
   isSaving: boolean;
-  sent: boolean;
+  resetSent: boolean;
   error: string | null;
   onSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+  onPasswordReset: (event: FormEvent<HTMLFormElement>) => Promise<void>;
 }) {
   return (
     <main className="grid min-h-screen place-items-center bg-soft-gradient px-5">
@@ -3434,40 +3510,60 @@ function LoginPage({
         <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">SanCongCu</p>
         <h1 className="mt-3 text-3xl font-bold">Đăng nhập quản trị</h1>
         <p className="mt-3 leading-7 text-muted-foreground">
-          Nhập email quản trị. Chúng tôi sẽ gửi một liên kết đăng nhập an toàn, không cần mật khẩu.
+          Nhập email quản trị và mật khẩu để vào khu vực quản trị.
         </p>
         {error && (
           <div className="mt-5">
             <Alert tone="error" text={error} onClose={() => {}} />
           </div>
         )}
-        {sent ? (
-          <div className="mt-6 rounded-xl bg-primary/10 p-4 text-sm leading-6 text-primary">
+        {resetSent && (
+          <div className="mt-5 rounded-xl bg-primary/10 p-4 text-sm leading-6 text-primary">
             <Check className="mb-2 size-5" />
-            Đã gửi liên kết. Hãy mở email và bấm liên kết để quay lại trang quản trị.
+            Đã gửi link đặt lại mật khẩu. Anh mở email và làm theo hướng dẫn.
           </div>
-        ) : (
-          <form onSubmit={(event) => void onSubmit(event)} className="mt-6">
-            <Field label="Email quản trị">
-              <input
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="you@example.com"
-                required
-                className="input"
-              />
-            </Field>
-            <button
-              disabled={isSaving}
-              className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-gradient px-4 font-bold text-primary-foreground shadow-brand transition hover:opacity-90 disabled:opacity-60"
-            >
-              {isSaving && <LoaderCircle className="size-4 animate-spin" />}
-              {isSaving ? "Đang gửi" : "Gửi liên kết đăng nhập"}
-            </button>
-          </form>
         )}
+        <form onSubmit={(event) => void onSubmit(event)} className="mt-6 space-y-4">
+          <Field label="Email quản trị">
+            <input
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="you@example.com"
+              required
+              className="input"
+            />
+          </Field>
+          <Field label="Mật khẩu">
+            <input
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Nhập mật khẩu"
+              required
+              className="input"
+            />
+          </Field>
+          <button
+            disabled={isSaving}
+            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-gradient px-4 font-bold text-primary-foreground shadow-brand transition hover:opacity-90 disabled:opacity-60"
+          >
+            {isSaving && <LoaderCircle className="size-4 animate-spin" />}
+            {isSaving ? "Đang xử lý" : "Đăng nhập"}
+          </button>
+        </form>
+        <form onSubmit={(event) => void onPasswordReset(event)} className="mt-3">
+          <button
+            type="submit"
+            disabled={isSaving || !email.trim()}
+            className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold text-primary transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Mail className="size-4" />
+            Quên mật khẩu? Gửi link vào email
+          </button>
+        </form>
         <Link
           to="/"
           className="mt-5 inline-flex text-sm font-semibold text-muted-foreground hover:text-primary"
@@ -3476,5 +3572,60 @@ function LoginPage({
         </Link>
       </section>
     </main>
+  );
+}
+
+function AccountPanel({
+  sessionEmail,
+  isSaving,
+  onPasswordChange,
+}: {
+  sessionEmail: string | null;
+  isSaving: boolean;
+  onPasswordChange: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+}) {
+  return (
+    <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <div className="flex items-start gap-3">
+        <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+          <KeyRound className="size-5" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold">Tài khoản quản trị</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Email đang đăng nhập: <span className="font-semibold text-foreground">{sessionEmail}</span>
+          </p>
+        </div>
+      </div>
+      <form onSubmit={(event) => void onPasswordChange(event)} className="mt-6 max-w-md space-y-4">
+        <Field label="Mật khẩu mới">
+          <input
+            type="password"
+            name="new_password"
+            autoComplete="new-password"
+            minLength={6}
+            required
+            className="input"
+          />
+        </Field>
+        <Field label="Nhập lại mật khẩu mới">
+          <input
+            type="password"
+            name="confirm_password"
+            autoComplete="new-password"
+            minLength={6}
+            required
+            className="input"
+          />
+        </Field>
+        <button
+          disabled={isSaving}
+          className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-foreground px-4 font-bold text-background transition hover:opacity-90 disabled:opacity-60"
+        >
+          {isSaving && <LoaderCircle className="size-4 animate-spin" />}
+          {isSaving ? "Đang lưu" : "Đổi mật khẩu"}
+        </button>
+      </form>
+    </section>
   );
 }
