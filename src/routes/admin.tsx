@@ -596,12 +596,13 @@ function AdminPage() {
     if (!sessionData.session) {
       setIsSaving(false);
       setSessionEmail(null);
-      setError("Phiên đăng nhập đã hết hạn. Anh vui lòng đăng nhập lại rồi đổi mật khẩu.");
+      setAuthNotice(null);
+      setAuthError("Phiên đăng nhập đã hết hạn. Anh vui lòng đăng nhập lại rồi đổi mật khẩu.");
       return;
     }
     const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
-    setIsSaving(false);
     if (updateError) {
+      setIsSaving(false);
       const normalizedMessage = updateError.message.toLowerCase();
       setError(
         normalizedMessage.includes("auth session missing")
@@ -610,8 +611,15 @@ function AdminPage() {
       );
     } else {
       event.currentTarget.reset();
-      setAccountNotice("Đã đổi mật khẩu thành công.");
-      setNotice("Đã đổi mật khẩu quản trị.");
+      await supabase.auth.signOut();
+      setIsSaving(false);
+      setSessionEmail(null);
+      setPassword("");
+      setResetSent(false);
+      setAuthError(null);
+      setAuthNotice("Đã đổi mật khẩu thành công. Anh đăng nhập lại bằng mật khẩu mới.");
+      setAccountNotice(null);
+      setNotice(null);
     }
   }
 
@@ -3553,9 +3561,9 @@ function LoginPage({
             <Alert tone="error" text={error} onClose={() => {}} />
           </div>
         )}
-        {resetSent && (
-          <div className="mt-5 rounded-xl bg-primary/10 p-4 text-sm leading-6 text-primary">
-            <Check className="mb-2 size-5" />
+        {(notice || resetSent) && (
+          <div className="mt-5 rounded-2xl border-2 border-emerald-300 bg-emerald-50 p-5 text-base font-bold leading-7 text-emerald-800 shadow-sm">
+            <Check className="mb-2 size-6" />
             {notice ?? "Đã gửi link đặt lại mật khẩu. Anh mở email và làm theo hướng dẫn."}
           </div>
         )}
