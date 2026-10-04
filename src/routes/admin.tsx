@@ -302,9 +302,6 @@ function AdminPage() {
   }
 
   async function signOutAdmin(message = "Anh đã đăng xuất. Vui lòng đăng nhập lại tài khoản quản trị.") {
-    setIsSaving(true);
-    await supabase?.auth.signOut();
-    setIsSaving(false);
     clearAdminState();
     setSessionEmail(null);
     setPassword("");
@@ -314,6 +311,7 @@ function AdminPage() {
     setError(null);
     setNotice(null);
     setAccountNotice(null);
+    void supabase?.auth.signOut();
   }
 
   useEffect(() => {
