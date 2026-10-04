@@ -199,6 +199,15 @@ type ComboSkill = {
 const adminEmails = new Set(["sancongcu@gmail.com", "trungnv32@gmail.com"]);
 const statusLabel = { draft: "Bản nháp", published: "Đang hiển thị", hidden: "Đã ẩn" };
 
+function withTimeout<T>(promise: Promise<T>, message: string, timeoutMs = 10000) {
+  return Promise.race<T>([
+    promise,
+    new Promise<T>((_, reject) => {
+      window.setTimeout(() => reject(new Error(message)), timeoutMs);
+    }),
+  ]);
+}
+
 function slugify(value: string) {
   return (
     value
@@ -302,6 +311,7 @@ function AdminPage() {
   }
 
   async function signOutAdmin(message = "Anh đã đăng xuất. Vui lòng đăng nhập lại tài khoản quản trị.") {
+    setIsSaving(false);
     clearAdminState();
     setSessionEmail(null);
     setPassword("");
@@ -311,7 +321,7 @@ function AdminPage() {
     setError(null);
     setNotice(null);
     setAccountNotice(null);
-    void supabase?.auth.signOut();
+    void supabase?.auth.signOut().catch(() => undefined);
   }
 
   useEffect(() => {
@@ -655,7 +665,18 @@ function AdminPage() {
     setNotice(null);
     setAccountNotice(null);
     setIsSaving(true);
-    const { data: sessionData } = await supabase.auth.getSession();
+    let sessionData;
+    try {
+      ({ data: sessionData } = await withTimeout(
+        supabase.auth.getSession(),
+        "Không kiểm tra được phiên đăng nhập. Anh thử tải lại trang rồi đổi mật khẩu lại.",
+        8000,
+      ));
+    } catch (sessionError) {
+      setIsSaving(false);
+      setError(sessionError instanceof Error ? sessionError.message : "Không kiểm tra được phiên đăng nhập.");
+      return;
+    }
     if (!sessionData.session) {
       setIsSaving(false);
       setSessionEmail(null);
@@ -664,7 +685,22 @@ function AdminPage() {
       setAuthError("Phiên đăng nhập đã hết hạn. Anh vui lòng đăng nhập lại rồi đổi mật khẩu.");
       return;
     }
-    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+    let updateError;
+    try {
+      ({ error: updateError } = await withTimeout(
+        supabase.auth.updateUser({ password: newPassword }),
+        "Yêu cầu đổi mật khẩu quá lâu chưa phản hồi. Mật khẩu có thể chưa được đổi, anh thử lại sau vài giây.",
+        10000,
+      ));
+    } catch (passwordError) {
+      setIsSaving(false);
+      setError(
+        passwordError instanceof Error
+          ? passwordError.message
+          : "Yêu cầu đổi mật khẩu quá lâu chưa phản hồi. Anh thử lại sau vài giây.",
+      );
+      return;
+    }
     if (updateError) {
       setIsSaving(false);
       const normalizedMessage = updateError.message.toLowerCase();
