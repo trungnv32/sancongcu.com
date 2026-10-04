@@ -281,6 +281,41 @@ function AdminPage() {
     [media, selectedSkillId],
   );
 
+  function clearAdminState() {
+    setIsAdminReady(false);
+    setHalls([]);
+    setSkills([]);
+    setMedia([]);
+    setOrders([]);
+    setWalletTopups([]);
+    setWebappJobs([]);
+    setPackages([]);
+    setEntitlements([]);
+    setComboSection(null);
+    setCombos([]);
+    setComboSkills([]);
+    setMenuItems([]);
+    setSitePages([]);
+    setFreeResources([]);
+    setSelectedHallId(null);
+    setSelectedSkillId(null);
+  }
+
+  async function signOutAdmin(message = "Anh đã đăng xuất. Vui lòng đăng nhập lại tài khoản quản trị.") {
+    setIsSaving(true);
+    await supabase?.auth.signOut();
+    setIsSaving(false);
+    clearAdminState();
+    setSessionEmail(null);
+    setPassword("");
+    setResetSent(false);
+    setAuthNotice(null);
+    setAuthError(message);
+    setError(null);
+    setNotice(null);
+    setAccountNotice(null);
+  }
+
   useEffect(() => {
     if (!supabase) {
       setIsLoading(false);
@@ -294,23 +329,7 @@ function AdminPage() {
       const nextEmail = nextSession?.user.email?.toLowerCase() ?? null;
       setSessionEmail(nextEmail);
       if (!nextEmail) {
-        setIsAdminReady(false);
-        setHalls([]);
-        setSkills([]);
-        setMedia([]);
-        setOrders([]);
-        setWalletTopups([]);
-        setWebappJobs([]);
-        setPackages([]);
-        setEntitlements([]);
-        setComboSection(null);
-        setCombos([]);
-        setComboSkills([]);
-        setMenuItems([]);
-        setSitePages([]);
-        setFreeResources([]);
-        setSelectedHallId(null);
-        setSelectedSkillId(null);
+        clearAdminState();
       }
     });
     return () => subscription.subscription.unsubscribe();
@@ -642,6 +661,7 @@ function AdminPage() {
     if (!sessionData.session) {
       setIsSaving(false);
       setSessionEmail(null);
+      clearAdminState();
       setAuthNotice(null);
       setAuthError("Phiên đăng nhập đã hết hạn. Anh vui lòng đăng nhập lại rồi đổi mật khẩu.");
       return;
@@ -657,15 +677,7 @@ function AdminPage() {
       );
     } else {
       event.currentTarget.reset();
-      await supabase.auth.signOut();
-      setIsSaving(false);
-      setSessionEmail(null);
-      setPassword("");
-      setResetSent(false);
-      setAuthError(null);
-      setAuthNotice("Đã đổi mật khẩu thành công. Anh đăng nhập lại bằng mật khẩu mới.");
-      setAccountNotice(null);
-      setNotice(null);
+      await signOutAdmin("Đã đổi mật khẩu thành công. Anh đăng nhập lại bằng mật khẩu mới.");
     }
   }
 
@@ -1401,11 +1413,7 @@ function AdminPage() {
         message={error ?? "Chưa thể xác thực đầy đủ quyền quản trị."}
         isSaving={isSaving}
         onRetry={loadCatalog}
-        onSignOut={async () => {
-          setAuthNotice(null);
-          setAuthError("Anh đã đăng xuất. Vui lòng đăng nhập lại tài khoản quản trị.");
-          await supabase?.auth.signOut();
-        }}
+        onSignOut={signOutAdmin}
       />
     );
 
@@ -1429,7 +1437,7 @@ function AdminPage() {
             </div>
           </div>
           <button
-            onClick={() => void supabase?.auth.signOut()}
+            onClick={() => void signOutAdmin()}
             className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-muted-foreground transition hover:bg-muted hover:text-foreground"
           >
             <LogOut className="size-4" /> <span className="hidden sm:inline">Đăng xuất</span>
