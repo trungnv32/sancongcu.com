@@ -256,6 +256,7 @@ function AdminPage() {
   const [selectedHallId, setSelectedHallId] = useState<string | null>(null);
   const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdminReady, setIsAdminReady] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -290,18 +291,40 @@ function AdminPage() {
       setIsLoading(false);
     });
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSessionEmail(nextSession?.user.email?.toLowerCase() ?? null);
+      const nextEmail = nextSession?.user.email?.toLowerCase() ?? null;
+      setSessionEmail(nextEmail);
+      if (!nextEmail) {
+        setIsAdminReady(false);
+        setHalls([]);
+        setSkills([]);
+        setMedia([]);
+        setOrders([]);
+        setWalletTopups([]);
+        setWebappJobs([]);
+        setPackages([]);
+        setEntitlements([]);
+        setComboSection(null);
+        setCombos([]);
+        setComboSkills([]);
+        setMenuItems([]);
+        setSitePages([]);
+        setFreeResources([]);
+        setSelectedHallId(null);
+        setSelectedSkillId(null);
+      }
     });
     return () => subscription.subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
     if (sessionEmail && adminEmails.has(sessionEmail)) void loadCatalog();
+    else setIsAdminReady(false);
   }, [sessionEmail]);
 
   async function loadCatalog() {
     if (!supabase) return;
     setIsLoading(true);
+    setIsAdminReady(false);
     setError(null);
     const [
       hallResult,
@@ -357,6 +380,22 @@ function AdminPage() {
       resourceResult.error;
     if (requestError) {
       setError(`Không thể tải dữ liệu: ${requestError.message}`);
+      setHalls([]);
+      setSkills([]);
+      setMedia([]);
+      setOrders([]);
+      setWalletTopups([]);
+      setWebappJobs([]);
+      setPackages([]);
+      setEntitlements([]);
+      setComboSection(null);
+      setCombos([]);
+      setComboSkills([]);
+      setMenuItems([]);
+      setSitePages([]);
+      setFreeResources([]);
+      setSelectedHallId(null);
+      setSelectedSkillId(null);
     } else {
       const nextHalls = (hallResult.data ?? []) as Hall[];
       const nextSkills = (skillResult.data ?? []) as Skill[];
@@ -383,6 +422,7 @@ function AdminPage() {
       );
       setSelectedHallId((current) => current ?? nextHalls[0]?.id ?? null);
       setSelectedSkillId((current) => current ?? nextSkills[0]?.id ?? null);
+      setIsAdminReady(true);
     }
     setIsLoading(false);
   }
@@ -1347,6 +1387,19 @@ function AdminPage() {
       <SetupMessage
         title="Tài khoản chưa được cấp quyền"
         message={`Email ${sessionEmail} đã đăng nhập nhưng chưa có quyền quản trị.`}
+      />
+    );
+  if (!isAdminReady)
+    return (
+      <AdminAccessBlocked
+        message={error ?? "Chưa thể xác thực đầy đủ quyền quản trị."}
+        isSaving={isSaving}
+        onRetry={loadCatalog}
+        onSignOut={async () => {
+          setAuthNotice(null);
+          setAuthError("Anh đã đăng xuất. Vui lòng đăng nhập lại tài khoản quản trị.");
+          await supabase?.auth.signOut();
+        }}
       />
     );
 
@@ -3525,6 +3578,53 @@ function SetupMessage({ title, message }: { title: string; message: string }) {
     </main>
   );
 }
+
+function AdminAccessBlocked({
+  message,
+  isSaving,
+  onRetry,
+  onSignOut,
+}: {
+  message: string;
+  isSaving: boolean;
+  onRetry: () => Promise<void>;
+  onSignOut: () => Promise<void>;
+}) {
+  return (
+    <main className="grid min-h-screen place-items-center bg-soft-gradient px-5">
+      <section className="w-full max-w-xl rounded-3xl border-2 border-red-300 bg-card p-6 text-center shadow-card sm:p-8">
+        <CircleAlert className="mx-auto size-10 text-red-600" />
+        <h1 className="mt-4 text-2xl font-bold text-red-700">Chưa mở được trang quản trị</h1>
+        <p className="mt-3 rounded-2xl bg-red-50 p-4 text-base font-bold leading-7 text-red-700">
+          {message}
+        </p>
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">
+          Để tránh sửa nhầm dữ liệu, trang quản trị đã bị khóa cho tới khi xác thực và tải dữ liệu
+          thành công.
+        </p>
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            disabled={isSaving}
+            onClick={() => void onRetry()}
+            className="inline-flex min-h-12 items-center justify-center rounded-xl bg-foreground px-4 font-bold text-background transition hover:opacity-90 disabled:opacity-60"
+          >
+            Thử tải lại
+          </button>
+          <button
+            type="button"
+            disabled={isSaving}
+            onClick={() => void onSignOut()}
+            className="inline-flex min-h-12 items-center justify-center rounded-xl border border-border px-4 font-bold text-foreground transition hover:bg-muted disabled:opacity-60"
+          >
+            Đăng nhập lại
+          </button>
+        </div>
+      </section>
+    </main>
+  );
+}
+
 function LoginPage({
   email,
   setEmail,
