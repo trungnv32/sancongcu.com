@@ -708,6 +708,14 @@ function AdminPage() {
     setNotice(null);
     setAccountNotice(null);
     setIsSaving(true);
+    let didTimeout = false;
+    const watchdogId = window.setTimeout(() => {
+      didTimeout = true;
+      setIsSaving(false);
+      setError(
+        "Yêu cầu đổi mật khẩu quá lâu chưa phản hồi. Nút đã được mở lại, anh thử tải lại trang rồi thao tác lại.",
+      );
+    }, 12000);
     let sessionData;
     try {
       ({ data: sessionData } = await withTimeout(
@@ -715,12 +723,15 @@ function AdminPage() {
         "Không kiểm tra được phiên đăng nhập. Anh thử tải lại trang rồi đổi mật khẩu lại.",
         8000,
       ));
+      if (didTimeout) return;
     } catch (sessionError) {
+      window.clearTimeout(watchdogId);
       setIsSaving(false);
       setError(sessionError instanceof Error ? sessionError.message : "Không kiểm tra được phiên đăng nhập.");
       return;
     }
     if (!sessionData.session) {
+      window.clearTimeout(watchdogId);
       setIsSaving(false);
       setSessionEmail(null);
       clearAdminState();
@@ -730,7 +741,9 @@ function AdminPage() {
     }
     try {
       await updatePasswordDirect(sessionData.session.access_token, newPassword);
+      if (didTimeout) return;
     } catch (passwordError) {
+      window.clearTimeout(watchdogId);
       setIsSaving(false);
       const message =
         passwordError instanceof Error
@@ -746,6 +759,7 @@ function AdminPage() {
       );
       return;
     }
+    window.clearTimeout(watchdogId);
     event.currentTarget.reset();
     await signOutAdmin("Đã đổi mật khẩu thành công. Anh đăng nhập lại bằng mật khẩu mới.");
   }
