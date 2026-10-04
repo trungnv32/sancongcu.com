@@ -691,7 +691,8 @@ function AdminPage() {
   async function updateAdminPassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!supabase) return;
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const newPassword = String(form.get("new_password") ?? "");
     const confirmPassword = String(form.get("confirm_password") ?? "");
     if (newPassword.length < 6) {
@@ -760,7 +761,7 @@ function AdminPage() {
       return;
     }
     window.clearTimeout(watchdogId);
-    event.currentTarget.reset();
+    formElement.reset();
     await signOutAdmin("Đã đổi mật khẩu thành công. Anh đăng nhập lại bằng mật khẩu mới.");
   }
 
