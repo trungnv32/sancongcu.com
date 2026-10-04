@@ -592,10 +592,23 @@ function AdminPage() {
     setNotice(null);
     setAccountNotice(null);
     setIsSaving(true);
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      setIsSaving(false);
+      setSessionEmail(null);
+      setError("Phiên đăng nhập đã hết hạn. Anh vui lòng đăng nhập lại rồi đổi mật khẩu.");
+      return;
+    }
     const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
     setIsSaving(false);
-    if (updateError) setError(updateError.message);
-    else {
+    if (updateError) {
+      const normalizedMessage = updateError.message.toLowerCase();
+      setError(
+        normalizedMessage.includes("auth session missing")
+          ? "Phiên đăng nhập đã hết hạn. Anh vui lòng đăng nhập lại rồi đổi mật khẩu."
+          : `Chưa đổi được mật khẩu: ${updateError.message}`,
+      );
+    } else {
       event.currentTarget.reset();
       setAccountNotice("Đã đổi mật khẩu thành công.");
       setNotice("Đã đổi mật khẩu quản trị.");
@@ -3466,11 +3479,15 @@ function Alert({
   return (
     <div
       role="alert"
-      className={`flex items-start gap-3 rounded-xl border p-4 text-sm ${tone === "error" ? "border-destructive/30 bg-destructive/10 text-destructive" : "border-emerald-600/20 bg-emerald-50 text-emerald-800"}`}
+      className={`flex items-start gap-3 rounded-2xl border-2 p-5 text-base font-bold leading-7 shadow-sm ${
+        tone === "error"
+          ? "border-red-300 bg-red-50 text-red-700"
+          : "border-emerald-300 bg-emerald-50 text-emerald-800"
+      }`}
     >
-      <CircleAlert className="mt-0.5 size-4 shrink-0" />
+      <CircleAlert className="mt-0.5 size-5 shrink-0" />
       <p className="flex-1">{text}</p>
-      <button onClick={onClose} className="font-bold" aria-label="Đóng thông báo">
+      <button onClick={onClose} className="text-xl font-bold leading-none" aria-label="Đóng thông báo">
         ×
       </button>
     </div>
@@ -3619,8 +3636,8 @@ function AccountPanel({
         </div>
       </div>
       {notice && (
-        <div className="mt-5 rounded-xl border border-emerald-600/20 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
-          <Check className="mb-2 size-5" />
+        <div className="mt-5 rounded-2xl border-2 border-emerald-300 bg-emerald-50 p-5 text-base font-bold leading-7 text-emerald-800 shadow-sm">
+          <Check className="mb-2 size-6" />
           {notice}
         </div>
       )}
