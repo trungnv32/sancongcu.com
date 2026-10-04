@@ -371,7 +371,6 @@ function AdminPage() {
       packageResult.error ??
       entitlementResult.error ??
       topupResult.error ??
-      webappHistoryResult.error ??
       comboSectionResult.error ??
       comboResult.error ??
       comboSkillResult.error ??
@@ -413,13 +412,18 @@ function AdminPage() {
       setSitePages(mergeSitePages((pageResult.data ?? []) as SitePage[]));
       setFreeResources((resourceResult.data ?? []) as FreeResource[]);
       setWebappJobs(
-        ((webappHistoryResult.data?.jobs ?? []) as WebappJob[]).map((job) => ({
+        (
+          (webappHistoryResult.error ? [] : (webappHistoryResult.data?.jobs ?? [])) as WebappJob[]
+        ).map((job) => ({
           ...job,
           input_urls: job.input_urls ?? [],
           output_urls: job.output_urls ?? [],
           request_params: job.request_params ?? {},
         })),
       );
+      if (webappHistoryResult.error) {
+        setNotice("Trang quản trị đã mở. Riêng lịch sử tạo ảnh chưa tải được, anh có thể thử lại sau.");
+      }
       setSelectedHallId((current) => current ?? nextHalls[0]?.id ?? null);
       setSelectedSkillId((current) => current ?? nextSkills[0]?.id ?? null);
       setIsAdminReady(true);
@@ -567,6 +571,7 @@ function AdminPage() {
     event.preventDefault();
     if (!supabase) return;
     const normalized = email.trim().toLowerCase();
+    setResetSent(false);
     if (!adminEmails.has(normalized)) {
       setAuthNotice(null);
       setAuthError("Email này chưa có quyền quản trị.");
@@ -579,6 +584,7 @@ function AdminPage() {
     }
     setAuthError(null);
     setAuthNotice(null);
+    setResetSent(false);
     setIsSaving(true);
     const { error: authError } = await supabase.auth.signInWithPassword({
       email: normalized,
