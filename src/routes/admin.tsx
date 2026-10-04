@@ -235,6 +235,9 @@ function AdminPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [resetSent, setResetSent] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [authNotice, setAuthNotice] = useState<string | null>(null);
+  const [accountNotice, setAccountNotice] = useState<string | null>(null);
   const [sessionEmail, setSessionEmail] = useState<string | null>(null);
   const [halls, setHalls] = useState<Hall[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
@@ -525,40 +528,48 @@ function AdminPage() {
     if (!supabase) return;
     const normalized = email.trim().toLowerCase();
     if (!adminEmails.has(normalized)) {
-      setError("Email này chưa có quyền quản trị.");
+      setAuthNotice(null);
+      setAuthError("Email này chưa có quyền quản trị.");
       return;
     }
     if (!password) {
-      setError("Anh nhập mật khẩu để đăng nhập.");
+      setAuthNotice(null);
+      setAuthError("Anh nhập mật khẩu để đăng nhập.");
       return;
     }
-    setError(null);
+    setAuthError(null);
+    setAuthNotice(null);
     setIsSaving(true);
     const { error: authError } = await supabase.auth.signInWithPassword({
       email: normalized,
       password,
     });
     setIsSaving(false);
-    if (authError) setError("Email hoặc mật khẩu chưa đúng.");
+    if (authError) setAuthError("Email hoặc mật khẩu chưa đúng.");
   }
 
   async function sendPasswordReset(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!supabase) return;
     const normalized = email.trim().toLowerCase();
+    setResetSent(false);
+    setAuthNotice(null);
     if (!adminEmails.has(normalized)) {
-      setError("Email này chưa có quyền quản trị.");
+      setAuthError("Email này chưa có quyền quản trị nên không thể gửi link đặt lại mật khẩu.");
       return;
     }
-    setError(null);
-    setResetSent(false);
+    setAuthError(null);
     setIsSaving(true);
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(normalized, {
-      redirectTo: `${window.location.origin}/admin`,
+      redirectTo: new URL("/admin", window.location.origin).toString(),
     });
     setIsSaving(false);
-    if (resetError) setError(resetError.message);
-    else setResetSent(true);
+    if (resetError) {
+      setAuthError(`Chưa gửi được link đặt lại mật khẩu: ${resetError.message}`);
+    } else {
+      setResetSent(true);
+      setAuthNotice(`Đã gửi link đặt lại mật khẩu tới ${normalized}. Anh kiểm tra hộp thư đến hoặc spam.`);
+    }
   }
 
   async function updateAdminPassword(event: FormEvent<HTMLFormElement>) {
@@ -568,21 +579,25 @@ function AdminPage() {
     const newPassword = String(form.get("new_password") ?? "");
     const confirmPassword = String(form.get("confirm_password") ?? "");
     if (newPassword.length < 6) {
+      setAccountNotice(null);
       setError("Mật khẩu mới cần ít nhất 6 ký tự.");
       return;
     }
     if (newPassword !== confirmPassword) {
+      setAccountNotice(null);
       setError("Hai ô mật khẩu mới chưa giống nhau.");
       return;
     }
     setError(null);
     setNotice(null);
+    setAccountNotice(null);
     setIsSaving(true);
     const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
     setIsSaving(false);
     if (updateError) setError(updateError.message);
     else {
       event.currentTarget.reset();
+      setAccountNotice("Đã đổi mật khẩu thành công.");
       setNotice("Đã đổi mật khẩu quản trị.");
     }
   }
@@ -1297,7 +1312,8 @@ function AdminPage() {
         email={email}
         setEmail={setEmail}
         isSaving={isSaving}
-        error={error}
+        error={authError}
+        notice={authNotice}
         password={password}
         setPassword={setPassword}
         resetSent={resetSent}
@@ -1467,6 +1483,7 @@ function AdminPage() {
             <AccountPanel
               sessionEmail={sessionEmail}
               isSaving={isSaving}
+              notice={accountNotice}
               onPasswordChange={updateAdminPassword}
             />
           )}
@@ -3491,6 +3508,7 @@ function LoginPage({
   isSaving,
   resetSent,
   error,
+  notice,
   onSubmit,
   onPasswordReset,
 }: {
@@ -3501,6 +3519,7 @@ function LoginPage({
   isSaving: boolean;
   resetSent: boolean;
   error: string | null;
+  notice: string | null;
   onSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void>;
   onPasswordReset: (event: FormEvent<HTMLFormElement>) => Promise<void>;
 }) {
@@ -3520,7 +3539,7 @@ function LoginPage({
         {resetSent && (
           <div className="mt-5 rounded-xl bg-primary/10 p-4 text-sm leading-6 text-primary">
             <Check className="mb-2 size-5" />
-            Đã gửi link đặt lại mật khẩu. Anh mở email và làm theo hướng dẫn.
+            {notice ?? "Đã gửi link đặt lại mật khẩu. Anh mở email và làm theo hướng dẫn."}
           </div>
         )}
         <form onSubmit={(event) => void onSubmit(event)} className="mt-6 space-y-4">
@@ -3578,10 +3597,12 @@ function LoginPage({
 function AccountPanel({
   sessionEmail,
   isSaving,
+  notice,
   onPasswordChange,
 }: {
   sessionEmail: string | null;
   isSaving: boolean;
+  notice: string | null;
   onPasswordChange: (event: FormEvent<HTMLFormElement>) => Promise<void>;
 }) {
   return (
@@ -3597,6 +3618,12 @@ function AccountPanel({
           </p>
         </div>
       </div>
+      {notice && (
+        <div className="mt-5 rounded-xl border border-emerald-600/20 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
+          <Check className="mb-2 size-5" />
+          {notice}
+        </div>
+      )}
       <form onSubmit={(event) => void onPasswordChange(event)} className="mt-6 max-w-md space-y-4">
         <Field label="Mật khẩu mới">
           <input
