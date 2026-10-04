@@ -31,7 +31,12 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
-import { isSupabaseConfigured, supabase, supabaseUrl } from "@/lib/supabase";
+import {
+  isSupabaseConfigured,
+  supabase,
+  supabasePublishableKey,
+  supabaseUrl,
+} from "@/lib/supabase";
 import {
   defaultMenuItems,
   defaultSitePages,
@@ -206,6 +211,44 @@ function withTimeout<T>(promise: Promise<T>, message: string, timeoutMs = 10000)
       window.setTimeout(() => reject(new Error(message)), timeoutMs);
     }),
   ]);
+}
+
+async function updatePasswordDirect(accessToken: string, nextPassword: string) {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 10000);
+  try {
+    const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      method: "PUT",
+      headers: {
+        apikey: supabasePublishableKey,
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ password: nextPassword }),
+      signal: controller.signal,
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const message =
+        typeof payload?.msg === "string"
+          ? payload.msg
+          : typeof payload?.message === "string"
+            ? payload.message
+            : typeof payload?.error_description === "string"
+              ? payload.error_description
+              : "Supabase chưa đổi được mật khẩu.";
+      throw new Error(message);
+    }
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error(
+        "Yêu cầu đổi mật khẩu quá lâu chưa phản hồi. Mật khẩu có thể chưa được đổi, anh thử lại sau vài giây.",
+      );
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
 }
 
 function slugify(value: string) {
@@ -685,34 +728,26 @@ function AdminPage() {
       setAuthError("Phiên đăng nhập đã hết hạn. Anh vui lòng đăng nhập lại rồi đổi mật khẩu.");
       return;
     }
-    let updateError;
     try {
-      ({ error: updateError } = await withTimeout(
-        supabase.auth.updateUser({ password: newPassword }),
-        "Yêu cầu đổi mật khẩu quá lâu chưa phản hồi. Mật khẩu có thể chưa được đổi, anh thử lại sau vài giây.",
-        10000,
-      ));
+      await updatePasswordDirect(sessionData.session.access_token, newPassword);
     } catch (passwordError) {
       setIsSaving(false);
-      setError(
+      const message =
         passwordError instanceof Error
           ? passwordError.message
-          : "Yêu cầu đổi mật khẩu quá lâu chưa phản hồi. Anh thử lại sau vài giây.",
+          : "Yêu cầu đổi mật khẩu quá lâu chưa phản hồi. Anh thử lại sau vài giây.";
+      const normalizedMessage = message.toLowerCase();
+      setError(
+        normalizedMessage.includes("auth session missing") ||
+          normalizedMessage.includes("jwt") ||
+          normalizedMessage.includes("token")
+          ? "Phiên đăng nhập đã hết hạn. Anh vui lòng đăng nhập lại rồi đổi mật khẩu."
+          : `Chưa đổi được mật khẩu: ${message}`,
       );
       return;
     }
-    if (updateError) {
-      setIsSaving(false);
-      const normalizedMessage = updateError.message.toLowerCase();
-      setError(
-        normalizedMessage.includes("auth session missing")
-          ? "Phiên đăng nhập đã hết hạn. Anh vui lòng đăng nhập lại rồi đổi mật khẩu."
-          : `Chưa đổi được mật khẩu: ${updateError.message}`,
-      );
-    } else {
-      event.currentTarget.reset();
-      await signOutAdmin("Đã đổi mật khẩu thành công. Anh đăng nhập lại bằng mật khẩu mới.");
-    }
+    event.currentTarget.reset();
+    await signOutAdmin("Đã đổi mật khẩu thành công. Anh đăng nhập lại bằng mật khẩu mới.");
   }
 
   async function saveSkill(event: FormEvent<HTMLFormElement>) {
