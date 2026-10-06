@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Download, FileText } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowLeft, Download, FileText, LoaderCircle, Mail, X } from "lucide-react";
+import { useEffect, useState, type FormEvent } from "react";
 import sanCongCuLogo from "@/assets/sancongcu-logo-transparent.png";
 import {
   defaultSitePages,
@@ -27,6 +27,9 @@ function FreeResourcesPage() {
   const [page, setPage] = useState<SitePage>(fallbackPage);
   const [resources, setResources] = useState<FreeResource[]>([]);
   const [isLoading, setIsLoading] = useState(Boolean(supabase));
+  const [selectedResource, setSelectedResource] = useState<FreeResource | null>(null);
+  const [requestStatus, setRequestStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [requestMessage, setRequestMessage] = useState("");
 
   useEffect(() => {
     if (!supabase) return;
@@ -42,6 +45,7 @@ function FreeResourcesPage() {
             .from("free_resources")
             .select("id,title,description,file_url,file_name,sort_order,is_visible")
             .eq("is_visible", true)
+            .neq("file_url", "")
             .order("sort_order"),
         ]);
         if (pageResult.data) setPage(pageResult.data as SitePage);
@@ -51,6 +55,36 @@ function FreeResourcesPage() {
       }
     })();
   }, []);
+
+  async function requestDownload(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!supabase || !selectedResource) return;
+    const form = new FormData(event.currentTarget);
+    const fullName = String(form.get("full_name") || "").trim();
+    const email = String(form.get("email") || "").trim().toLowerCase();
+    if (!fullName || !email) {
+      setRequestStatus("error");
+      setRequestMessage("Anh/chị vui lòng nhập đủ tên và email.");
+      return;
+    }
+
+    setRequestStatus("sending");
+    setRequestMessage("");
+    const { data, error } = await supabase.functions.invoke("free-resource-request", {
+      body: { resourceId: selectedResource.id, fullName, email },
+    });
+
+    if (error) {
+      setRequestStatus("error");
+      setRequestMessage(error.message || "Chưa gửi được email. Vui lòng thử lại.");
+      return;
+    }
+
+    setRequestStatus("sent");
+    setRequestMessage(
+      data?.message || "Đã gửi link tải vào email của anh/chị. Vui lòng kiểm tra hộp thư.",
+    );
+  }
 
   return (
     <main className="min-h-screen bg-soft-gradient">
@@ -105,15 +139,18 @@ function FreeResourcesPage() {
                 <p className="mt-3 flex-1 text-sm leading-6 text-muted-foreground">
                   {resource.description || "Tài nguyên miễn phí từ sancongcu.com."}
                 </p>
-                <a
-                  href={resource.file_url}
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedResource(resource);
+                    setRequestStatus("idle");
+                    setRequestMessage("");
+                  }}
                   className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-brand-gradient px-4 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90"
                 >
                   <Download className="size-4" />
                   Tải về
-                </a>
+                </button>
                 {resource.file_name && (
                   <p className="mt-2 truncate text-center text-xs text-muted-foreground">
                     {resource.file_name}
@@ -133,6 +170,75 @@ function FreeResourcesPage() {
           </div>
         )}
       </section>
+
+      {selectedResource && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/45 px-4 py-6">
+          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                  Nhận link tải
+                </p>
+                <h2 className="mt-2 text-2xl leading-tight">{selectedResource.title}</h2>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Nhập thông tin, hệ thống sẽ gửi link tải tài nguyên vào email.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedResource(null)}
+                className="grid size-10 shrink-0 place-items-center rounded-full border border-border hover:bg-muted"
+                aria-label="Đóng"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+            <form onSubmit={(event) => void requestDownload(event)} className="mt-5 space-y-4">
+              <label className="block text-sm font-bold">
+                Tên
+                <input
+                  name="full_name"
+                  autoComplete="name"
+                  className="mt-2 h-12 w-full rounded-xl border border-border bg-background px-4 outline-none transition focus:border-primary"
+                  placeholder="Nguyễn Văn A"
+                />
+              </label>
+              <label className="block text-sm font-bold">
+                Email
+                <input
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  className="mt-2 h-12 w-full rounded-xl border border-border bg-background px-4 outline-none transition focus:border-primary"
+                  placeholder="email@domain.com"
+                />
+              </label>
+              {requestMessage && (
+                <p
+                  className={`rounded-xl p-3 text-sm leading-6 ${
+                    requestStatus === "sent"
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "bg-destructive/10 text-destructive"
+                  }`}
+                >
+                  {requestMessage}
+                </p>
+              )}
+              <button
+                disabled={requestStatus === "sending"}
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-brand-gradient px-4 text-sm font-bold text-primary-foreground shadow-brand disabled:opacity-60"
+              >
+                {requestStatus === "sending" ? (
+                  <LoaderCircle className="size-4 animate-spin" />
+                ) : (
+                  <Mail className="size-4" />
+                )}
+                Gửi link tải qua email
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

@@ -1172,6 +1172,7 @@ function AdminPage() {
       sort_order: Number(form.get("sort_order") || 0),
       updated_at: new Date().toISOString(),
     };
+    update.is_visible = update.is_visible && Boolean(update.file_url);
     const { data, error: saveError } = await supabase
       .from("free_resources")
       .update(update)
@@ -1187,6 +1188,24 @@ function AdminPage() {
           .sort((a, b) => a.sort_order - b.sort_order),
       );
       setNotice("Đã lưu tài nguyên.");
+    }
+  }
+
+  async function deleteResource(resource: FreeResource) {
+    if (!supabase) return;
+    const confirmed = window.confirm(`Xoá tài nguyên "${resource.title}"?`);
+    if (!confirmed) return;
+    setIsSaving(true);
+    setError(null);
+    const { error: deleteError } = await supabase
+      .from("free_resources")
+      .delete()
+      .eq("id", resource.id);
+    setIsSaving(false);
+    if (deleteError) setError(deleteError.message);
+    else {
+      setFreeResources((current) => current.filter((item) => item.id !== resource.id));
+      setNotice("Đã xoá tài nguyên.");
     }
   }
 
@@ -1696,6 +1715,7 @@ function AdminPage() {
               onSavePage={saveSitePage}
               onCreateResource={createResource}
               onSaveResource={saveResource}
+              onDeleteResource={deleteResource}
               onUploadResource={uploadResourceFile}
             />
           )}
@@ -3099,6 +3119,7 @@ function PagesPanel({
   onSavePage,
   onCreateResource,
   onSaveResource,
+  onDeleteResource,
   onUploadResource,
 }: {
   menuItems: SiteMenuItem[];
@@ -3109,6 +3130,7 @@ function PagesPanel({
   onSavePage: (event: FormEvent<HTMLFormElement>, page: SitePage) => Promise<void>;
   onCreateResource: () => Promise<void>;
   onSaveResource: (event: FormEvent<HTMLFormElement>, resource: FreeResource) => Promise<void>;
+  onDeleteResource: (resource: FreeResource) => Promise<void>;
   onUploadResource: (
     event: ChangeEvent<HTMLInputElement>,
     resource: FreeResource,
@@ -3489,7 +3511,7 @@ function PagesPanel({
           </button>
         </div>
         <div className="mt-5 grid gap-4 xl:grid-cols-2">
-          {freeResources.map((resource) => (
+          {freeResources.length > 0 ? freeResources.map((resource) => (
             <form
               key={resource.id}
               onSubmit={(event) => void onSaveResource(event, resource)}
@@ -3530,12 +3552,26 @@ function PagesPanel({
                   maxLength={180}
                 />
               </div>
+              {!resource.file_url && (
+                <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm font-semibold text-amber-700">
+                  Tài nguyên này chưa có URL file nên sẽ không hiển thị ngoài trang khách.
+                </p>
+              )}
               <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
                 <label className="inline-flex items-center gap-2 text-sm font-bold">
                   <input type="checkbox" name="is_visible" defaultChecked={resource.is_visible} />
                   Hiển thị
                 </label>
                 <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void onDeleteResource(resource)}
+                    disabled={isSaving}
+                    className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-destructive/30 px-4 text-sm font-bold text-destructive transition hover:bg-destructive/10 disabled:opacity-60"
+                  >
+                    <Trash2 className="size-4" />
+                    Xoá
+                  </button>
                   <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-border px-4 text-sm font-bold transition hover:bg-muted">
                     <Upload className="size-4" />
                     Tải file
@@ -3555,7 +3591,11 @@ function PagesPanel({
                 </div>
               </div>
             </form>
-          ))}
+          )) : (
+            <p className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground xl:col-span-2">
+              Chưa có tài nguyên nào.
+            </p>
+          )}
         </div>
       </section>
       )}
