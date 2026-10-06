@@ -45,7 +45,7 @@ Deno.serve(async (request) => {
   const fullName = typeof payload?.fullName === "string" ? payload.fullName.trim().slice(0, 120) : "";
   const email = typeof payload?.email === "string" ? payload.email.trim().toLowerCase() : "";
 
-  if (!resourceId || !fullName || !isEmail(email)) {
+  if (!resourceId || !isEmail(email)) {
     return json(request, { error: "Thông tin nhận tài nguyên chưa hợp lệ." }, 400);
   }
 
@@ -91,13 +91,15 @@ Deno.serve(async (request) => {
   const subject = `Link tải: ${resource.title}`;
   const safeName = fullName.replace(/[<>&"]/g, "");
   const safeTitle = String(resource.title).replace(/[<>&"]/g, "");
+  const greeting = safeName ? `Chào ${safeName},` : "Chào anh/chị,";
   const html = `
     <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827">
-      <p>Chào ${safeName},</p>
+      <p>${greeting}</p>
       <p>Đây là link tải tài nguyên <strong>${safeTitle}</strong> từ sancongcu.com:</p>
       <p><a href="${resource.file_url}" style="display:inline-block;background:#2563eb;color:#ffffff;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700">Tải tài nguyên</a></p>
       <p>Nếu nút không mở được, anh/chị có thể dùng link này:<br><a href="${resource.file_url}">${resource.file_url}</a></p>
       <p>Chúc anh/chị sử dụng hiệu quả.</p>
+      <p>Email này chỉ gửi, vui lòng không reply lại email này.</p>
     </div>
   `;
 

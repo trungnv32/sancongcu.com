@@ -62,9 +62,9 @@ function FreeResourcesPage() {
     const form = new FormData(event.currentTarget);
     const fullName = String(form.get("full_name") || "").trim();
     const email = String(form.get("email") || "").trim().toLowerCase();
-    if (!fullName || !email) {
+    if (!email) {
       setRequestStatus("error");
-      setRequestMessage("Anh/chị vui lòng nhập đủ tên và email.");
+      setRequestMessage("Anh/chị vui lòng nhập email.");
       return;
     }
 
@@ -200,7 +200,6 @@ function FreeResourcesPage() {
                   name="full_name"
                   autoComplete="name"
                   className="mt-2 h-12 w-full rounded-xl border border-border bg-background px-4 outline-none transition focus:border-primary"
-                  placeholder="Nguyễn Văn A"
                 />
               </label>
               <label className="block text-sm font-bold">
@@ -209,6 +208,7 @@ function FreeResourcesPage() {
                   name="email"
                   type="email"
                   autoComplete="email"
+                  required
                   className="mt-2 h-12 w-full rounded-xl border border-border bg-background px-4 outline-none transition focus:border-primary"
                   placeholder="email@domain.com"
                 />
