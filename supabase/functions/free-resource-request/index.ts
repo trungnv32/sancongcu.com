@@ -118,19 +118,22 @@ Deno.serve(async (request) => {
   const mailPayload = await mailResponse.json().catch(() => null);
 
   if (!mailResponse.ok) {
+    const resendError =
+      typeof mailPayload?.message === "string"
+        ? mailPayload.message
+        : typeof mailPayload?.error === "string"
+          ? mailPayload.error
+          : "Resend chưa gửi được email.";
     if (lead?.id) {
       await admin
         .from("free_resource_leads")
         .update({
           email_status: "failed",
-          email_error:
-            typeof mailPayload?.message === "string"
-              ? mailPayload.message.slice(0, 500)
-              : "Resend chưa gửi được email.",
+          email_error: resendError.slice(0, 500),
         })
         .eq("id", lead.id);
     }
-    return json(request, { error: "Chưa gửi được email. Vui lòng thử lại." }, 502);
+    return json(request, { error: `Resend báo lỗi: ${resendError}` }, 502);
   }
 
   if (lead?.id) {
