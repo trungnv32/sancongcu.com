@@ -225,7 +225,8 @@ function FreeResourcesPage() {
                 </p>
               )}
               <button
-                disabled={requestStatus === "sending"}
+                type="submit"
+                disabled={requestStatus !== "idle"}
                 className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-brand-gradient px-4 text-sm font-bold text-primary-foreground shadow-brand disabled:opacity-60"
               >
                 {requestStatus === "sending" ? (
