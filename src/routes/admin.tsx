@@ -1250,11 +1250,11 @@ function AdminPage() {
 
   async function uploadResourceThumbnail(event: ChangeEvent<HTMLInputElement>, resource: FreeResource) {
     const file = event.target.files?.[0];
-    if (!supabase || !file) return;
+    if (!supabase || !file) return false;
     if (!file.type.startsWith("image/")) {
       setError("Chỉ tải lên tệp ảnh thumbnail.");
       event.target.value = "";
-      return;
+      return false;
     }
     setIsSaving(true);
     setError(null);
@@ -1277,12 +1277,15 @@ function AdminPage() {
         setFreeResources((current) =>
           current.map((item) => (item.id === data.id ? (data as FreeResource) : item)),
         );
-      setNotice("Đã tải ảnh thumbnail.");
+      event.target.value = "";
+      setIsSaving(false);
+      return true;
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : "Không thể tải thumbnail lên.");
     }
     event.target.value = "";
     setIsSaving(false);
+    return false;
   }
 
   async function uploadFile(
@@ -3232,7 +3235,7 @@ function PagesPanel({
   onUploadResourceThumbnail: (
     event: ChangeEvent<HTMLInputElement>,
     resource: FreeResource,
-  ) => Promise<void>;
+  ) => Promise<boolean>;
 }) {
   const parentMenuItems = menuItems
     .filter((item) => !item.parent_id)
@@ -3269,6 +3272,7 @@ function PagesPanel({
     sortedSitePages.find((page) => page.id === activeParentMenu?.id) ??
     null;
   const [dirtyForms, setDirtyForms] = useState<Record<string, boolean>>({});
+  const [thumbnailMessages, setThumbnailMessages] = useState<Record<string, string>>({});
   const markDirty = (formKey: string) =>
     setDirtyForms((current) => ({ ...current, [formKey]: true }));
   const markSaved = (formKey: string) =>
@@ -3674,19 +3678,32 @@ function PagesPanel({
                     defaultValue={resource.thumbnail_url}
                     maxLength={500}
                   />
-                  <label className="mt-2 inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-border px-4 text-sm font-bold transition hover:bg-muted">
-                    <ImagePlus className="size-4" />
-                    Tải ảnh thumbnail
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="sr-only"
-                      onChange={(event) => {
-                        event.stopPropagation();
-                        void onUploadResourceThumbnail(event, resource);
-                      }}
-                    />
-                  </label>
+                  <div className="mt-2 flex flex-wrap items-center gap-3">
+                    <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-border px-4 text-sm font-bold transition hover:bg-muted">
+                      <ImagePlus className="size-4" />
+                      Tải ảnh thumbnail
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="sr-only"
+                        onChange={(event) => {
+                          event.stopPropagation();
+                          void onUploadResourceThumbnail(event, resource).then((isUploaded) => {
+                            if (!isUploaded) return;
+                            setThumbnailMessages((current) => ({
+                              ...current,
+                              [resource.id]: "Đã tải ảnh thumbnail.",
+                            }));
+                          });
+                        }}
+                      />
+                    </label>
+                    {thumbnailMessages[resource.id] && (
+                      <p className="inline-flex min-h-10 items-center rounded-xl bg-emerald-50 px-3 text-sm font-semibold text-emerald-700">
+                        {thumbnailMessages[resource.id]}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="mt-3 grid gap-3 lg:grid-cols-2">
