@@ -1277,7 +1277,7 @@ function AdminPage() {
         setFreeResources((current) =>
           current.map((item) => (item.id === data.id ? (data as FreeResource) : item)),
         );
-      setNotice("Đã tải ảnh thumbnail lên.");
+      setNotice("Đã tải ảnh thumbnail.");
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : "Không thể tải thumbnail lên.");
     }
