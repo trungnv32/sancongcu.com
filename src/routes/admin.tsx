@@ -3683,7 +3683,6 @@ function PagesPanel({
                       className="sr-only"
                       onChange={(event) => {
                         event.stopPropagation();
-                        markDirty(`resource-${resource.id}`);
                         void onUploadResourceThumbnail(event, resource);
                       }}
                     />
