@@ -30,6 +30,7 @@ create table if not exists public.free_resources (
   id uuid primary key default gen_random_uuid(),
   title text not null check (char_length(title) <= 180),
   description text not null default '' check (char_length(description) <= 700),
+  thumbnail_url text not null default '',
   file_url text not null default '',
   file_name text not null default '' check (char_length(file_name) <= 220),
   sort_order integer not null default 0,

@@ -26,6 +26,7 @@ export type FreeResource = {
   id: string;
   title: string;
   description: string;
+  thumbnail_url: string;
   file_url: string;
   file_name: string;
   sort_order: number;

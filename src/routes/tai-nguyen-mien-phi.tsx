@@ -28,6 +28,7 @@ function FreeResourcesPage() {
   const [resources, setResources] = useState<FreeResource[]>([]);
   const [isLoading, setIsLoading] = useState(Boolean(supabase));
   const [selectedResource, setSelectedResource] = useState<FreeResource | null>(null);
+  const [previewResource, setPreviewResource] = useState<FreeResource | null>(null);
   const [requestStatus, setRequestStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [requestMessage, setRequestMessage] = useState("");
 
@@ -43,7 +44,7 @@ function FreeResourcesPage() {
             .maybeSingle(),
           supabase
             .from("free_resources")
-            .select("id,title,description,file_url,file_name,sort_order,is_visible")
+            .select("id,title,description,thumbnail_url,file_url,file_name,sort_order,is_visible")
             .eq("is_visible", true)
             .neq("file_url", "")
             .order("sort_order"),
@@ -84,6 +85,12 @@ function FreeResourcesPage() {
     setRequestMessage(
       data?.message || "Đã gửi link tải vào email của anh/chị. Vui lòng kiểm tra hộp thư.",
     );
+  }
+
+  function openDownloadForm(resource: FreeResource) {
+    setSelectedResource(resource);
+    setRequestStatus("idle");
+    setRequestMessage("");
   }
 
   return (
@@ -130,32 +137,59 @@ function FreeResourcesPage() {
             {resources.map((resource) => (
               <article
                 key={resource.id}
-                className="flex min-h-72 flex-col rounded-2xl border border-border bg-card p-6 shadow-card"
+                className="flex min-h-72 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card"
               >
-                <div className="grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary">
-                  <FileText className="size-6" />
-                </div>
-                <h2 className="mt-5 text-xl leading-snug">{resource.title}</h2>
-                <p className="mt-3 flex-1 text-sm leading-6 text-muted-foreground">
-                  {resource.description || "Tài nguyên miễn phí từ sancongcu.com."}
-                </p>
                 <button
                   type="button"
-                  onClick={() => {
-                    setSelectedResource(resource);
-                    setRequestStatus("idle");
-                    setRequestMessage("");
-                  }}
-                  className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-brand-gradient px-4 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90"
+                  onClick={() => setPreviewResource(resource)}
+                  className="group block h-40 w-full bg-secondary text-left"
+                  aria-label={`Đọc tài nguyên ${resource.title}`}
                 >
-                  <Download className="size-4" />
-                  Tải về
+                  {resource.thumbnail_url ? (
+                    <img
+                      src={resource.thumbnail_url}
+                      alt={resource.title}
+                      className="h-full w-full object-cover transition group-hover:scale-[1.02]"
+                    />
+                  ) : (
+                    <span className="grid h-full w-full place-items-center text-primary">
+                      <span className="grid size-14 place-items-center rounded-2xl bg-primary/10">
+                        <FileText className="size-7" />
+                      </span>
+                    </span>
+                  )}
                 </button>
-                {resource.file_name && (
-                  <p className="mt-2 truncate text-center text-xs text-muted-foreground">
-                    {resource.file_name}
-                  </p>
-                )}
+                <div className="flex flex-1 flex-col p-6">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewResource(resource)}
+                    className="text-left"
+                  >
+                    <h2 className="text-xl leading-snug transition hover:text-primary">
+                      {resource.title}
+                    </h2>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewResource(resource)}
+                    className="mt-3 flex-1 text-left text-sm leading-6 text-muted-foreground transition hover:text-foreground"
+                  >
+                    {resource.description || "Tài nguyên miễn phí từ sancongcu.com."}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openDownloadForm(resource)}
+                    className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-brand-gradient px-4 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90"
+                  >
+                    <Download className="size-4" />
+                    Tải về
+                  </button>
+                  {resource.file_name && (
+                    <p className="mt-2 truncate text-center text-xs text-muted-foreground">
+                      {resource.file_name}
+                    </p>
+                  )}
+                </div>
               </article>
             ))}
           </div>
@@ -170,6 +204,44 @@ function FreeResourcesPage() {
           </div>
         )}
       </section>
+
+      {previewResource && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/45 px-4 py-6">
+          <div className="flex h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-border p-4">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                  Đọc tài liệu
+                </p>
+                <h2 className="mt-1 truncate text-xl leading-tight">{previewResource.title}</h2>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => openDownloadForm(previewResource)}
+                  className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-brand-gradient px-4 text-sm font-bold text-primary-foreground shadow-brand"
+                >
+                  <Download className="size-4" />
+                  Tải về
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewResource(null)}
+                  className="grid size-10 place-items-center rounded-full border border-border hover:bg-muted"
+                  aria-label="Đóng"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+            </div>
+            <iframe
+              title={previewResource.title}
+              src={`${previewResource.file_url}#toolbar=0&navpanes=0&scrollbar=1`}
+              className="min-h-0 flex-1 bg-background"
+            />
+          </div>
+        </div>
+      )}
 
       {selectedResource && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/45 px-4 py-6">

@@ -1148,6 +1148,7 @@ function AdminPage() {
       .insert({
         title: `Tài nguyên mới ${number}`,
         description: "Mô tả ngắn cho tài nguyên.",
+        thumbnail_url: "",
         file_url: "",
         file_name: "",
         is_visible: false,
@@ -1172,6 +1173,7 @@ function AdminPage() {
     const update = {
       title: String(form.get("title") || "").trim(),
       description: String(form.get("description") || "").trim(),
+      thumbnail_url: String(form.get("thumbnail_url") || "").trim(),
       file_url: String(form.get("file_url") || "").trim(),
       file_name: String(form.get("file_name") || "").trim(),
       is_visible: form.get("is_visible") === "on",
@@ -1241,6 +1243,43 @@ function AdminPage() {
       setNotice("Đã tải file tài nguyên lên.");
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : "Không thể tải file lên.");
+    }
+    event.target.value = "";
+    setIsSaving(false);
+  }
+
+  async function uploadResourceThumbnail(event: ChangeEvent<HTMLInputElement>, resource: FreeResource) {
+    const file = event.target.files?.[0];
+    if (!supabase || !file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Chỉ tải lên tệp ảnh thumbnail.");
+      event.target.value = "";
+      return;
+    }
+    setIsSaving(true);
+    setError(null);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${resource.id}/thumbnail-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("free-resources")
+        .upload(path, file, { contentType: file.type });
+      if (uploadError) throw uploadError;
+      const url = supabase.storage.from("free-resources").getPublicUrl(path).data.publicUrl;
+      const { data, error: updateError } = await supabase
+        .from("free_resources")
+        .update({ thumbnail_url: url })
+        .eq("id", resource.id)
+        .select()
+        .single();
+      if (updateError) throw updateError;
+      if (data)
+        setFreeResources((current) =>
+          current.map((item) => (item.id === data.id ? (data as FreeResource) : item)),
+        );
+      setNotice("Đã tải ảnh thumbnail lên.");
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Không thể tải thumbnail lên.");
     }
     event.target.value = "";
     setIsSaving(false);
@@ -1723,6 +1762,7 @@ function AdminPage() {
               onSaveResource={saveResource}
               onDeleteResource={deleteResource}
               onUploadResource={uploadResourceFile}
+              onUploadResourceThumbnail={uploadResourceThumbnail}
             />
           )}
           {adminSection === "catalog" && selectedHall && (
@@ -3174,6 +3214,7 @@ function PagesPanel({
   onSaveResource,
   onDeleteResource,
   onUploadResource,
+  onUploadResourceThumbnail,
 }: {
   menuItems: SiteMenuItem[];
   sitePages: SitePage[];
@@ -3185,6 +3226,10 @@ function PagesPanel({
   onSaveResource: (event: FormEvent<HTMLFormElement>, resource: FreeResource) => Promise<void>;
   onDeleteResource: (resource: FreeResource) => Promise<void>;
   onUploadResource: (
+    event: ChangeEvent<HTMLInputElement>,
+    resource: FreeResource,
+  ) => Promise<void>;
+  onUploadResourceThumbnail: (
     event: ChangeEvent<HTMLInputElement>,
     resource: FreeResource,
   ) => Promise<void>;
@@ -3607,6 +3652,42 @@ function PagesPanel({
                   multiline
                   rows={4}
                 />
+              </div>
+              <div className="mt-3 grid gap-3 lg:grid-cols-[160px_minmax(0,1fr)]">
+                <div className="overflow-hidden rounded-xl border border-border bg-muted">
+                  {resource.thumbnail_url ? (
+                    <img
+                      src={resource.thumbnail_url}
+                      alt={resource.title}
+                      className="h-28 w-full object-cover"
+                    />
+                  ) : (
+                    <div className="grid h-28 place-items-center text-muted-foreground">
+                      <ImagePlus className="size-8" />
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <CountInput
+                    label="URL ảnh thumbnail"
+                    name="thumbnail_url"
+                    defaultValue={resource.thumbnail_url}
+                    maxLength={500}
+                  />
+                  <label className="mt-2 inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-border px-4 text-sm font-bold transition hover:bg-muted">
+                    <ImagePlus className="size-4" />
+                    Tải ảnh thumbnail
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      onChange={(event) => {
+                        event.stopPropagation();
+                        void onUploadResourceThumbnail(event, resource);
+                      }}
+                    />
+                  </label>
+                </div>
               </div>
               <div className="mt-3 grid gap-3 lg:grid-cols-2">
                 <CountInput
