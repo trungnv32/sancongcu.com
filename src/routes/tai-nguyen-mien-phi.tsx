@@ -28,8 +28,6 @@ function FreeResourcesPage() {
   const [resources, setResources] = useState<FreeResource[]>([]);
   const [isLoading, setIsLoading] = useState(Boolean(supabase));
   const [selectedResource, setSelectedResource] = useState<FreeResource | null>(null);
-  const [previewResource, setPreviewResource] = useState<FreeResource | null>(null);
-  const [useMobilePdfViewer, setUseMobilePdfViewer] = useState(false);
   const [requestStatus, setRequestStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [requestMessage, setRequestMessage] = useState("");
 
@@ -56,14 +54,6 @@ function FreeResourcesPage() {
         setIsLoading(false);
       }
     })();
-  }, []);
-
-  useEffect(() => {
-    const query = window.matchMedia("(max-width: 767px)");
-    const updateViewer = () => setUseMobilePdfViewer(query.matches);
-    updateViewer();
-    query.addEventListener("change", updateViewer);
-    return () => query.removeEventListener("change", updateViewer);
   }, []);
 
   async function requestDownload(event: FormEvent<HTMLFormElement>) {
@@ -101,13 +91,6 @@ function FreeResourcesPage() {
     setRequestStatus("idle");
     setRequestMessage("");
   }
-
-  const previewUrl =
-    previewResource && useMobilePdfViewer
-      ? `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(previewResource.file_url)}`
-      : previewResource
-        ? `${previewResource.file_url}#toolbar=0&navpanes=0&scrollbar=1`
-        : "";
 
   return (
     <main className="min-h-screen bg-soft-gradient">
@@ -155,17 +138,12 @@ function FreeResourcesPage() {
                 key={resource.id}
                 className="flex min-h-72 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card"
               >
-                <button
-                  type="button"
-                  onClick={() => setPreviewResource(resource)}
-                  className="group block h-40 w-full bg-secondary text-left"
-                  aria-label={`Đọc tài nguyên ${resource.title}`}
-                >
+                <div className="h-40 w-full bg-secondary">
                   {resource.thumbnail_url ? (
                     <img
                       src={resource.thumbnail_url}
                       alt={resource.title}
-                      className="h-full w-full object-cover transition group-hover:scale-[1.02]"
+                      className="h-full w-full object-cover"
                     />
                   ) : (
                     <span className="grid h-full w-full place-items-center text-primary">
@@ -174,24 +152,12 @@ function FreeResourcesPage() {
                       </span>
                     </span>
                   )}
-                </button>
+                </div>
                 <div className="flex flex-1 flex-col p-6">
-                  <button
-                    type="button"
-                    onClick={() => setPreviewResource(resource)}
-                    className="text-left"
-                  >
-                    <h2 className="text-xl leading-snug transition hover:text-primary">
-                      {resource.title}
-                    </h2>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPreviewResource(resource)}
-                    className="mt-3 flex-1 text-left text-sm leading-6 text-muted-foreground transition hover:text-foreground"
-                  >
+                  <h2 className="text-xl leading-snug">{resource.title}</h2>
+                  <p className="mt-3 flex-1 text-sm leading-6 text-muted-foreground">
                     {resource.description || "Tài nguyên miễn phí từ sancongcu.com."}
-                  </button>
+                  </p>
                   <button
                     type="button"
                     onClick={() => openDownloadForm(resource)}
@@ -220,36 +186,6 @@ function FreeResourcesPage() {
           </div>
         )}
       </section>
-
-      {previewResource && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/45 px-4 py-6">
-          <div className="flex h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
-            <div className="flex items-start justify-between gap-4 border-b border-border p-4">
-              <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-                  Đọc tài liệu
-                </p>
-                <h2 className="mt-1 truncate text-xl leading-tight">{previewResource.title}</h2>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPreviewResource(null)}
-                  className="grid size-10 place-items-center rounded-full border border-border hover:bg-muted"
-                  aria-label="Đóng"
-                >
-                  <X className="size-4" />
-                </button>
-              </div>
-            </div>
-            <iframe
-              title={previewResource.title}
-              src={previewUrl}
-              className="min-h-0 flex-1 bg-background"
-            />
-          </div>
-        </div>
-      )}
 
       {selectedResource && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/45 px-4 py-6">
