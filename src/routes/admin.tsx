@@ -313,6 +313,7 @@ function AdminPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [newHallName, setNewHallName] = useState("");
+  const [hallFormDirty, setHallFormDirty] = useState(false);
   const [adminSection, setAdminSection] = useState<
     "orders" | "topups" | "webapp-history" | "combos" | "pages" | "catalog" | "account"
   >("orders");
@@ -390,6 +391,10 @@ function AdminPage() {
     if (sessionEmail && adminEmails.has(sessionEmail)) void loadCatalog();
     else setIsAdminReady(false);
   }, [sessionEmail]);
+
+  useEffect(() => {
+    setHallFormDirty(false);
+  }, [selectedHallId]);
 
   async function loadCatalog() {
     if (!supabase) return;
@@ -916,6 +921,7 @@ function AdminPage() {
           .map((hall) => (hall.id === data.id ? (data as Hall) : hall))
           .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name)),
       );
+      setHallFormDirty(false);
       setNotice("Đã lưu tên, mô tả và thứ tự danh mục.");
     }
   }
@@ -1725,6 +1731,7 @@ function AdminPage() {
                 key={selectedHall.id}
                 onSubmit={(event) => void saveHall(event)}
                 onChange={(event) => {
+                  setHallFormDirty(true);
                   const input = event.target as unknown as HTMLInputElement;
                   if (input.name === "hall_name") {
                     const slugInput = event.currentTarget.elements.namedItem(
@@ -1756,7 +1763,7 @@ function AdminPage() {
                       {selectedHall.is_visible ? "Đang hiển thị" : "Đang ẩn"}
                     </button>
                     <button
-                      disabled={isSaving}
+                      disabled={isSaving || !hallFormDirty}
                       className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
                     >
                       <Save className="size-4" />
@@ -2212,6 +2219,7 @@ function CombosPanel({
   onSetComboSkill: (combo: Combo, skill: Skill, checked: boolean) => Promise<void>;
 }) {
   const [activeComboId, setActiveComboId] = useState<string>("section");
+  const [dirtyForms, setDirtyForms] = useState<Record<string, boolean>>({});
   const section = comboSection ?? {
     id: "home",
     eyebrow: "Chọn nhanh theo mục tiêu",
@@ -2231,6 +2239,10 @@ function CombosPanel({
           .map((item) => item.skill_id),
       )
     : new Set<string>();
+  const markDirty = (formKey: string) =>
+    setDirtyForms((current) => ({ ...current, [formKey]: true }));
+  const markSaved = (formKey: string) =>
+    setDirtyForms((current) => ({ ...current, [formKey]: false }));
 
   return (
     <section className="rounded-2xl border border-border bg-card shadow-sm">
@@ -2297,7 +2309,12 @@ function CombosPanel({
 
         <div className="p-4 sm:p-5">
           {activeComboId === "section" ? (
-            <form onSubmit={(event) => void onSaveSection(event)}>
+            <form
+              onSubmit={(event) => {
+                void onSaveSection(event).then(() => markSaved("section"));
+              }}
+              onChange={() => markDirty("section")}
+            >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
@@ -2309,7 +2326,7 @@ function CombosPanel({
                   </p>
                 </div>
                 <button
-                  disabled={isSaving}
+                  disabled={isSaving || !dirtyForms.section}
                   className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
                 >
                   <Save className="size-4" />
@@ -2332,8 +2349,11 @@ function CombosPanel({
             <article>
               <form
                 key={activeCombo.id}
-                onSubmit={(event) => void onSaveCombo(event, activeCombo)}
+                onSubmit={(event) => {
+                  void onSaveCombo(event, activeCombo).then(() => markSaved(activeCombo.id));
+                }}
                 onChange={(event) => {
+                  markDirty(activeCombo.id);
                   const input = event.target as unknown as HTMLInputElement;
                   if (input.name === "title") {
                     const slugInput = event.currentTarget.elements.namedItem("slug") as HTMLInputElement | null;
@@ -2352,7 +2372,7 @@ function CombosPanel({
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <button disabled={isSaving} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60">
+                    <button disabled={isSaving || !dirtyForms[activeCombo.id]} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60">
                       <Save className="size-4" />
                       Lưu
                     </button>
@@ -2638,6 +2658,7 @@ function SkillEditor({
 }) {
   const [galleryType, setGalleryType] = useState<Media["media_type"]>("other");
   const [packageVersion, setPackageVersion] = useState("1.0.0");
+  const [isDirty, setIsDirty] = useState(false);
   const activePackage = packages.find((itemPackage) => itemPackage.is_active);
   const [selectedPackageId, setSelectedPackageId] = useState(activePackage?.id ?? packages[0]?.id ?? "");
   const packageIdList = packages.map((itemPackage) => itemPackage.id).join("|");
@@ -2647,8 +2668,17 @@ function SkillEditor({
   useEffect(() => {
     setSelectedPackageId(activePackage?.id ?? packages[0]?.id ?? "");
   }, [activePackage?.id, packageIdList, skill.id]);
+  useEffect(() => {
+    setIsDirty(false);
+  }, [skill.id]);
   return (
-    <form onSubmit={(event) => void onSave(event)} className="admin-editor min-w-0 space-y-5">
+    <form
+      onSubmit={(event) => {
+        void onSave(event).then(() => setIsDirty(false));
+      }}
+      onChange={() => setIsDirty(true)}
+      className="admin-editor min-w-0 space-y-5"
+    >
       <section className="admin-card min-w-0 overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -2665,7 +2695,10 @@ function SkillEditor({
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 className="sr-only"
-                onChange={(event) => void onUpload(event, "thumbnail")}
+                onChange={(event) => {
+                  event.stopPropagation();
+                  void onUpload(event, "thumbnail");
+                }}
               />
             </label>
             <button
@@ -2677,7 +2710,7 @@ function SkillEditor({
               Xóa
             </button>
             <button
-              disabled={isSaving}
+              disabled={isSaving || !isDirty}
               className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-gradient px-4 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90 disabled:opacity-60"
             >
               {isSaving ? (
@@ -2842,7 +2875,10 @@ function SkillEditor({
             <Field label="Phiên bản gói">
               <input
                 value={packageVersion}
-                onChange={(event) => setPackageVersion(event.target.value)}
+                onChange={(event) => {
+                  event.stopPropagation();
+                  setPackageVersion(event.target.value);
+                }}
                 maxLength={40}
                 placeholder="Ví dụ: 1.0.0"
                 className="input h-11"
@@ -2855,7 +2891,10 @@ function SkillEditor({
                 type="file"
                 accept=".md,.zip,text/markdown,application/zip,application/x-zip-compressed"
                 className="sr-only"
-                onChange={(event) => void onUploadPackage(event, packageVersion)}
+                onChange={(event) => {
+                  event.stopPropagation();
+                  void onUploadPackage(event, packageVersion);
+                }}
               />
             </label>
           </div>
@@ -2865,7 +2904,10 @@ function SkillEditor({
                 <Field label="Version đã tải lên">
                   <select
                     value={selectedPackage?.id ?? ""}
-                    onChange={(event) => setSelectedPackageId(event.target.value)}
+                    onChange={(event) => {
+                      event.stopPropagation();
+                      setSelectedPackageId(event.target.value);
+                    }}
                     className="input"
                   >
                     {packages.map((itemPackage) => (
@@ -2976,7 +3018,10 @@ function SkillEditor({
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
                   className="sr-only"
-                  onChange={(event) => void onUpload(event, "thumbnail")}
+                  onChange={(event) => {
+                    event.stopPropagation();
+                    void onUpload(event, "thumbnail");
+                  }}
                 />
               </label>
             </div>
@@ -2991,7 +3036,10 @@ function SkillEditor({
             <select
               aria-label="Loại ảnh sắp tải"
               value={galleryType}
-              onChange={(event) => setGalleryType(event.target.value as Media["media_type"])}
+              onChange={(event) => {
+                event.stopPropagation();
+                setGalleryType(event.target.value as Media["media_type"]);
+              }}
               className="h-11 rounded-xl border border-input bg-background px-3 text-sm"
             >
               <option value="input">Ảnh đầu vào</option>
@@ -3006,7 +3054,10 @@ function SkillEditor({
                 accept="image/jpeg,image/png,image/webp"
                 multiple
                 className="sr-only"
-                onChange={(event) => void onUpload(event, "gallery", galleryType)}
+                onChange={(event) => {
+                  event.stopPropagation();
+                  void onUpload(event, "gallery", galleryType);
+                }}
               />
             </label>
           </div>
@@ -3021,11 +3072,12 @@ function SkillEditor({
                   <select
                     aria-label="Loại minh họa"
                     value={item.media_type}
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      event.stopPropagation();
                       void onMediaUpdate(item, {
                         media_type: event.target.value as Media["media_type"],
-                      })
-                    }
+                      });
+                    }}
                     className="h-9 w-full rounded-lg border border-input bg-background px-2 text-xs"
                   >
                     <option value="input">Đầu vào</option>
@@ -3038,6 +3090,7 @@ function SkillEditor({
                       type="number"
                       inputMode="numeric"
                       defaultValue={item.sort_order}
+                      onChange={(event) => event.stopPropagation()}
                       onBlur={(event) => {
                         const nextSortOrder = Number(event.currentTarget.value || 0);
                         if (nextSortOrder !== item.sort_order) {
@@ -3170,12 +3223,21 @@ function PagesPanel({
     sortedSitePages.find((page) => page.slug === activeMenuPageSlug) ??
     sortedSitePages.find((page) => page.id === activeParentMenu?.id) ??
     null;
+  const [dirtyForms, setDirtyForms] = useState<Record<string, boolean>>({});
+  const markDirty = (formKey: string) =>
+    setDirtyForms((current) => ({ ...current, [formKey]: true }));
+  const markSaved = (formKey: string) =>
+    setDirtyForms((current) => ({ ...current, [formKey]: false }));
 
   function MenuItemForm({ item }: { item: SiteMenuItem }) {
+    const formKey = `menu-${item.id}`;
     return (
       <form
         key={item.id}
-        onSubmit={(event) => void onSaveMenuItem(event, item)}
+        onSubmit={(event) => {
+          void onSaveMenuItem(event, item).then(() => markSaved(formKey));
+        }}
+        onChange={() => markDirty(formKey)}
         className="rounded-2xl border border-border bg-background p-4"
       >
         <div className="grid gap-3 sm:grid-cols-2">
@@ -3212,7 +3274,7 @@ function PagesPanel({
             Hiển thị
           </label>
           <button
-            disabled={isSaving}
+            disabled={isSaving || !dirtyForms[formKey]}
             className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
           >
             <Save className="size-4" />
@@ -3224,10 +3286,14 @@ function PagesPanel({
   }
 
   function PageForm({ page }: { page: SitePage }) {
+    const formKey = `page-${page.id}`;
     return (
       <form
         key={page.id}
-        onSubmit={(event) => void onSavePage(event, page)}
+        onSubmit={(event) => {
+          void onSavePage(event, page).then(() => markSaved(formKey));
+        }}
+        onChange={() => markDirty(formKey)}
         className="rounded-2xl border border-border bg-background p-4"
       >
         <div className="grid gap-3 lg:grid-cols-3">
@@ -3291,7 +3357,7 @@ function PagesPanel({
             Hiển thị
           </label>
           <button
-            disabled={isSaving}
+            disabled={isSaving || !dirtyForms[formKey]}
             className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
           >
             <Save className="size-4" />
@@ -3514,7 +3580,11 @@ function PagesPanel({
           {freeResources.length > 0 ? freeResources.map((resource) => (
             <form
               key={resource.id}
-              onSubmit={(event) => void onSaveResource(event, resource)}
+              onSubmit={(event) => {
+                const formKey = `resource-${resource.id}`;
+                void onSaveResource(event, resource).then(() => markSaved(formKey));
+              }}
+              onChange={() => markDirty(`resource-${resource.id}`)}
               className="rounded-2xl border border-border bg-background p-4"
             >
               <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_120px]">
@@ -3578,11 +3648,14 @@ function PagesPanel({
                     <input
                       type="file"
                       className="sr-only"
-                      onChange={(event) => void onUploadResource(event, resource)}
+                      onChange={(event) => {
+                        event.stopPropagation();
+                        void onUploadResource(event, resource);
+                      }}
                     />
                   </label>
                   <button
-                    disabled={isSaving}
+                    disabled={isSaving || !dirtyForms[`resource-${resource.id}`]}
                     className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
                   >
                     <Save className="size-4" />

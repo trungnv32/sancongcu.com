@@ -111,6 +111,7 @@ function AccountPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const accountSettingsDirty = displayName.trim() !== (profile?.display_name ?? "");
 
   useEffect(() => {
     if (!supabase) return;
@@ -471,7 +472,7 @@ function AccountPage() {
                 />
               </label>
               <button
-                disabled={busy}
+                disabled={busy || !accountSettingsDirty}
                 className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full bg-brand-gradient px-5 py-3 text-sm font-bold text-primary-foreground disabled:opacity-60"
               >
                 {busy ? (
