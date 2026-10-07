@@ -29,6 +29,7 @@ function FreeResourcesPage() {
   const [isLoading, setIsLoading] = useState(Boolean(supabase));
   const [selectedResource, setSelectedResource] = useState<FreeResource | null>(null);
   const [previewResource, setPreviewResource] = useState<FreeResource | null>(null);
+  const [useMobilePdfViewer, setUseMobilePdfViewer] = useState(false);
   const [requestStatus, setRequestStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [requestMessage, setRequestMessage] = useState("");
 
@@ -55,6 +56,14 @@ function FreeResourcesPage() {
         setIsLoading(false);
       }
     })();
+  }, []);
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 767px)");
+    const updateViewer = () => setUseMobilePdfViewer(query.matches);
+    updateViewer();
+    query.addEventListener("change", updateViewer);
+    return () => query.removeEventListener("change", updateViewer);
   }, []);
 
   async function requestDownload(event: FormEvent<HTMLFormElement>) {
@@ -92,6 +101,13 @@ function FreeResourcesPage() {
     setRequestStatus("idle");
     setRequestMessage("");
   }
+
+  const previewUrl =
+    previewResource && useMobilePdfViewer
+      ? `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(previewResource.file_url)}`
+      : previewResource
+        ? `${previewResource.file_url}#toolbar=0&navpanes=0&scrollbar=1`
+        : "";
 
   return (
     <main className="min-h-screen bg-soft-gradient">
@@ -218,14 +234,6 @@ function FreeResourcesPage() {
               <div className="flex shrink-0 items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => openDownloadForm(previewResource)}
-                  className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-brand-gradient px-4 text-sm font-bold text-primary-foreground shadow-brand"
-                >
-                  <Download className="size-4" />
-                  Tải về
-                </button>
-                <button
-                  type="button"
                   onClick={() => setPreviewResource(null)}
                   className="grid size-10 place-items-center rounded-full border border-border hover:bg-muted"
                   aria-label="Đóng"
@@ -236,7 +244,7 @@ function FreeResourcesPage() {
             </div>
             <iframe
               title={previewResource.title}
-              src={`${previewResource.file_url}#toolbar=0&navpanes=0&scrollbar=1`}
+              src={previewUrl}
               className="min-h-0 flex-1 bg-background"
             />
           </div>
