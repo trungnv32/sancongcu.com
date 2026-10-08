@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 import { MessageCircle, Minus, Send, Sparkles, X } from "lucide-react";
 
 import tueLamAvatar from "@/assets/tue-lam-chat-avatar.png";
+import { supabase } from "@/lib/supabase";
 
 type ChatMessage = {
   id: number;
@@ -26,10 +27,42 @@ const initialMessages: ChatMessage[] = [
 
 const quickReplies = ["Tư vấn skill phù hợp", "Hướng dẫn mua hàng", "Hỗ trợ đơn hàng"];
 
+function findPhoneNumber(value: string) {
+  const match = value.match(/(?:\+?84|0)(?:[\s.-]?\d){8,10}/);
+  return match?.[0]?.replace(/\s+/g, " ").trim() ?? "";
+}
+
 export function SancongcuSupportChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [draft, setDraft] = useState("");
+  const [customerMessageCount, setCustomerMessageCount] = useState(0);
+  const [telegramSent, setTelegramSent] = useState(false);
+
+  const notifyTelegram = async (updatedMessages: ChatMessage[], phoneNumber: string) => {
+    if (!supabase || telegramSent) {
+      return;
+    }
+
+    setTelegramSent(true);
+
+    const transcript = updatedMessages
+      .map((message) => `${message.role === "customer" ? "Khách" : "Tuệ Lâm"}: ${message.content}`)
+      .join("\n");
+
+    const { error } = await supabase.functions.invoke("tue-lam-chat-lead", {
+      body: {
+        phoneNumber,
+        transcript,
+        pageUrl: window.location.href,
+      },
+    });
+
+    if (error) {
+      console.error("Không gửi được Telegram lead Tuệ Lâm:", error);
+      setTelegramSent(false);
+    }
+  };
 
   const sendMessage = (content: string) => {
     const trimmedContent = content.trim();
@@ -38,21 +71,35 @@ export function SancongcuSupportChat() {
       return;
     }
 
-    setMessages((currentMessages) => [
-      ...currentMessages,
-      {
+    const nextCustomerMessageCount = customerMessageCount + 1;
+    const phoneNumber = findPhoneNumber(trimmedContent);
+    const agentReply =
+      phoneNumber && nextCustomerMessageCount >= 2
+        ? "Em đã nhận được số điện thoại của anh/chị. Tuệ Lâm đang chuyển thông tin về bộ phận phụ trách để hỗ trợ tiếp ạ."
+        : nextCustomerMessageCount === 1
+          ? "Dạ Tuệ Lâm chào anh/chị ạ. Anh/chị cứ nhắn nhu cầu hoặc vấn đề đang cần hỗ trợ, Tuệ Lâm sẽ tiếp nhận trước cho mình."
+          : "Tuệ Lâm đã tiếp nhận thông tin để chuyển về bộ phận phụ trách. Anh/chị cho em xin số điện thoại để bên em liên hệ hỗ trợ nhanh hơn nhé.";
+
+    const customerMessage: ChatMessage = {
         id: Date.now(),
         role: "customer",
         content: trimmedContent,
-      },
-      {
+      };
+    const agentMessage: ChatMessage = {
         id: Date.now() + 1,
         role: "agent",
-        content:
-          "Tuệ Lâm đã ghi nhận câu hỏi của anh/chị. Khi kết nối AI Agent, phần này sẽ trả lời theo dữ liệu thật của Sancongcu.",
-      },
-    ]);
+        content: agentReply,
+      };
+
+    const updatedMessages = [...messages, customerMessage, agentMessage];
+
+    setMessages(updatedMessages);
+    setCustomerMessageCount(nextCustomerMessageCount);
     setDraft("");
+
+    if (phoneNumber && nextCustomerMessageCount >= 2) {
+      void notifyTelegram(updatedMessages, phoneNumber);
+    }
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
