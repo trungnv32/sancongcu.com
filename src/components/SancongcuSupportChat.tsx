@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { Bot, MessageCircle, Minus, Send, Sparkles, X } from "lucide-react";
+import { MessageCircle, Minus, Send, Sparkles, X } from "lucide-react";
 
 import tueLamAvatar from "@/assets/tue-lam-chat-avatar.png";
 
@@ -116,8 +116,12 @@ export function SancongcuSupportChat() {
                 }`}
               >
                 {message.role === "agent" && (
-                  <div className="mb-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white">
-                    <Bot className="h-4 w-4 text-blue-600" aria-hidden="true" />
+                  <div className="mb-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white p-0.5 shadow-sm">
+                    <img
+                      src={tueLamAvatar}
+                      alt=""
+                      className="h-full w-full rounded-full object-cover"
+                    />
                   </div>
                 )}
                 <p
