@@ -1,7 +1,7 @@
 import { FormEvent, useState } from "react";
 import { Bot, MessageCircle, Minus, Send, Sparkles, X } from "lucide-react";
 
-import tueLamAvatar from "@/assets/tue-lam-03-standing.jpg";
+import tueLamAvatar from "@/assets/tue-lam-chat-avatar.png";
 
 type ChatMessage = {
   id: number;
