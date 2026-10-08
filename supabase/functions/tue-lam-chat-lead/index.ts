@@ -44,8 +44,8 @@ Deno.serve(async (request) => {
   const transcript = cleanText(payload?.transcript, 3000);
   const pageUrl = cleanText(payload?.pageUrl, 300);
 
-  if (!phoneNumber || !transcript) {
-    return json(request, { error: "Thiếu thông tin khách hàng." }, 400);
+  if (!transcript) {
+    return json(request, { error: "Thiếu nội dung chat." }, 400);
   }
 
   const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
@@ -58,7 +58,7 @@ Deno.serve(async (request) => {
   const message = [
     "Tuệ Lâm có khách cần hỗ trợ",
     "",
-    `SĐT: ${phoneNumber}`,
+    `SĐT: ${phoneNumber || "Khách chưa để lại SĐT"}`,
     pageUrl ? `Trang: ${pageUrl}` : "",
     "",
     "Nội dung chat:",

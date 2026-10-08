@@ -10,6 +10,8 @@ type ChatMessage = {
   content: string;
 };
 
+type TelegramStage = "none" | "handoff" | "phone";
+
 const initialMessages: ChatMessage[] = [
   {
     id: 1,
@@ -37,14 +39,18 @@ export function SancongcuSupportChat() {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [draft, setDraft] = useState("");
   const [customerMessageCount, setCustomerMessageCount] = useState(0);
-  const [telegramSent, setTelegramSent] = useState(false);
+  const [telegramStage, setTelegramStage] = useState<TelegramStage>("none");
 
-  const notifyTelegram = async (updatedMessages: ChatMessage[], phoneNumber: string) => {
-    if (!supabase || telegramSent) {
+  const notifyTelegram = async (
+    updatedMessages: ChatMessage[],
+    phoneNumber: string,
+    stage: Exclude<TelegramStage, "none">,
+  ) => {
+    if (!supabase || telegramStage === "phone" || (telegramStage === "handoff" && stage === "handoff")) {
       return;
     }
 
-    setTelegramSent(true);
+    setTelegramStage(stage);
 
     const transcript = updatedMessages
       .map((message) => `${message.role === "customer" ? "Khách" : "Tuệ Lâm"}: ${message.content}`)
@@ -60,7 +66,7 @@ export function SancongcuSupportChat() {
 
     if (error) {
       console.error("Không gửi được Telegram lead Tuệ Lâm:", error);
-      setTelegramSent(false);
+      setTelegramStage(stage === "phone" ? "handoff" : "none");
     }
   };
 
@@ -97,8 +103,8 @@ export function SancongcuSupportChat() {
     setCustomerMessageCount(nextCustomerMessageCount);
     setDraft("");
 
-    if (phoneNumber && nextCustomerMessageCount >= 2) {
-      void notifyTelegram(updatedMessages, phoneNumber);
+    if (nextCustomerMessageCount >= 2) {
+      void notifyTelegram(updatedMessages, phoneNumber, phoneNumber ? "phone" : "handoff");
     }
   };
 
