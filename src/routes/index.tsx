@@ -199,7 +199,7 @@ const trainingCourses = [
     amount: 999000,
     transferLabel: "KHOAHOC HINHANH",
     bonus: "Kèm 5 skill hình ảnh tự chọn",
-    highlight: "Phù hợp khi anh muốn tự tạo ảnh bán hàng, poster, ảnh sản phẩm nhanh.",
+    highlight: "Phù hợp khi bạn muốn tự tạo ảnh bán hàng, poster, ảnh sản phẩm nhanh.",
   },
   {
     id: "khoa-video-cap-toc",
