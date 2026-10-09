@@ -189,6 +189,45 @@ const differenceItems = [
   },
 ];
 
+const trainingCourses = [
+  {
+    name: "Khóa làm hình ảnh cấp tốc",
+    duration: "2 buổi",
+    price: "999k",
+    bonus: "Kèm 5 skill hình ảnh tự chọn",
+    highlight: "Phù hợp khi anh muốn tự tạo ảnh bán hàng, poster, ảnh sản phẩm nhanh.",
+  },
+  {
+    name: "Khóa làm video cấp tốc",
+    duration: "2 buổi",
+    price: "999k",
+    bonus: "Kèm 5 skill hình ảnh + video tùy chọn",
+    highlight: "Dành cho nhu cầu dựng video ngắn, video bán hàng và nội dung đăng mạng xã hội.",
+  },
+  {
+    name: "Khóa tạo skill + làm website",
+    duration: "2 buổi",
+    price: "999k",
+    bonus: "Kèm 5 skill tùy chọn",
+    highlight: "Học cách đóng gói công cụ AI riêng và tạo website giới thiệu hoặc bán sản phẩm.",
+  },
+  {
+    name: "Khóa automation + vibe coding",
+    duration: "4 buổi",
+    price: "1.999k",
+    bonus: "Kèm 10 skill tùy chọn",
+    highlight: "Bao gồm 1 buổi hình ảnh, 1 buổi video và phần tự động hóa quy trình làm việc.",
+  },
+  {
+    name: "Khóa tổng hợp",
+    duration: "8 buổi",
+    price: "3.999.000đ",
+    bonus: "Kèm toàn bộ skill và update trọn đời",
+    highlight:
+      "Lộ trình đầy đủ để làm chủ hình ảnh, video, skill, website, automation và vibe coding.",
+  },
+];
+
 const categories: Category[] = [
   {
     id: "image-hall",
@@ -430,39 +469,41 @@ function Landing() {
       try {
         const [hallResult, skillResult, comboSectionResult, comboResult, menuResult, pageResult] =
           await Promise.all([
-          supabase
-            .from("halls")
-            .select("id, slug, name, description, poster_path, is_visible, sort_order")
-            .eq("is_visible", true)
-            .order("sort_order"),
-          supabase
-            .from("skills")
-            .select(
-              "id, hall_id, slug, title, short_description, thumbnail_path, status, sort_order",
-            )
-            .eq("status", "published")
-            .order("sort_order"),
-          supabase
-            .from("combo_sections")
-            .select("eyebrow,title,description,is_visible")
-            .eq("id", "home")
-            .maybeSingle(),
-          supabase
-            .from("combos")
-            .select("slug,label,title,description,includes,cta_label,status,sort_order")
-            .eq("status", "published")
-            .order("sort_order"),
-          supabase
-            .from("site_menu_items")
-            .select("id,label,href,parent_id,description,sort_order,is_visible")
-            .eq("is_visible", true)
-            .order("sort_order"),
-          supabase
-            .from("site_pages")
-            .select("id,slug,menu_label,eyebrow,title,summary,content_blocks,cta_label,cta_href,is_visible,sort_order")
-            .eq("is_visible", true)
-            .order("sort_order"),
-        ]);
+            supabase
+              .from("halls")
+              .select("id, slug, name, description, poster_path, is_visible, sort_order")
+              .eq("is_visible", true)
+              .order("sort_order"),
+            supabase
+              .from("skills")
+              .select(
+                "id, hall_id, slug, title, short_description, thumbnail_path, status, sort_order",
+              )
+              .eq("status", "published")
+              .order("sort_order"),
+            supabase
+              .from("combo_sections")
+              .select("eyebrow,title,description,is_visible")
+              .eq("id", "home")
+              .maybeSingle(),
+            supabase
+              .from("combos")
+              .select("slug,label,title,description,includes,cta_label,status,sort_order")
+              .eq("status", "published")
+              .order("sort_order"),
+            supabase
+              .from("site_menu_items")
+              .select("id,label,href,parent_id,description,sort_order,is_visible")
+              .eq("is_visible", true)
+              .order("sort_order"),
+            supabase
+              .from("site_pages")
+              .select(
+                "id,slug,menu_label,eyebrow,title,summary,content_blocks,cta_label,cta_href,is_visible,sort_order",
+              )
+              .eq("is_visible", true)
+              .order("sort_order"),
+          ]);
         if (comboSectionResult.data) setComboSection(comboSectionResult.data as HomeComboSection);
         if (comboResult.data?.length) setHomeCombos(comboResult.data as HomeCombo[]);
         if (menuResult.data?.length) setMenuItems(menuResult.data as SiteMenuItem[]);
@@ -526,7 +567,8 @@ function Landing() {
   const visibleSitePages = sitePages
     .filter((page) => page.is_visible !== false)
     .sort((a, b) => a.sort_order - b.sort_order);
-  const aboutPage = visibleSitePages.find((page) => page.slug === "ve-chung-toi") ?? defaultSitePages[0];
+  const aboutPage =
+    visibleSitePages.find((page) => page.slug === "ve-chung-toi") ?? defaultSitePages[0];
   const servicesPage =
     visibleSitePages.find((page) => page.slug === "dich-vu") ??
     defaultSitePages.find((page) => page.slug === "dich-vu") ??
@@ -747,15 +789,25 @@ function Landing() {
       {activeMenuSection === "khoa-huan-luyen" && (
         <section id="khoa-huan-luyen" className="mx-auto max-w-6xl px-6 pb-20">
           <div className="rounded-3xl bg-foreground p-6 text-background shadow-brand sm:p-10">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-              {trainingPage.eyebrow}
-            </p>
-            <div className="mt-3 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-              <div>
+            <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+              <div className="lg:pr-6">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                  {trainingPage.eyebrow}
+                </p>
                 <h2 className="text-3xl leading-tight sm:text-4xl">{trainingPage.title}</h2>
                 <p className="mt-4 text-sm leading-7 text-background/75 sm:text-base">
                   {trainingPage.summary}
                 </p>
+                <div className="mt-6 grid gap-3">
+                  {trainingPage.content_blocks.map((block) => (
+                    <p
+                      key={block}
+                      className="rounded-2xl bg-background/10 p-4 text-sm leading-6 text-background/80"
+                    >
+                      {block}
+                    </p>
+                  ))}
+                </div>
                 <a
                   href={trainingPage.cta_href || supportZaloUrl}
                   target={trainingPage.cta_href?.startsWith("http") ? "_blank" : undefined}
@@ -765,14 +817,30 @@ function Landing() {
                   {trainingPage.cta_label || "Nhận tư vấn lộ trình"}
                 </a>
               </div>
-              <div className="grid gap-3">
-                {trainingPage.content_blocks.map((block) => (
-                  <p
-                    key={block}
-                    className="rounded-2xl bg-background/10 p-4 text-sm leading-6 text-background/80"
+              <div className="grid gap-4">
+                {trainingCourses.map((course) => (
+                  <article
+                    key={course.name}
+                    className="rounded-2xl border border-background/10 bg-background p-5 text-foreground"
                   >
-                    {block}
-                  </p>
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                          {course.duration}
+                        </p>
+                        <h3 className="mt-2 text-xl leading-snug">{course.name}</h3>
+                      </div>
+                      <strong className="rounded-full bg-primary/10 px-3 py-1 text-sm text-primary">
+                        {course.price}
+                      </strong>
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                      {course.highlight}
+                    </p>
+                    <p className="mt-4 rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-foreground">
+                      {course.bonus}
+                    </p>
+                  </article>
                 ))}
               </div>
             </div>
