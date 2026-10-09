@@ -17,6 +17,7 @@ import {
   type SitePage,
 } from "@/lib/site-content";
 import {
+  createFallbackCustomTransferOrder,
   createFallbackTransferOrder,
   createSavedTransferOrder,
   getComboSizeForProductCount,
@@ -191,37 +192,52 @@ const differenceItems = [
 
 const trainingCourses = [
   {
+    id: "khoa-hinh-anh-cap-toc",
     name: "Khóa làm hình ảnh cấp tốc",
     duration: "2 buổi",
     price: "999k",
+    amount: 999000,
+    transferLabel: "KHOAHOC HINHANH",
     bonus: "Kèm 5 skill hình ảnh tự chọn",
     highlight: "Phù hợp khi anh muốn tự tạo ảnh bán hàng, poster, ảnh sản phẩm nhanh.",
   },
   {
+    id: "khoa-video-cap-toc",
     name: "Khóa làm video cấp tốc",
     duration: "2 buổi",
     price: "999k",
+    amount: 999000,
+    transferLabel: "KHOAHOC VIDEO",
     bonus: "Kèm 5 skill hình ảnh + video tùy chọn",
     highlight: "Dành cho nhu cầu dựng video ngắn, video bán hàng và nội dung đăng mạng xã hội.",
   },
   {
+    id: "khoa-tao-skill-website",
     name: "Khóa tạo skill + làm website",
     duration: "2 buổi",
     price: "999k",
+    amount: 999000,
+    transferLabel: "KHOAHOC SKILL WEBSITE",
     bonus: "Kèm 5 skill tùy chọn",
     highlight: "Học cách đóng gói công cụ AI riêng và tạo website giới thiệu hoặc bán sản phẩm.",
   },
   {
+    id: "khoa-automation-vibe-coding",
     name: "Khóa automation + vibe coding",
     duration: "4 buổi",
     price: "1.999k",
+    amount: 1999000,
+    transferLabel: "KHOAHOC AUTOMATION VIBECODING",
     bonus: "Kèm 10 skill tùy chọn",
     highlight: "Bao gồm 1 buổi hình ảnh, 1 buổi video và phần tự động hóa quy trình làm việc.",
   },
   {
+    id: "khoa-tong-hop",
     name: "Khóa tổng hợp",
     duration: "8 buổi",
     price: "3.999.000đ",
+    amount: 3999000,
+    transferLabel: "KHOAHOC TONGHOP",
     bonus: "Kèm toàn bộ skill và update trọn đời",
     highlight:
       "Lộ trình đầy đủ để làm chủ hình ảnh, video, skill, website, automation và vibe coding.",
@@ -622,6 +638,44 @@ function Landing() {
       setIsSavingOrder(false);
     }
   };
+  const startTrainingCheckout = async (course: (typeof trainingCourses)[number]) => {
+    setCheckoutTitle(course.name);
+    setCheckoutError(null);
+    setIsSavingOrder(true);
+
+    const immediateOrder = createFallbackCustomTransferOrder({
+      amount: course.amount,
+      transferLabel: course.transferLabel,
+    });
+    setTransferOrder(immediateOrder);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+    try {
+      if (!supabase) {
+        throw new Error("Kết nối đặt hàng chưa sẵn sàng.");
+      }
+      const { data, error } = await supabase.rpc("create_training_order", {
+        p_course_slug: course.id,
+        p_order_code: immediateOrder.orderCode,
+      });
+      const savedOrder = data?.[0];
+      if (error) throw error;
+      if (!savedOrder) throw new Error("Không thể tạo mã đơn.");
+      setTransferOrder(
+        createSavedTransferOrder({
+          orderCode: savedOrder.order_code,
+          amount: savedOrder.total_amount,
+          transferNote: savedOrder.transfer_note,
+          productCount: savedOrder.product_count,
+        }),
+      );
+    } catch (error) {
+      console.error("Không thể tạo đơn khóa huấn luyện", error);
+      setCheckoutError("Chưa thể tạo mã đơn. Vui lòng thử lại trước khi chuyển khoản.");
+    } finally {
+      setIsSavingOrder(false);
+    }
+  };
   const handleChooseSkill = (product: Product) => {
     add(product.id);
   };
@@ -823,23 +877,26 @@ function Landing() {
                     key={course.name}
                     className="rounded-2xl border border-background/10 bg-background p-5 text-foreground"
                   >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-                          {course.duration}
-                        </p>
-                        <h3 className="mt-2 text-xl leading-snug">{course.name}</h3>
-                      </div>
-                      <strong className="rounded-full bg-primary/10 px-3 py-1 text-sm text-primary">
-                        {course.price}
-                      </strong>
-                    </div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                      {course.duration}
+                    </p>
+                    <h3 className="mt-2 text-xl leading-snug">{course.name}</h3>
+                    <strong className="mt-4 block text-4xl leading-none text-primary sm:text-5xl">
+                      {course.price}
+                    </strong>
                     <p className="mt-3 text-sm leading-6 text-muted-foreground">
                       {course.highlight}
                     </p>
                     <p className="mt-4 rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-foreground">
                       {course.bonus}
                     </p>
+                    <button
+                      type="button"
+                      onClick={() => void startTrainingCheckout(course)}
+                      className="mt-4 min-h-11 w-full rounded-full bg-brand-gradient px-4 py-3 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                    >
+                      Đăng ký khóa này
+                    </button>
                   </article>
                 ))}
               </div>

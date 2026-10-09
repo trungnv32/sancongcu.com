@@ -25,6 +25,12 @@ export type TransferOrder = {
   payment: PaymentSettings & { qrUrl: string | null };
 };
 
+type CustomTransferOrderInput = {
+  amount: number;
+  transferLabel: string;
+  productCount?: number;
+};
+
 const defaultPaymentSettings: PaymentSettings = {
   bankName: "Techcombank",
   bankCode: "TCB",
@@ -67,6 +73,26 @@ export function createFallbackTransferOrder(
   comboSize?: ComboSize | null,
 ): TransferOrder {
   return buildTransferOrder(productIds, defaultPaymentSettings, comboSize);
+}
+
+export function createFallbackCustomTransferOrder({
+  amount,
+  transferLabel,
+  productCount = 1,
+}: CustomTransferOrderInput): TransferOrder {
+  const orderCode = `SC${Date.now().toString().slice(-8)}`;
+  const transferNote = `${orderCode} ${transferLabel}`.toUpperCase();
+  const qrUrl = `https://img.vietqr.io/image/${defaultPaymentSettings.bankCode}-${defaultPaymentSettings.accountNumber}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(transferNote)}&accountName=${encodeURIComponent(defaultPaymentSettings.accountName)}`;
+
+  return {
+    orderCode,
+    amount,
+    currency: "VND",
+    transferNote,
+    productCount,
+    configured: true,
+    payment: { ...defaultPaymentSettings, qrUrl },
+  };
 }
 
 export function getComboSizeForProductCount(
