@@ -447,6 +447,10 @@ function Landing() {
   const [comboSize, setComboSize] = useState<ComboSize | null>(getSavedComboSize);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [checkoutTitle, setCheckoutTitle] = useState<string | null>(null);
+  const [checkoutLabel, setCheckoutLabel] = useState("Phí kích hoạt Skill");
+  const [checkoutDeliveryNote, setCheckoutDeliveryNote] = useState(
+    "Sau khi gửi bill và được xác nhận, bạn sẽ nhận link tải Skill và hướng dẫn sử dụng riêng qua Zalo.",
+  );
   const [transferOrder, setTransferOrder] = useState<TransferOrder | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
@@ -596,6 +600,10 @@ function Landing() {
   const startCheckout = async (products: Product[], selectedComboSize: ComboSize | null = null) => {
     if (products.length === 0) return;
     const checkoutComboSize = getComboSizeForProductCount(products.length, selectedComboSize);
+    setCheckoutLabel("Phí kích hoạt Skill");
+    setCheckoutDeliveryNote(
+      "Sau khi gửi bill và được xác nhận, bạn sẽ nhận link tải Skill và hướng dẫn sử dụng riêng qua Zalo.",
+    );
     setCheckoutTitle(
       products.length === 1 ? products[0].title : `${products.length} Skill đã chọn`,
     );
@@ -639,6 +647,10 @@ function Landing() {
     }
   };
   const startTrainingCheckout = async (course: (typeof trainingCourses)[number]) => {
+    setCheckoutLabel("Đăng ký khoá huấn luyện");
+    setCheckoutDeliveryNote(
+      "Sau khi gửi bill và được xác nhận, bạn sẽ nhận lịch học và hướng dẫn chọn Skill tặng kèm qua Zalo.",
+    );
     setCheckoutTitle(course.name);
     setCheckoutError(null);
     setIsSavingOrder(true);
@@ -671,7 +683,9 @@ function Landing() {
       );
     } catch (error) {
       console.error("Không thể tạo đơn khóa huấn luyện", error);
-      setCheckoutError("Chưa thể tạo mã đơn. Vui lòng thử lại trước khi chuyển khoản.");
+      setCheckoutError(
+        "Mã QR đã sẵn sàng. Nếu hệ thống chưa lưu kịp đơn, bạn vẫn có thể chuyển khoản theo đúng nội dung bên dưới và gửi bill qua Zalo.",
+      );
     } finally {
       setIsSavingOrder(false);
     }
@@ -1179,10 +1193,12 @@ function Landing() {
         </DialogContent>
       </Dialog>
       <PaymentDialog
+        label={checkoutLabel}
         title={checkoutTitle}
         order={transferOrder}
         error={checkoutError}
         isSavingOrder={isSavingOrder}
+        deliveryNote={checkoutDeliveryNote}
         onClose={() => {
           setCheckoutTitle(null);
           setCheckoutError(null);
@@ -1344,16 +1360,20 @@ function ProductCard({
 }
 
 function PaymentDialog({
+  label,
   title,
   order,
   error,
   isSavingOrder,
+  deliveryNote,
   onClose,
 }: {
+  label: string;
   title: string | null;
   order: TransferOrder | null;
   error: string | null;
   isSavingOrder: boolean;
+  deliveryNote: string;
   onClose: () => void;
 }) {
   if (!title) return null;
@@ -1371,7 +1391,7 @@ function PaymentDialog({
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-              Phí kích hoạt Skill
+              {label}
             </p>
             <h2 id="payment-title" className="mt-2 text-2xl">
               {title}
@@ -1385,7 +1405,7 @@ function PaymentDialog({
             ×
           </button>
         </div>
-        {error ? (
+        {error && !order ? (
           <p className="mt-6 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
             {error}
           </p>
@@ -1405,6 +1425,11 @@ function PaymentDialog({
             <TransferInstructions order={order} />
           </div>
         )}
+        {error && order && (
+          <p className="mt-4 rounded-2xl border border-primary/20 bg-primary/5 p-4 text-sm leading-6 text-primary">
+            {error}
+          </p>
+        )}
         {order && isSavingOrder && !error && (
           <p className="mt-3 text-center text-xs text-muted-foreground">Đang lưu mã đơn…</p>
         )}
@@ -1419,10 +1444,7 @@ function PaymentDialog({
           </a>
         )}
         {order && (
-          <p className="mt-3 text-center text-xs leading-5 text-muted-foreground">
-            Sau khi gửi bill và được xác nhận, bạn sẽ nhận link tải Skill và hướng dẫn sử dụng riêng
-            qua Zalo.
-          </p>
+          <p className="mt-3 text-center text-xs leading-5 text-muted-foreground">{deliveryNote}</p>
         )}
         <button
           onClick={onClose}
