@@ -2412,7 +2412,6 @@ function CombosPanel({
               onSubmit={(event) => {
                 void onSaveSection(event).then(() => markSaved("section"));
               }}
-              onChange={() => markDirty("section")}
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
@@ -2425,7 +2424,7 @@ function CombosPanel({
                   </p>
                 </div>
                 <button
-                  disabled={isSaving || !dirtyForms.section}
+                  disabled={isSaving}
                   className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
                 >
                   <Save className="size-4" />
@@ -2452,7 +2451,6 @@ function CombosPanel({
                   void onSaveCombo(event, activeCombo).then(() => markSaved(activeCombo.id));
                 }}
                 onChange={(event) => {
-                  markDirty(activeCombo.id);
                   const input = event.target as unknown as HTMLInputElement;
                   if (input.name === "title") {
                     const slugInput = event.currentTarget.elements.namedItem("slug") as HTMLInputElement | null;
@@ -2471,7 +2469,7 @@ function CombosPanel({
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <button disabled={isSaving || !dirtyForms[activeCombo.id]} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60">
+                    <button disabled={isSaving} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60">
                       <Save className="size-4" />
                       Lưu
                     </button>
@@ -3351,7 +3349,6 @@ function PagesPanel({
         onSubmit={(event) => {
           void onSaveMenuItem(event, item).then(() => markSaved(formKey));
         }}
-        onChange={() => markDirty(formKey)}
         className="rounded-2xl border border-border bg-background p-4"
       >
         <div className="grid gap-3 sm:grid-cols-2">
@@ -3388,7 +3385,7 @@ function PagesPanel({
             Hiển thị
           </label>
           <button
-            disabled={isSaving || !dirtyForms[formKey]}
+            disabled={isSaving}
             className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
           >
             <Save className="size-4" />
@@ -3407,7 +3404,6 @@ function PagesPanel({
         onSubmit={(event) => {
           void onSavePage(event, page).then(() => markSaved(formKey));
         }}
-        onChange={() => markDirty(formKey)}
         className="rounded-2xl border border-border bg-background p-4"
       >
         <div className="grid gap-3 lg:grid-cols-3">
@@ -3471,7 +3467,7 @@ function PagesPanel({
             Hiển thị
           </label>
           <button
-            disabled={isSaving || !dirtyForms[formKey]}
+            disabled={isSaving}
             className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
           >
             <Save className="size-4" />
@@ -3490,7 +3486,6 @@ function PagesPanel({
         onSubmit={(event) => {
           void onSaveTrainingCourse(event, course).then(() => markSaved(formKey));
         }}
-        onChange={() => markDirty(formKey)}
         className="rounded-2xl border border-border bg-background p-4"
       >
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_140px_120px]">
@@ -3570,7 +3565,7 @@ function PagesPanel({
             Hiển thị
           </label>
           <button
-            disabled={isSaving || !dirtyForms[formKey]}
+            disabled={isSaving}
             className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
           >
             <Save className="size-4" />
@@ -3826,7 +3821,6 @@ function PagesPanel({
                 const formKey = `resource-${resource.id}`;
                 void onSaveResource(event, resource).then(() => markSaved(formKey));
               }}
-              onChange={() => markDirty(`resource-${resource.id}`)}
               className="rounded-2xl border border-border bg-background p-4"
             >
               <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_120px]">
@@ -3946,7 +3940,7 @@ function PagesPanel({
                     />
                   </label>
                   <button
-                    disabled={isSaving || !dirtyForms[`resource-${resource.id}`]}
+                    disabled={isSaving}
                     className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
                   >
                     <Save className="size-4" />
@@ -4281,3 +4275,4 @@ function AccountPanel({
     </section>
   );
 }
+
