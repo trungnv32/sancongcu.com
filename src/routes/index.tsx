@@ -193,8 +193,9 @@ const differenceItems = [
 ];
 
 function getCourseSaleLabel(course: TrainingCourse) {
+  const saleAmount = Number(course.sale_amount_vnd ?? 0);
   if (course.sale_price_label) return course.sale_price_label;
-  return course.sale_amount_vnd ? formatVnd(course.sale_amount_vnd) : "";
+  return saleAmount > 0 ? formatVnd(saleAmount) : "";
 }
 
 const categories: Category[] = [
@@ -488,9 +489,7 @@ function Landing() {
               .order("sort_order"),
             supabase
               .from("training_courses")
-              .select(
-                "id,name,duration,price_label,amount_vnd,sale_price_label,sale_amount_vnd,transfer_label,bonus,highlight,sort_order,is_visible",
-              )
+              .select("*")
               .eq("is_visible", true)
               .order("sort_order"),
           ]);
@@ -499,7 +498,17 @@ function Landing() {
         if (menuResult.data?.length) setMenuItems(menuResult.data as SiteMenuItem[]);
         if (pageResult.data?.length) setSitePages(mergeSitePages(pageResult.data as SitePage[]));
         if (!trainingCourseResult.error && trainingCourseResult.data?.length) {
-          setTrainingCourses(trainingCourseResult.data as TrainingCourse[]);
+          setTrainingCourses(
+            (trainingCourseResult.data as TrainingCourse[]).map((course) => {
+              const saleAmount = Number(course.sale_amount_vnd ?? 0);
+              return {
+                ...course,
+                sale_amount_vnd: saleAmount > 0 ? saleAmount : null,
+                sale_price_label:
+                  course.sale_price_label || (saleAmount > 0 ? formatVnd(saleAmount) : ""),
+              };
+            }),
+          );
         }
         if (hallResult.error || skillResult.error || !skillResult.data?.length) return;
         const dynamicCatalog = hallResult.data.map((hall) => ({
