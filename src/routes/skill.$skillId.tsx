@@ -209,7 +209,7 @@ function Detail() {
             </p>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl border border-background/20 bg-background/10 p-4">
-                <p className="text-sm font-bold">Combo 5 Skill</p>
+                <p className="text-sm font-bold">Combo 5 Skill + 1 buổi Zoom hướng dẫn</p>
                 <p className="mt-1 text-sm text-background/75">Tự chọn bất kỳ 5 Skill</p>
                 <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
                   <p className="text-3xl font-extrabold">8$</p>
