@@ -12,9 +12,11 @@ import {
   defaultMenuItems,
   defaultServiceItems,
   defaultSitePages,
+  defaultTrainingCourses,
   mergeSitePages,
   type SiteMenuItem,
   type SitePage,
+  type TrainingCourse,
 } from "@/lib/site-content";
 import {
   createFallbackCustomTransferOrder,
@@ -187,60 +189,6 @@ const differenceItems = [
     description:
       "Không dừng ở việc dùng cho bản thân, bạn có thể biến kỹ năng dùng công cụ AI thành dịch vụ, sản phẩm số hoặc quy trình kiếm tiền thực tế.",
     icon: Banknote,
-  },
-];
-
-const trainingCourses = [
-  {
-    id: "khoa-hinh-anh-cap-toc",
-    name: "Khóa làm hình ảnh cấp tốc",
-    duration: "2 buổi",
-    price: "999k",
-    amount: 999000,
-    transferLabel: "KHOAHOC HINHANH",
-    bonus: "Kèm 5 skill hình ảnh tự chọn",
-    highlight: "Phù hợp khi bạn muốn tự tạo ảnh bán hàng, poster, ảnh sản phẩm nhanh.",
-  },
-  {
-    id: "khoa-video-cap-toc",
-    name: "Khóa làm video cấp tốc",
-    duration: "2 buổi",
-    price: "999k",
-    amount: 999000,
-    transferLabel: "KHOAHOC VIDEO",
-    bonus: "Kèm 5 skill hình ảnh + video tùy chọn",
-    highlight: "Dành cho nhu cầu dựng video ngắn, video bán hàng và nội dung đăng mạng xã hội.",
-  },
-  {
-    id: "khoa-tao-skill-website",
-    name: "Khóa tạo skill + làm website",
-    duration: "2 buổi",
-    price: "999k",
-    amount: 999000,
-    transferLabel: "KHOAHOC SKILL WEBSITE",
-    bonus: "Kèm 5 skill tùy chọn",
-    highlight: "Học cách đóng gói công cụ AI riêng và tạo website giới thiệu hoặc bán sản phẩm.",
-  },
-  {
-    id: "khoa-automation-vibe-coding",
-    name: "Khóa automation + vibe coding",
-    duration: "4 buổi",
-    price: "1.999k",
-    amount: 1999000,
-    transferLabel: "KHOAHOC AUTOMATION VIBECODING",
-    bonus: "Kèm 10 skill tùy chọn",
-    highlight: "Bao gồm 1 buổi hình ảnh, 1 buổi video và phần tự động hóa quy trình làm việc.",
-  },
-  {
-    id: "khoa-tong-hop",
-    name: "Khóa tổng hợp",
-    duration: "8 buổi",
-    price: "3.999.000đ",
-    amount: 3999000,
-    transferLabel: "KHOAHOC TONGHOP",
-    bonus: "Kèm toàn bộ skill và update trọn đời",
-    highlight:
-      "Lộ trình đầy đủ để làm chủ hình ảnh, video, skill, website, automation và vibe coding.",
   },
 ];
 
@@ -480,6 +428,8 @@ function Landing() {
   const [homeCombos, setHomeCombos] = useState<HomeCombo[]>(combos);
   const [menuItems, setMenuItems] = useState<SiteMenuItem[]>(defaultMenuItems);
   const [sitePages, setSitePages] = useState<SitePage[]>(defaultSitePages);
+  const [trainingCourses, setTrainingCourses] =
+    useState<TrainingCourse[]>(defaultTrainingCourses);
   useEffect(() => {
     if (!supabase) {
       setIsCatalogLoading(false);
@@ -487,7 +437,15 @@ function Landing() {
     }
     void (async () => {
       try {
-        const [hallResult, skillResult, comboSectionResult, comboResult, menuResult, pageResult] =
+        const [
+          hallResult,
+          skillResult,
+          comboSectionResult,
+          comboResult,
+          menuResult,
+          pageResult,
+          trainingCourseResult,
+        ] =
           await Promise.all([
             supabase
               .from("halls")
@@ -523,11 +481,21 @@ function Landing() {
               )
               .eq("is_visible", true)
               .order("sort_order"),
+            supabase
+              .from("training_courses")
+              .select(
+                "id,name,duration,price_label,amount_vnd,sale_price_label,sale_amount_vnd,transfer_label,bonus,highlight,sort_order,is_visible",
+              )
+              .eq("is_visible", true)
+              .order("sort_order"),
           ]);
         if (comboSectionResult.data) setComboSection(comboSectionResult.data as HomeComboSection);
         if (comboResult.data?.length) setHomeCombos(comboResult.data as HomeCombo[]);
         if (menuResult.data?.length) setMenuItems(menuResult.data as SiteMenuItem[]);
         if (pageResult.data?.length) setSitePages(mergeSitePages(pageResult.data as SitePage[]));
+        if (!trainingCourseResult.error && trainingCourseResult.data?.length) {
+          setTrainingCourses(trainingCourseResult.data as TrainingCourse[]);
+        }
         if (hallResult.error || skillResult.error || !skillResult.data?.length) return;
         const dynamicCatalog = hallResult.data.map((hall) => ({
           id: hall.slug,
@@ -646,7 +614,7 @@ function Landing() {
       setIsSavingOrder(false);
     }
   };
-  const startTrainingCheckout = async (course: (typeof trainingCourses)[number]) => {
+  const startTrainingCheckout = async (course: TrainingCourse) => {
     setCheckoutLabel("Đăng ký khoá huấn luyện");
     setCheckoutDeliveryNote(
       "Sau khi gửi bill và được xác nhận, bạn sẽ nhận lịch học và hướng dẫn chọn Skill tặng kèm qua Zalo.",
@@ -656,8 +624,8 @@ function Landing() {
     setIsSavingOrder(true);
 
     const immediateOrder = createFallbackCustomTransferOrder({
-      amount: course.amount,
-      transferLabel: course.transferLabel,
+      amount: course.sale_amount_vnd ?? course.amount_vnd,
+      transferLabel: course.transfer_label,
     });
     setTransferOrder(immediateOrder);
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
@@ -895,9 +863,20 @@ function Landing() {
                       {course.duration}
                     </p>
                     <h3 className="mt-2 text-xl leading-snug">{course.name}</h3>
-                    <strong className="mt-4 block text-4xl leading-none text-primary sm:text-5xl">
-                      {course.price}
-                    </strong>
+                    {course.sale_price_label ? (
+                      <div className="mt-4 flex flex-wrap items-end gap-3">
+                        <span className="pb-1 text-2xl font-bold leading-none text-muted-foreground line-through">
+                          {course.price_label}
+                        </span>
+                        <strong className="block text-4xl leading-none text-primary sm:text-5xl">
+                          {course.sale_price_label}
+                        </strong>
+                      </div>
+                    ) : (
+                      <strong className="mt-4 block text-4xl leading-none text-primary sm:text-5xl">
+                        {course.price_label}
+                      </strong>
+                    )}
                     <p className="mt-3 text-sm leading-6 text-muted-foreground">
                       {course.highlight}
                     </p>

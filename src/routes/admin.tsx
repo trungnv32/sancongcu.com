@@ -40,10 +40,12 @@ import {
 import {
   defaultMenuItems,
   defaultSitePages,
+  defaultTrainingCourses,
   mergeSitePages,
   type FreeResource,
   type SiteMenuItem,
   type SitePage,
+  type TrainingCourse,
 } from "@/lib/site-content";
 
 export const Route = createFileRoute("/admin")({ component: AdminPage });
@@ -304,6 +306,7 @@ function AdminPage() {
   const [comboSkills, setComboSkills] = useState<ComboSkill[]>([]);
   const [menuItems, setMenuItems] = useState<SiteMenuItem[]>(defaultMenuItems);
   const [sitePages, setSitePages] = useState<SitePage[]>(defaultSitePages);
+  const [trainingCourses, setTrainingCourses] = useState<TrainingCourse[]>(defaultTrainingCourses);
   const [freeResources, setFreeResources] = useState<FreeResource[]>([]);
   const [selectedHallId, setSelectedHallId] = useState<string | null>(null);
   const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
@@ -349,6 +352,7 @@ function AdminPage() {
     setComboSkills([]);
     setMenuItems([]);
     setSitePages([]);
+    setTrainingCourses([]);
     setFreeResources([]);
     setSelectedHallId(null);
     setSelectedSkillId(null);
@@ -415,6 +419,7 @@ function AdminPage() {
       comboSkillResult,
       menuResult,
       pageResult,
+      trainingCourseResult,
       resourceResult,
     ] = await Promise.all([
       supabase.from("halls").select("*").order("sort_order").order("name"),
@@ -436,6 +441,7 @@ function AdminPage() {
       supabase.from("combo_skills").select("*").order("sort_order"),
       supabase.from("site_menu_items").select("*").order("sort_order"),
       supabase.from("site_pages").select("*").order("sort_order"),
+      supabase.from("training_courses").select("*").order("sort_order"),
       supabase.from("free_resources").select("*").order("sort_order"),
     ]);
     const requestError =
@@ -451,6 +457,7 @@ function AdminPage() {
       comboSkillResult.error ??
       menuResult.error ??
       pageResult.error ??
+      trainingCourseResult.error ??
       resourceResult.error;
     if (requestError) {
       setError(`Không thể tải dữ liệu: ${requestError.message}`);
@@ -467,6 +474,7 @@ function AdminPage() {
       setComboSkills([]);
       setMenuItems([]);
       setSitePages([]);
+      setTrainingCourses([]);
       setFreeResources([]);
       setSelectedHallId(null);
       setSelectedSkillId(null);
@@ -485,6 +493,11 @@ function AdminPage() {
       setComboSkills((comboSkillResult.data ?? []) as ComboSkill[]);
       setMenuItems(((menuResult.data?.length ? menuResult.data : defaultMenuItems) ?? []) as SiteMenuItem[]);
       setSitePages(mergeSitePages((pageResult.data ?? []) as SitePage[]));
+      setTrainingCourses(
+        ((trainingCourseResult.data?.length
+          ? trainingCourseResult.data
+          : defaultTrainingCourses) ?? []) as TrainingCourse[],
+      );
       setFreeResources((resourceResult.data ?? []) as FreeResource[]);
       setWebappJobs(
         (
@@ -1138,6 +1151,47 @@ function AdminPage() {
     }
   }
 
+  async function saveTrainingCourse(event: FormEvent<HTMLFormElement>, course: TrainingCourse) {
+    event.preventDefault();
+    if (!supabase) return;
+    const form = new FormData(event.currentTarget);
+    setIsSaving(true);
+    setError(null);
+    const saleAmountValue = String(form.get("sale_amount_vnd") || "").trim();
+    const update = {
+      id: course.id,
+      name: String(form.get("name") || "").trim(),
+      duration: String(form.get("duration") || "").trim(),
+      price_label: String(form.get("price_label") || "").trim(),
+      amount_vnd: Math.max(0, Number(form.get("amount_vnd") || 0)),
+      sale_price_label: String(form.get("sale_price_label") || "").trim(),
+      sale_amount_vnd: saleAmountValue ? Math.max(0, Number(saleAmountValue)) : null,
+      transfer_label: String(form.get("transfer_label") || "").trim(),
+      bonus: String(form.get("bonus") || "").trim(),
+      highlight: String(form.get("highlight") || "").trim(),
+      sort_order: Number(form.get("sort_order") || 0),
+      is_visible: form.get("is_visible") === "on",
+      updated_at: new Date().toISOString(),
+    };
+    if (!update.sale_price_label) update.sale_amount_vnd = null;
+    const { data, error: saveError } = await supabase
+      .from("training_courses")
+      .upsert(update, { onConflict: "id" })
+      .select()
+      .single();
+    setIsSaving(false);
+    if (saveError) setError(saveError.message);
+    else if (data) {
+      setTrainingCourses((current) =>
+        [
+          ...current.filter((item) => item.id !== data.id),
+          data as TrainingCourse,
+        ].sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name)),
+      );
+      setNotice("Đã lưu khoá huấn luyện.");
+    }
+  }
+
   async function createResource() {
     if (!supabase) return;
     setIsSaving(true);
@@ -1757,10 +1811,12 @@ function AdminPage() {
             <PagesPanel
               menuItems={menuItems}
               sitePages={sitePages}
+              trainingCourses={trainingCourses}
               freeResources={freeResources}
               isSaving={isSaving}
               onSaveMenuItem={saveMenuItem}
               onSavePage={saveSitePage}
+              onSaveTrainingCourse={saveTrainingCourse}
               onCreateResource={createResource}
               onSaveResource={saveResource}
               onDeleteResource={deleteResource}
@@ -3209,10 +3265,12 @@ function SkillEditor({
 function PagesPanel({
   menuItems,
   sitePages,
+  trainingCourses,
   freeResources,
   isSaving,
   onSaveMenuItem,
   onSavePage,
+  onSaveTrainingCourse,
   onCreateResource,
   onSaveResource,
   onDeleteResource,
@@ -3221,10 +3279,15 @@ function PagesPanel({
 }: {
   menuItems: SiteMenuItem[];
   sitePages: SitePage[];
+  trainingCourses: TrainingCourse[];
   freeResources: FreeResource[];
   isSaving: boolean;
   onSaveMenuItem: (event: FormEvent<HTMLFormElement>, item: SiteMenuItem) => Promise<void>;
   onSavePage: (event: FormEvent<HTMLFormElement>, page: SitePage) => Promise<void>;
+  onSaveTrainingCourse: (
+    event: FormEvent<HTMLFormElement>,
+    course: TrainingCourse,
+  ) => Promise<void>;
   onCreateResource: () => Promise<void>;
   onSaveResource: (event: FormEvent<HTMLFormElement>, resource: FreeResource) => Promise<void>;
   onDeleteResource: (resource: FreeResource) => Promise<void>;
@@ -3243,7 +3306,9 @@ function PagesPanel({
   const [activeMenuParentId, setActiveMenuParentId] = useState<string>(
     parentMenuItems[0]?.id ?? menuItems[0]?.id ?? "",
   );
-  const [activePagesGroup, setActivePagesGroup] = useState<"menu" | "pages" | "resources">(
+  const [activePagesGroup, setActivePagesGroup] = useState<
+    "menu" | "pages" | "training" | "resources"
+  >(
     "menu",
   );
   const activeParentMenu =
@@ -3417,6 +3482,105 @@ function PagesPanel({
     );
   }
 
+  function TrainingCourseForm({ course }: { course: TrainingCourse }) {
+    const formKey = `training-${course.id}`;
+    return (
+      <form
+        key={course.id}
+        onSubmit={(event) => {
+          void onSaveTrainingCourse(event, course).then(() => markSaved(formKey));
+        }}
+        onChange={() => markDirty(formKey)}
+        className="rounded-2xl border border-border bg-background p-4"
+      >
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_140px_120px]">
+          <CountInput label="Tên khoá" name="name" defaultValue={course.name} maxLength={140} />
+          <CountInput label="Thời lượng" name="duration" defaultValue={course.duration} maxLength={40} />
+          <Field label="Thứ tự">
+            <input
+              name="sort_order"
+              type="number"
+              defaultValue={course.sort_order}
+              className="input h-12"
+            />
+          </Field>
+        </div>
+        <div className="mt-3 grid gap-3 lg:grid-cols-2">
+          <CountInput
+            label="Giá gốc hiển thị"
+            name="price_label"
+            defaultValue={course.price_label}
+            maxLength={40}
+          />
+          <Field label="Giá gốc để thanh toán">
+            <input
+              name="amount_vnd"
+              type="number"
+              min={0}
+              defaultValue={course.amount_vnd}
+              className="input h-12"
+            />
+          </Field>
+          <CountInput
+            label="Giá khuyến mãi hiển thị"
+            name="sale_price_label"
+            defaultValue={course.sale_price_label}
+            maxLength={40}
+          />
+          <Field label="Giá khuyến mãi để thanh toán">
+            <input
+              name="sale_amount_vnd"
+              type="number"
+              min={0}
+              defaultValue={course.sale_amount_vnd ?? ""}
+              placeholder="Bỏ trống nếu không giảm giá"
+              className="input h-12"
+            />
+          </Field>
+        </div>
+        <div className="mt-3">
+          <CountInput
+            label="Nội dung chuyển khoản"
+            name="transfer_label"
+            defaultValue={course.transfer_label}
+            maxLength={80}
+          />
+        </div>
+        <div className="mt-3 grid gap-3 lg:grid-cols-2">
+          <CountInput
+            label="Mô tả ngắn"
+            name="highlight"
+            defaultValue={course.highlight}
+            maxLength={260}
+            multiline
+            rows={4}
+          />
+          <CountInput
+            label="Quà tặng / quyền lợi"
+            name="bonus"
+            defaultValue={course.bonus}
+            maxLength={180}
+            multiline
+            rows={4}
+          />
+        </div>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <label className="inline-flex items-center gap-2 text-sm font-bold">
+            <input type="checkbox" name="is_visible" defaultChecked={course.is_visible} />
+            Hiển thị
+          </label>
+          <button
+            disabled={isSaving || !dirtyForms[formKey]}
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
+          >
+            <Save className="size-4" />
+            Lưu khoá
+          </button>
+        </div>
+      </form>
+    );
+  }
+
   return (
     <div className="space-y-5">
       <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
@@ -3424,16 +3588,19 @@ function PagesPanel({
           Menu & trang
         </p>
         <h2 className="mt-1 text-xl font-bold">Chọn nhóm cần quản lý</h2>
-        <div className="mt-4 grid gap-2 md:grid-cols-3">
+        <div className="mt-4 grid gap-2 md:grid-cols-4">
           {[
             { id: "menu", label: "Menu ngang", note: "Menu cha / menu con" },
             { id: "pages", label: "Nội dung trang", note: "Từng trang riêng" },
+            { id: "training", label: "Khoá huấn luyện", note: "Giá và nội dung khoá" },
             { id: "resources", label: "Kho tài nguyên", note: "File tải miễn phí" },
           ].map((group) => (
             <button
               key={group.id}
               type="button"
-              onClick={() => setActivePagesGroup(group.id as "menu" | "pages" | "resources")}
+              onClick={() =>
+                setActivePagesGroup(group.id as "menu" | "pages" | "training" | "resources")
+              }
               className={`min-h-16 rounded-xl border px-4 text-left text-sm transition ${
                 activePagesGroup === group.id
                   ? "border-foreground bg-foreground font-bold text-background"
@@ -3599,6 +3766,32 @@ function PagesPanel({
               </p>
             )}
           </div>
+        </div>
+      </section>
+      )}
+
+      {activePagesGroup === "training" && (
+      <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+            Khoá huấn luyện
+          </p>
+          <h2 className="mt-1 text-xl font-bold">Chỉnh sửa danh sách khoá trên trang chủ</h2>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Nếu bỏ trống giá khuyến mãi, ngoài trang chủ sẽ chỉ hiện giá gốc. Nếu nhập giá khuyến mãi,
+            giá gốc sẽ bị gạch ngang và giá khuyến mãi hiện bên cạnh.
+          </p>
+        </div>
+        <div className="mt-5 grid gap-4 xl:grid-cols-2">
+          {trainingCourses.length > 0 ? (
+            [...trainingCourses]
+              .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name))
+              .map((course) => <TrainingCourseForm key={course.id} course={course} />)
+          ) : (
+            <p className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground xl:col-span-2">
+              Chưa có khoá huấn luyện nào.
+            </p>
+          )}
         </div>
       </section>
       )}
@@ -3813,7 +4006,6 @@ function CountInput({
       <span className="mb-2 block">{label}</span>
       {multiline ? (
         <textarea
-          key={`${name}-${defaultValue}`}
           name={name}
           value={value}
           onChange={(event) => setValue(event.target.value)}
@@ -3824,7 +4016,6 @@ function CountInput({
         />
       ) : (
         <input
-          key={`${name}-${defaultValue}`}
           name={name}
           value={value}
           onChange={(event) => setValue(event.target.value)}

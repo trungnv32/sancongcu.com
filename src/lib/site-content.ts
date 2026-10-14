@@ -33,6 +33,95 @@ export type FreeResource = {
   is_visible: boolean;
 };
 
+export type TrainingCourse = {
+  id: string;
+  name: string;
+  duration: string;
+  price_label: string;
+  amount_vnd: number;
+  sale_price_label: string;
+  sale_amount_vnd: number | null;
+  transfer_label: string;
+  bonus: string;
+  highlight: string;
+  sort_order: number;
+  is_visible: boolean;
+};
+
+export const defaultTrainingCourses: TrainingCourse[] = [
+  {
+    id: "khoa-hinh-anh-cap-toc",
+    name: "Khóa làm hình ảnh cấp tốc",
+    duration: "2 buổi",
+    price_label: "999k",
+    amount_vnd: 999000,
+    sale_price_label: "",
+    sale_amount_vnd: null,
+    transfer_label: "KHOAHOC HINHANH",
+    bonus: "Kèm 5 skill hình ảnh tự chọn",
+    highlight: "Phù hợp khi bạn muốn tự tạo ảnh bán hàng, poster, ảnh sản phẩm nhanh.",
+    sort_order: 1,
+    is_visible: true,
+  },
+  {
+    id: "khoa-video-cap-toc",
+    name: "Khóa làm video cấp tốc",
+    duration: "2 buổi",
+    price_label: "999k",
+    amount_vnd: 999000,
+    sale_price_label: "",
+    sale_amount_vnd: null,
+    transfer_label: "KHOAHOC VIDEO",
+    bonus: "Kèm 5 skill hình ảnh + video tùy chọn",
+    highlight: "Dành cho nhu cầu dựng video ngắn, video bán hàng và nội dung đăng mạng xã hội.",
+    sort_order: 2,
+    is_visible: true,
+  },
+  {
+    id: "khoa-tao-skill-website",
+    name: "Khóa tạo skill + làm website",
+    duration: "2 buổi",
+    price_label: "999k",
+    amount_vnd: 999000,
+    sale_price_label: "",
+    sale_amount_vnd: null,
+    transfer_label: "KHOAHOC SKILL WEBSITE",
+    bonus: "Kèm 5 skill tùy chọn",
+    highlight: "Học cách đóng gói công cụ AI riêng và tạo website giới thiệu hoặc bán sản phẩm.",
+    sort_order: 3,
+    is_visible: true,
+  },
+  {
+    id: "khoa-automation-vibe-coding",
+    name: "Khóa automation + vibe coding",
+    duration: "4 buổi",
+    price_label: "1.999k",
+    amount_vnd: 1999000,
+    sale_price_label: "",
+    sale_amount_vnd: null,
+    transfer_label: "KHOAHOC AUTOMATION VIBECODING",
+    bonus: "Kèm 10 skill tùy chọn",
+    highlight: "Bao gồm 1 buổi hình ảnh, 1 buổi video và phần tự động hóa quy trình làm việc.",
+    sort_order: 4,
+    is_visible: true,
+  },
+  {
+    id: "khoa-tong-hop",
+    name: "Khóa tổng hợp",
+    duration: "8 buổi",
+    price_label: "3.999.000đ",
+    amount_vnd: 3999000,
+    sale_price_label: "",
+    sale_amount_vnd: null,
+    transfer_label: "KHOAHOC TONGHOP",
+    bonus: "Kèm toàn bộ skill và update trọn đời",
+    highlight:
+      "Lộ trình đầy đủ để làm chủ hình ảnh, video, skill, website, automation và vibe coding.",
+    sort_order: 5,
+    is_visible: true,
+  },
+];
+
 export const defaultSitePages: SitePage[] = [
   {
     id: "about",
