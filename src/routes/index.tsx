@@ -192,6 +192,11 @@ const differenceItems = [
   },
 ];
 
+function getCourseSaleLabel(course: TrainingCourse) {
+  if (course.sale_price_label) return course.sale_price_label;
+  return course.sale_amount_vnd ? formatVnd(course.sale_amount_vnd) : "";
+}
+
 const categories: Category[] = [
   {
     id: "image-hall",
@@ -854,44 +859,47 @@ function Landing() {
                 </a>
               </div>
               <div className="grid gap-4">
-                {trainingCourses.map((course) => (
-                  <article
-                    key={course.name}
-                    className="rounded-2xl border border-background/10 bg-background p-5 text-foreground"
-                  >
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-                      {course.duration}
-                    </p>
-                    <h3 className="mt-2 text-xl leading-snug">{course.name}</h3>
-                    {course.sale_price_label ? (
-                      <div className="mt-4 flex flex-wrap items-end gap-3">
-                        <span className="pb-1 text-2xl font-bold leading-none text-muted-foreground line-through">
-                          {course.price_label}
-                        </span>
-                        <strong className="block text-4xl leading-none text-primary sm:text-5xl">
-                          {course.sale_price_label}
-                        </strong>
-                      </div>
-                    ) : (
-                      <strong className="mt-4 block text-4xl leading-none text-primary sm:text-5xl">
-                        {course.price_label}
-                      </strong>
-                    )}
-                    <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                      {course.highlight}
-                    </p>
-                    <p className="mt-4 rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-foreground">
-                      {course.bonus}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => void startTrainingCheckout(course)}
-                      className="mt-4 min-h-11 w-full rounded-full bg-brand-gradient px-4 py-3 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                {trainingCourses.map((course) => {
+                  const saleLabel = getCourseSaleLabel(course);
+                  return (
+                    <article
+                      key={course.name}
+                      className="rounded-2xl border border-background/10 bg-background p-5 text-foreground"
                     >
-                      Đăng ký khóa này
-                    </button>
-                  </article>
-                ))}
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                        {course.duration}
+                      </p>
+                      <h3 className="mt-2 text-xl leading-snug">{course.name}</h3>
+                      {saleLabel ? (
+                        <div className="mt-4 flex flex-wrap items-end gap-3">
+                          <span className="pb-1 text-2xl font-bold leading-none text-muted-foreground line-through">
+                            {course.price_label}
+                          </span>
+                          <strong className="block text-4xl leading-none text-primary sm:text-5xl">
+                            {saleLabel}
+                          </strong>
+                        </div>
+                      ) : (
+                        <strong className="mt-4 block text-4xl leading-none text-primary sm:text-5xl">
+                          {course.price_label}
+                        </strong>
+                      )}
+                      <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                        {course.highlight}
+                      </p>
+                      <p className="mt-4 rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-foreground">
+                        {course.bonus}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => void startTrainingCheckout(course)}
+                        className="mt-4 min-h-11 w-full rounded-full bg-brand-gradient px-4 py-3 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                      >
+                        Đăng ký khóa này
+                      </button>
+                    </article>
+                  );
+                })}
               </div>
             </div>
           </div>

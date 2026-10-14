@@ -276,6 +276,20 @@ function toLines(value: string) {
     .filter(Boolean);
 }
 
+function markFormChanged(event: FormEvent<HTMLFormElement>) {
+  const button = event.currentTarget.querySelector<HTMLButtonElement>("[data-dirty-submit]");
+  if (button) button.disabled = false;
+}
+
+function markFormSaved(form: HTMLFormElement) {
+  const button = form.querySelector<HTMLButtonElement>("[data-dirty-submit]");
+  if (button) button.disabled = true;
+}
+
+function formatAdminVndLabel(amount: number) {
+  return `${new Intl.NumberFormat("vi-VN").format(amount)}đ`;
+}
+
 function createInstallToken() {
   const bytes = crypto.getRandomValues(new Uint8Array(24));
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
@@ -1158,14 +1172,16 @@ function AdminPage() {
     setIsSaving(true);
     setError(null);
     const saleAmountValue = String(form.get("sale_amount_vnd") || "").trim();
+    const saleAmount = saleAmountValue ? Math.max(0, Number(saleAmountValue)) : null;
+    const salePriceLabel = String(form.get("sale_price_label") || "").trim();
     const update = {
       id: course.id,
       name: String(form.get("name") || "").trim(),
       duration: String(form.get("duration") || "").trim(),
       price_label: String(form.get("price_label") || "").trim(),
       amount_vnd: Math.max(0, Number(form.get("amount_vnd") || 0)),
-      sale_price_label: String(form.get("sale_price_label") || "").trim(),
-      sale_amount_vnd: saleAmountValue ? Math.max(0, Number(saleAmountValue)) : null,
+      sale_price_label: saleAmount && !salePriceLabel ? formatAdminVndLabel(saleAmount) : salePriceLabel,
+      sale_amount_vnd: saleAmount,
       transfer_label: String(form.get("transfer_label") || "").trim(),
       bonus: String(form.get("bonus") || "").trim(),
       highlight: String(form.get("highlight") || "").trim(),
@@ -1173,7 +1189,7 @@ function AdminPage() {
       is_visible: form.get("is_visible") === "on",
       updated_at: new Date().toISOString(),
     };
-    if (!update.sale_price_label) update.sale_amount_vnd = null;
+    if (!update.sale_amount_vnd) update.sale_price_label = "";
     const { data, error: saveError } = await supabase
       .from("training_courses")
       .upsert(update, { onConflict: "id" })
@@ -2410,8 +2426,11 @@ function CombosPanel({
           {activeComboId === "section" ? (
             <form
               onSubmit={(event) => {
-                void onSaveSection(event).then(() => markSaved("section"));
+                const form = event.currentTarget;
+                void onSaveSection(event).then(() => markFormSaved(form));
               }}
+              onInput={markFormChanged}
+              onChange={markFormChanged}
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
@@ -2424,7 +2443,8 @@ function CombosPanel({
                   </p>
                 </div>
                 <button
-                  disabled={isSaving}
+                  disabled
+                  data-dirty-submit
                   className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
                 >
                   <Save className="size-4" />
@@ -2448,9 +2468,12 @@ function CombosPanel({
               <form
                 key={activeCombo.id}
                 onSubmit={(event) => {
-                  void onSaveCombo(event, activeCombo).then(() => markSaved(activeCombo.id));
+                  const form = event.currentTarget;
+                  void onSaveCombo(event, activeCombo).then(() => markFormSaved(form));
                 }}
+                onInput={markFormChanged}
                 onChange={(event) => {
+                  markFormChanged(event);
                   const input = event.target as unknown as HTMLInputElement;
                   if (input.name === "title") {
                     const slugInput = event.currentTarget.elements.namedItem("slug") as HTMLInputElement | null;
@@ -2469,7 +2492,7 @@ function CombosPanel({
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <button disabled={isSaving} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60">
+                    <button disabled data-dirty-submit className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60">
                       <Save className="size-4" />
                       Lưu
                     </button>
@@ -2773,6 +2796,7 @@ function SkillEditor({
       onSubmit={(event) => {
         void onSave(event).then(() => setIsDirty(false));
       }}
+      onInputCapture={() => setIsDirty(true)}
       onChange={() => setIsDirty(true)}
       className="admin-editor min-w-0 space-y-5"
     >
@@ -3347,8 +3371,11 @@ function PagesPanel({
       <form
         key={item.id}
         onSubmit={(event) => {
-          void onSaveMenuItem(event, item).then(() => markSaved(formKey));
+          const form = event.currentTarget;
+          void onSaveMenuItem(event, item).then(() => markFormSaved(form));
         }}
+        onInput={markFormChanged}
+        onChange={markFormChanged}
         className="rounded-2xl border border-border bg-background p-4"
       >
         <div className="grid gap-3 sm:grid-cols-2">
@@ -3385,7 +3412,8 @@ function PagesPanel({
             Hiển thị
           </label>
           <button
-            disabled={isSaving}
+            disabled
+            data-dirty-submit
             className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
           >
             <Save className="size-4" />
@@ -3402,8 +3430,11 @@ function PagesPanel({
       <form
         key={page.id}
         onSubmit={(event) => {
-          void onSavePage(event, page).then(() => markSaved(formKey));
+          const form = event.currentTarget;
+          void onSavePage(event, page).then(() => markFormSaved(form));
         }}
+        onInput={markFormChanged}
+        onChange={markFormChanged}
         className="rounded-2xl border border-border bg-background p-4"
       >
         <div className="grid gap-3 lg:grid-cols-3">
@@ -3467,7 +3498,8 @@ function PagesPanel({
             Hiển thị
           </label>
           <button
-            disabled={isSaving}
+            disabled
+            data-dirty-submit
             className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
           >
             <Save className="size-4" />
@@ -3484,8 +3516,11 @@ function PagesPanel({
       <form
         key={course.id}
         onSubmit={(event) => {
-          void onSaveTrainingCourse(event, course).then(() => markSaved(formKey));
+          const form = event.currentTarget;
+          void onSaveTrainingCourse(event, course).then(() => markFormSaved(form));
         }}
+        onInput={markFormChanged}
+        onChange={markFormChanged}
         className="rounded-2xl border border-border bg-background p-4"
       >
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_140px_120px]">
@@ -3565,7 +3600,8 @@ function PagesPanel({
             Hiển thị
           </label>
           <button
-            disabled={isSaving}
+            disabled
+            data-dirty-submit
             className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
           >
             <Save className="size-4" />
@@ -3818,9 +3854,11 @@ function PagesPanel({
             <form
               key={resource.id}
               onSubmit={(event) => {
-                const formKey = `resource-${resource.id}`;
-                void onSaveResource(event, resource).then(() => markSaved(formKey));
+                const form = event.currentTarget;
+                void onSaveResource(event, resource).then(() => markFormSaved(form));
               }}
+              onInput={markFormChanged}
+              onChange={markFormChanged}
               className="rounded-2xl border border-border bg-background p-4"
             >
               <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_120px]">
@@ -3940,7 +3978,8 @@ function PagesPanel({
                     />
                   </label>
                   <button
-                    disabled={isSaving}
+                    disabled
+                    data-dirty-submit
                     className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-60"
                   >
                     <Save className="size-4" />
