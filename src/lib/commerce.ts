@@ -15,6 +15,18 @@ type PaymentSettings = {
 
 export type ComboSize = 5 | 10;
 
+export const comboPricesUsd: Record<ComboSize, number> = {
+  5: 8,
+  10: 35,
+};
+
+export const comboPaymentAmountsVnd: Record<ComboSize, number> = {
+  5: 208000,
+  10: 899000,
+};
+
+export const combo10BonusLabel = "Khoá huấn luyện 4 buổi";
+
 export type TransferOrder = {
   orderCode: string;
   amount: number;
@@ -47,7 +59,7 @@ function buildTransferOrder(
   const orderCode = `SC${Date.now().toString().slice(-8)}`;
   const configured = Object.values(paymentSettings).every(Boolean);
   const amount =
-    comboSize === 5 ? 208000 : comboSize === 10 ? 650000 : 51000 * uniqueProductIds.length;
+    comboSize ? comboPaymentAmountsVnd[comboSize] : 51000 * uniqueProductIds.length;
   const transferNote = (
     comboSize
       ? `${orderCode} COMBO${comboSize} ${comboSize}SKILL`

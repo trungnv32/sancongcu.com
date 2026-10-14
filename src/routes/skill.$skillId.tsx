@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import fallback from "@/assets/tue-lam-03-standing.jpg";
+import { combo10BonusLabel, comboPricesUsd } from "@/lib/commerce";
 import { getProductContent, productTitles } from "@/lib/product-content";
 import { supabase } from "@/lib/supabase";
 
@@ -225,15 +226,15 @@ function Detail() {
                 </button>
               </div>
               <div className="rounded-xl border border-primary/70 bg-primary/20 p-4">
-                <p className="text-sm font-bold">Combo 10 Skill + ChatGPT Plus</p>
+                <p className="text-sm font-bold">Combo 10 Skill + {combo10BonusLabel}</p>
                 <p className="mt-1 text-sm text-background/85">Tự chọn bất kỳ 10 Skill</p>
                 <p className="mt-2 text-xs font-semibold leading-5 text-primary-foreground">
-                  Tặng ChatGPT Plus 1 tháng, sẵn sử dụng
+                  Tặng khoá huấn luyện 4 buổi, học ứng dụng AI thực tế
                 </p>
                 <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
-                  <p className="text-3xl font-extrabold">25$</p>
+                  <p className="text-3xl font-extrabold">{comboPricesUsd[10]}$</p>
                   <span className="rounded-full bg-background px-3 py-1 text-xs font-bold text-foreground">
-                    Tiết kiệm 50%
+                    Tiết kiệm 65%
                   </span>
                 </div>
                 <button

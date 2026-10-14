@@ -22,6 +22,8 @@ import {
   createFallbackCustomTransferOrder,
   createFallbackTransferOrder,
   createSavedTransferOrder,
+  combo10BonusLabel,
+  comboPricesUsd,
   getComboSizeForProductCount,
   type ComboSize,
   type TransferOrder,
@@ -546,7 +548,7 @@ function Landing() {
   };
   const effectiveComboSize = getComboSizeForProductCount(cart.length, comboSize);
   const total =
-    effectiveComboSize === 5 ? 8 : effectiveComboSize === 10 ? 25 : cart.length * skillPriceUsd;
+    effectiveComboSize ? comboPricesUsd[effectiveComboSize] : cart.length * skillPriceUsd;
   const comboReady = !comboSize || cart.length === comboSize;
   const comboGift = effectiveComboSize === 10;
   const cartItems = cart.map((id) => ({
@@ -1120,7 +1122,7 @@ function Landing() {
               · <strong>{total.toFixed(2)}$</strong>
             </span>
             {comboGift && (
-              <span className="block text-xs text-background/75">+ ChatGPT Plus 1 tháng</span>
+              <span className="block text-xs text-background/75">+ {combo10BonusLabel}</span>
             )}
           </button>
           <button
@@ -1161,7 +1163,7 @@ function Landing() {
             ))}
             {comboGift && (
               <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm font-semibold text-primary">
-                Quà tặng: ChatGPT Plus 1 tháng
+                Quà tặng: {combo10BonusLabel}
               </div>
             )}
           </div>
