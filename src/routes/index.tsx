@@ -718,7 +718,7 @@ function Landing() {
                 <div key={item.id} className="group relative shrink-0">
                   <a
                     href={item.href}
-                    className="inline-flex min-h-10 items-center gap-1 rounded-full px-3 text-foreground transition hover:bg-muted hover:text-primary"
+                    className="inline-flex min-h-10 items-center gap-1 rounded-full px-3 uppercase text-foreground transition hover:bg-muted hover:text-primary"
                   >
                     {item.label}
                     <ChevronDown className="size-4" />
@@ -742,7 +742,7 @@ function Landing() {
                 <a
                   key={item.id}
                   href={item.href}
-                  className="inline-flex min-h-10 shrink-0 items-center rounded-full px-3 text-foreground transition hover:bg-muted hover:text-primary"
+                  className="inline-flex min-h-10 shrink-0 items-center rounded-full px-3 uppercase text-foreground transition hover:bg-muted hover:text-primary"
                 >
                   {item.label}
                 </a>
