@@ -101,7 +101,7 @@ export const defaultTrainingCourses: TrainingCourse[] = [
     sale_amount_vnd: null,
     transfer_label: "COMBO AUTOMATION VIBECODING",
     bonus: "Kèm 10 skill tùy chọn",
-    highlight: "Gồm 10 skill tùy chọn và 4 buổi hướng dẫn sử dụng về hình ảnh, video, tự động hóa và vibe coding.",
+    highlight: "Gồm 10 skill tùy chọn và 4 buổi HDSD về Automation + Vibe Coding.",
     sort_order: 4,
     is_visible: true,
   },
@@ -116,7 +116,7 @@ export const defaultTrainingCourses: TrainingCourse[] = [
     transfer_label: "COMBO ALL IN ONE",
     bonus: "Kèm toàn bộ skill và update trọn đời",
     highlight:
-      "Lộ trình đầy đủ để làm chủ hình ảnh, video, skill, website, automation và vibe coding.",
+      "Lộ trình đầy đủ để làm chủ hình ảnh, video, skill, website, automation và vibe coding. Hướng dẫn bạn cách tạo ra sản phẩm và thương mại hoá để kiếm tiền từ AI.",
     sort_order: 5,
     is_visible: true,
   },
@@ -158,7 +158,7 @@ export const defaultSitePages: SitePage[] = [
   },
   {
     id: "training",
-    slug: "khoa-huan-luyen",
+    slug: "combo-uu-dai",
     menu_label: "Combo ưu đãi",
     eyebrow: "Combo skill ưu đãi",
     title: "Chọn combo skill phù hợp với công việc của bạn",
@@ -263,7 +263,7 @@ export const defaultTopMenuItems: SiteMenuItem[] = [
   {
     id: "training",
     label: "Combo ưu đãi",
-    href: "#khoa-huan-luyen",
+    href: "#combo-uu-dai",
     parent_id: null,
     description: "",
     sort_order: 4,

@@ -578,8 +578,8 @@ function Landing() {
     defaultSitePages.find((page) => page.slug === "dich-vu") ??
     defaultSitePages[1];
   const trainingPage =
-    visibleSitePages.find((page) => page.slug === "khoa-huan-luyen") ??
-    defaultSitePages.find((page) => page.slug === "khoa-huan-luyen") ??
+    visibleSitePages.find((page) => page.slug === "combo-uu-dai") ??
+    defaultSitePages.find((page) => page.slug === "combo-uu-dai") ??
     defaultSitePages[2];
   const startCheckout = async (products: Product[], selectedComboSize: ComboSize | null = null) => {
     if (products.length === 0) return;
@@ -838,8 +838,8 @@ function Landing() {
         </section>
       )}
 
-      {activeMenuSection === "khoa-huan-luyen" && (
-        <section id="khoa-huan-luyen" className="mx-auto max-w-6xl px-6 pb-20">
+      {activeMenuSection === "combo-uu-dai" && (
+        <section id="combo-uu-dai" className="mx-auto max-w-6xl px-6 pb-20">
           <div className="rounded-3xl bg-foreground p-6 text-background shadow-brand sm:p-10">
             <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
               <div className="lg:pr-6">
