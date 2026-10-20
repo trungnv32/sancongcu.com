@@ -1204,7 +1204,7 @@ function AdminPage() {
           data as TrainingCourse,
         ].sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name)),
       );
-      setNotice("Đã lưu khoá huấn luyện.");
+      setNotice("Đã lưu combo ưu đãi.");
     }
   }
 
@@ -3524,8 +3524,8 @@ function PagesPanel({
         className="rounded-2xl border border-border bg-background p-4"
       >
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_140px_120px]">
-          <CountInput label="Tên khoá" name="name" defaultValue={course.name} maxLength={140} />
-          <CountInput label="Thời lượng" name="duration" defaultValue={course.duration} maxLength={40} />
+          <CountInput label="Tên combo" name="name" defaultValue={course.name} maxLength={140} />
+          <CountInput label="Skill và buổi HDSD" name="duration" defaultValue={course.duration} maxLength={40} />
           <Field label="Thứ tự">
             <input
               name="sort_order"
@@ -3623,7 +3623,7 @@ function PagesPanel({
           {[
             { id: "menu", label: "Menu ngang", note: "Menu cha / menu con" },
             { id: "pages", label: "Nội dung trang", note: "Từng trang riêng" },
-            { id: "training", label: "Khoá huấn luyện", note: "Giá và nội dung khoá" },
+            { id: "training", label: "Combo ưu đãi", note: "Giá và nội dung combo" },
             { id: "resources", label: "Kho tài nguyên", note: "File tải miễn phí" },
           ].map((group) => (
             <button
@@ -3805,9 +3805,9 @@ function PagesPanel({
       <section className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-            Khoá huấn luyện
+            Combo ưu đãi
           </p>
-          <h2 className="mt-1 text-xl font-bold">Chỉnh sửa danh sách khoá trên trang chủ</h2>
+          <h2 className="mt-1 text-xl font-bold">Chỉnh sửa danh sách combo trên trang chủ</h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
             Nếu bỏ trống giá khuyến mãi, ngoài trang chủ sẽ chỉ hiện giá gốc. Nếu nhập giá khuyến mãi,
             giá gốc sẽ bị gạch ngang và giá khuyến mãi hiện bên cạnh.
@@ -3820,7 +3820,7 @@ function PagesPanel({
               .map((course) => <TrainingCourseForm key={course.id} course={course} />)
           ) : (
             <p className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground xl:col-span-2">
-              Chưa có khoá huấn luyện nào.
+              Chưa có combo ưu đãi nào.
             </p>
           )}
         </div>

@@ -229,7 +229,7 @@ function Detail() {
                 <p className="text-sm font-bold">Combo 10 Skill + {combo10BonusLabel}</p>
                 <p className="mt-1 text-sm text-background/85">Tự chọn bất kỳ 10 Skill</p>
                 <p className="mt-2 text-xs font-semibold leading-5 text-primary-foreground">
-                  Tặng khoá huấn luyện 4 buổi, học ứng dụng AI thực tế
+                  Kèm 4 buổi HDSD, ứng dụng AI vào công việc thực tế
                 </p>
                 <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
                   <p className="text-3xl font-extrabold">{comboPricesUsd[10]}$</p>

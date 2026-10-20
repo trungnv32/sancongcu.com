@@ -631,9 +631,9 @@ function Landing() {
     }
   };
   const startTrainingCheckout = async (course: TrainingCourse) => {
-    setCheckoutLabel("Đăng ký khoá huấn luyện");
+    setCheckoutLabel("Mua combo ưu đãi");
     setCheckoutDeliveryNote(
-      "Sau khi gửi bill và được xác nhận, bạn sẽ nhận lịch học và hướng dẫn chọn Skill tặng kèm qua Zalo.",
+      "Sau khi gửi bill và được xác nhận, bạn sẽ nhận hướng dẫn chọn Skill và lịch các buổi HDSD qua Zalo.",
     );
     setCheckoutTitle(course.name);
     setCheckoutError(null);
@@ -666,7 +666,7 @@ function Landing() {
         }),
       );
     } catch (error) {
-      console.error("Không thể tạo đơn khóa huấn luyện", error);
+      console.error("Không thể tạo đơn combo ưu đãi", error);
       setCheckoutError(
         "Mã QR đã sẵn sàng. Nếu hệ thống chưa lưu kịp đơn, bạn vẫn có thể chuyển khoản theo đúng nội dung bên dưới và gửi bill qua Zalo.",
       );
@@ -906,7 +906,7 @@ function Landing() {
                         onClick={() => void startTrainingCheckout(course)}
                         className="mt-4 min-h-11 w-full rounded-full bg-brand-gradient px-4 py-3 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                       >
-                        Đăng ký khóa này
+                        Chọn combo này
                       </button>
                     </article>
                   );
