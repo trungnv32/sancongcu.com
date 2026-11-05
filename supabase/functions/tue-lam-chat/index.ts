@@ -113,12 +113,16 @@ Deno.serve(async (request) => {
     const system = `${tueLamBrain}\n\n${brainText ? `TÀI LIỆU NÃO DO QUẢN TRỊ VIÊN CẬP NHẬT:\n${brainText}` : ""}\n\nDANH MỤC SKILL ĐANG CÔNG KHAI:\n${JSON.stringify(catalog)}\n\nCOMBO WEBSITE ĐANG CÔNG KHAI:\n${JSON.stringify(combos)}\n\nCOMBO ĐÀO TẠO WEBSITE ĐANG HIỆN HÀNH:\n${JSON.stringify(training)}\n\nChỉ dùng danh mục đang công khai để tư vấn sản phẩm. Nếu danh mục trống hoặc thiếu thông tin, nói rõ chưa xác minh.`;
     const apiKey = Deno.env.get("GEMINI_API_KEY");
     if (!apiKey) throw new Error("Chưa cấu hình Gemini API key.");
-    const model = Deno.env.get("TUE_LAM_MODEL") ?? "gemini-2.5-flash-lite";
+    const model = Deno.env.get("TUE_LAM_MODEL") ?? "gemini-3.5-flash-lite";
     const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
       method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
       body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: history.reverse().map((item: { role: string; content: string }) => ({ role: item.role === "assistant" ? "model" : "user", parts: [{ text: item.content }] })), generationConfig: { temperature: 0.4, maxOutputTokens: 500 } }),
     });
-    if (!aiResponse.ok) throw new Error("Gemini chưa trả lời được.");
+    if (!aiResponse.ok) {
+      const providerError = await aiResponse.text().catch(() => "");
+      console.error("Gemini API rejected the chat request", aiResponse.status, providerError.slice(0, 1200));
+      throw new Error(`Gemini chưa trả lời được (${aiResponse.status}).`);
+    }
     const result = await aiResponse.json();
     const reply = clean(result?.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text ?? "").join(""), 2400);
     if (!reply) throw new Error("Tuệ Lâm chưa tạo được câu trả lời.");

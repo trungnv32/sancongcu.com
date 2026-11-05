@@ -85,7 +85,7 @@ Chuyển người thật khi khách yêu cầu quản lý, khiếu nại/bức x
 
 ## 8. Những thông tin cần anh xác nhận/bổ sung sau khi xem bản nháp
 
-1. **AI runtime:** dùng Gemini API với model `gemini-2.5-flash-lite`; Edge Function cần secret `GEMINI_API_KEY` trong Supabase.
+1. **AI runtime:** dùng Gemini API. `gemini-2.5-flash-lite` hiện không được cấp cho tài khoản mới, vì vậy function dùng model `gemini-3.5-flash-lite` theo thông báo từ Gemini API. Edge Function cần secret `GEMINI_API_KEY` trong Supabase.
 
 2. **Telegram hai chiều:** chatbot gửi tin cần hỗ trợ tới Telegram. Anh reply vào đúng tin thông báo để phản hồi quay về phiên chat website. Kết nối webhook một lần trong Admin → Não Tuệ Lâm → Kết nối Telegram.
 

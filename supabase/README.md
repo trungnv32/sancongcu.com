@@ -37,7 +37,7 @@ The webhook reads incoming bank transactions, finds `SC...` order codes or `NAP.
 
 ## Tuệ Lâm website chat
 
-- `tue-lam-chat` uses the `GEMINI_API_KEY` Edge Function secret and defaults to model `gemini-2.5-flash-lite` (override with `TUE_LAM_MODEL`).
+- `tue-lam-chat` uses the `GEMINI_API_KEY` Edge Function secret and defaults to model `gemini-3.5-flash-lite` (override with `TUE_LAM_MODEL`). Gemini API reported that `gemini-2.5-flash-lite` is unavailable to new users.
 - Admins upload the current Markdown instructions in **Admin → Não Tuệ Lâm**. The authenticated admin-only `tue_lam_brain` row is read server-side for each chat; new uploads apply on the next customer message.
 - Product, combo, and training-course information is read from currently published website data for each answer.
 - `tue-lam-telegram-setup` validates the signed-in admin and registers the Telegram webhook once. After deploying the functions and site, use **Admin → Não Tuệ Lâm → Kết nối Telegram**. Reply directly to a Tuệ Lâm support notification in Telegram to send that message back to the same website chat.
