@@ -706,7 +706,7 @@ function Landing() {
           </div>
           <nav
             aria-label="Menu chính"
-            className="order-3 flex w-full basis-full items-center justify-center gap-1 overflow-x-auto text-sm font-semibold lg:flex-wrap lg:overflow-visible"
+            className="order-3 flex w-full items-center gap-1 overflow-x-auto text-sm font-semibold lg:order-none lg:w-auto lg:overflow-visible"
           >
             {topMenuItems.map((item) =>
               item.id === "services" ? (
@@ -745,10 +745,6 @@ function Landing() {
             )}
           </nav>
           <div className="flex shrink-0 items-center gap-2 text-sm">
-            <span className="hidden text-muted-foreground sm:inline">
-              Giỏ hàng · {cart.length} Skill{" "}
-              · {total.toFixed(2)}$
-            </span>
             <Link
               to="/tai-khoan"
               className="rounded-full bg-foreground px-4 py-2 font-medium text-background transition hover:opacity-90"
