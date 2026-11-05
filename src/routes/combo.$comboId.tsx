@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, LoaderCircle } from "lucide-react";
+import { ArrowLeft, LoaderCircle, ShoppingCart } from "lucide-react";
 import { useEffect, useState } from "react";
 import fallback from "@/assets/tue-lam-03-standing.jpg";
 import { supabase } from "@/lib/supabase";
@@ -33,6 +33,7 @@ function ComboDetail() {
   const [combo, setCombo] = useState<Combo | null>(null);
   const [skills, setSkills] = useState<ComboSkillRow[]>([]);
   const [loaded, setLoaded] = useState(!supabase);
+  const [added, setAdded] = useState(false);
 
   useEffect(() => {
     if (!supabase) return;
@@ -60,6 +61,27 @@ function ComboDetail() {
       setLoaded(true);
     })();
   }, [comboId]);
+
+  const addComboToCart = () => {
+    const skillIds = skills.flatMap((item) => (item.skills ? [item.skills.slug] : []));
+    if (skillIds.length === 0) return;
+    try {
+      const saved = JSON.parse(window.localStorage.getItem("sancongcu-cart") || "[]") as string[];
+      window.localStorage.setItem("sancongcu-cart", JSON.stringify([...new Set([...saved, ...skillIds])]));
+      setAdded(true);
+      window.location.href = "/?cart=open#combo";
+    } catch {
+      window.localStorage.setItem("sancongcu-cart", JSON.stringify(skillIds));
+      window.location.href = "/?cart=open#combo";
+    }
+  };
+
+  useEffect(() => {
+    if (loaded && new URLSearchParams(window.location.search).get("addToCart") === "1") {
+      window.history.replaceState({}, "", window.location.pathname);
+      addComboToCart();
+    }
+  }, [loaded, skills]);
 
   if (!loaded) {
     return (
@@ -111,6 +133,15 @@ function ComboDetail() {
             {combo.includes}
           </p>
         )}
+        <button
+          type="button"
+          onClick={addComboToCart}
+          disabled={skills.length === 0 || added}
+          className="mt-7 inline-flex min-h-12 items-center gap-2 rounded-full bg-brand-gradient px-6 py-3 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90 disabled:cursor-default disabled:opacity-70"
+        >
+          <ShoppingCart className="size-4" />
+          {added ? "Đã thêm vào giỏ" : "Mua combo này"}
+        </button>
       </section>
       <section className="mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6 sm:pb-24">
         <div className="mb-5 flex items-end justify-between gap-4">

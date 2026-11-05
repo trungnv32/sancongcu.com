@@ -408,6 +408,12 @@ function Landing() {
     if (cart.length === 0) setIsCartOpen(false);
   }, [cart.length]);
   useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("cart") === "open") {
+      setIsCartOpen(true);
+      window.history.replaceState({}, "", `${window.location.pathname}${window.location.hash}`);
+    }
+  }, []);
+  useEffect(() => {
     const syncHash = () => setActiveMenuSection(window.location.hash.replace("#", ""));
     syncHash();
     window.addEventListener("hashchange", syncHash);
@@ -980,6 +986,13 @@ function Landing() {
                 >
                   {combo.cta_label || "Khám phá combo →"}
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => { window.location.href = `/combo/${combo.slug}?addToCart=1`; }}
+                  className="mt-3 min-h-11 rounded-full bg-brand-gradient px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-brand transition hover:opacity-90"
+                >
+                  Mua combo này
+                </button>
               </article>
             ))}
           </div>
