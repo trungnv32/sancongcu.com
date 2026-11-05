@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as HuongDanMuaHangRouteImport } from './routes/huong-dan-mua-hang'
 import { Route as TaiKhoanRouteImport } from './routes/tai-khoan'
 import { Route as TaiNguyenMienPhiRouteImport } from './routes/tai-nguyen-mien-phi'
 import { Route as AppSkillIdRouteImport } from './routes/app.$skillId'
@@ -25,6 +26,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HuongDanMuaHangRoute = HuongDanMuaHangRouteImport.update({
+  id: '/huong-dan-mua-hang',
+  path: '/huong-dan-mua-hang',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TaiKhoanRoute = TaiKhoanRouteImport.update({
@@ -56,6 +62,7 @@ const SkillSkillIdRoute = SkillSkillIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/huong-dan-mua-hang': typeof HuongDanMuaHangRoute
   '/tai-khoan': typeof TaiKhoanRoute
   '/tai-nguyen-mien-phi': typeof TaiNguyenMienPhiRoute
   '/app/$skillId': typeof AppSkillIdRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/huong-dan-mua-hang': typeof HuongDanMuaHangRoute
   '/tai-khoan': typeof TaiKhoanRoute
   '/tai-nguyen-mien-phi': typeof TaiNguyenMienPhiRoute
   '/app/$skillId': typeof AppSkillIdRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/huong-dan-mua-hang': typeof HuongDanMuaHangRoute
   '/tai-khoan': typeof TaiKhoanRoute
   '/tai-nguyen-mien-phi': typeof TaiNguyenMienPhiRoute
   '/app/$skillId': typeof AppSkillIdRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/huong-dan-mua-hang'
     | '/tai-khoan'
     | '/tai-nguyen-mien-phi'
     | '/app/$skillId'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/huong-dan-mua-hang'
     | '/tai-khoan'
     | '/tai-nguyen-mien-phi'
     | '/app/$skillId'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/huong-dan-mua-hang'
     | '/tai-khoan'
     | '/tai-nguyen-mien-phi'
     | '/app/$skillId'
@@ -114,6 +126,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  HuongDanMuaHangRoute: typeof HuongDanMuaHangRoute
   TaiKhoanRoute: typeof TaiKhoanRoute
   TaiNguyenMienPhiRoute: typeof TaiNguyenMienPhiRoute
   AppSkillIdRoute: typeof AppSkillIdRoute
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/huong-dan-mua-hang': {
+      id: '/huong-dan-mua-hang'
+      path: '/huong-dan-mua-hang'
+      fullPath: '/huong-dan-mua-hang'
+      preLoaderRoute: typeof HuongDanMuaHangRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tai-khoan': {
@@ -178,6 +198,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  HuongDanMuaHangRoute: HuongDanMuaHangRoute,
   TaiKhoanRoute: TaiKhoanRoute,
   TaiNguyenMienPhiRoute: TaiNguyenMienPhiRoute,
   AppSkillIdRoute: AppSkillIdRoute,

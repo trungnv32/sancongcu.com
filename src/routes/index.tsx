@@ -618,7 +618,7 @@ function Landing() {
   const startTrainingCheckout = async (course: TrainingCourse) => {
     setCheckoutLabel("Mua combo ưu đãi");
     setCheckoutDeliveryNote(
-      "Sau khi gửi bill và được xác nhận, bạn sẽ nhận hướng dẫn chọn Skill và lịch các buổi HDSD qua Zalo.",
+      "Sau khi gửi bill và được xác nhận, bạn sẽ nhận hướng dẫn chọn Skill và lịch các buổi đào tạo qua Zalo.",
     );
     setCheckoutTitle(course.name);
     setCheckoutError(null);
@@ -991,7 +991,7 @@ function Landing() {
                   onClick={() => { window.location.href = `/combo/${combo.slug}?addToCart=1`; }}
                   className="mt-3 min-h-11 rounded-full bg-brand-gradient px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-brand transition hover:opacity-90"
                 >
-                  Mua combo này
+                  Thêm vào giỏ
                 </button>
               </article>
             ))}

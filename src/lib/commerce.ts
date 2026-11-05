@@ -25,7 +25,7 @@ export const comboPaymentAmountsVnd: Record<ComboSize, number> = {
   10: 899000,
 };
 
-export const combo10BonusLabel = "4 buổi HDSD";
+export const combo10BonusLabel = "04 buổi đào tạo";
 
 export type TransferOrder = {
   orderCode: string;

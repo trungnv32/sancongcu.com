@@ -3525,7 +3525,7 @@ function PagesPanel({
       >
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_140px_120px]">
           <CountInput label="Tên combo" name="name" defaultValue={course.name} maxLength={140} />
-          <CountInput label="Skill và buổi HDSD" name="duration" defaultValue={course.duration} maxLength={40} />
+          <CountInput label="Skill và buổi đào tạo" name="duration" defaultValue={course.duration} maxLength={60} />
           <Field label="Thứ tự">
             <input
               name="sort_order"

@@ -140,7 +140,7 @@ function ComboDetail() {
           className="mt-7 inline-flex min-h-12 items-center gap-2 rounded-full bg-brand-gradient px-6 py-3 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90 disabled:cursor-default disabled:opacity-70"
         >
           <ShoppingCart className="size-4" />
-          {added ? "Đã thêm vào giỏ" : "Mua combo này"}
+          {added ? "Đã thêm vào giỏ" : "Thêm vào giỏ"}
         </button>
       </section>
       <section className="mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6 sm:pb-24">
