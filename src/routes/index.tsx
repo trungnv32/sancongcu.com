@@ -486,7 +486,18 @@ function Landing() {
           ]);
         if (comboSectionResult.data) setComboSection(comboSectionResult.data as HomeComboSection);
         if (comboResult.data?.length) setHomeCombos(comboResult.data as HomeCombo[]);
-        if (menuResult.data?.length) setMenuItems(menuResult.data as SiteMenuItem[]);
+        if (menuResult.data?.length) {
+          const savedMenuItems = menuResult.data as SiteMenuItem[];
+          const hasPurchaseGuide = savedMenuItems.some((item) => item.id === "purchase-guide");
+          setMenuItems(
+            hasPurchaseGuide
+              ? savedMenuItems
+              : [
+                  ...savedMenuItems,
+                  ...defaultMenuItems.filter((item) => item.id === "purchase-guide"),
+                ],
+          );
+        }
         if (pageResult.data?.length) setSitePages(mergeSitePages(pageResult.data as SitePage[]));
         if (!trainingCourseResult.error && trainingCourseResult.data?.length) {
           setTrainingCourses(
@@ -695,7 +706,7 @@ function Landing() {
           </div>
           <nav
             aria-label="Menu chính"
-            className="order-3 flex w-full items-center gap-1 overflow-x-auto text-sm font-semibold lg:order-none lg:w-auto lg:overflow-visible"
+            className="order-3 flex w-full basis-full items-center justify-center gap-1 overflow-x-auto text-sm font-semibold lg:flex-wrap lg:overflow-visible"
           >
             {topMenuItems.map((item) =>
               item.id === "services" ? (
