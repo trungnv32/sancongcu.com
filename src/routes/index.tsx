@@ -1344,13 +1344,13 @@ function ProductCard({
           disabled={inCart}
           className="w-full rounded-full bg-foreground px-3 py-2 text-sm font-semibold text-background transition hover:opacity-90 disabled:cursor-default disabled:opacity-60"
         >
-          {inCart ? "Đã thêm vào giỏ · 1.99$" : "Thêm vào giỏ · 1.99$"}
+          {inCart ? "Đã thêm vào giỏ 1.99$" : "Thêm vào giỏ 1.99$"}
         </button>
         <button
           onClick={onActivate}
           className="w-full rounded-full bg-brand-gradient px-3 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
-          Mua ngay · 1.99$
+          Mua ngay 1.99$
         </button>
       </div>
     </article>
