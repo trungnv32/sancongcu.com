@@ -110,7 +110,7 @@ Deno.serve(async (request) => {
     const training = trainingResponse?.ok ? await trainingResponse.json() : [];
     const combos = comboResponse?.ok ? await comboResponse.json() : [];
     const brainText = clean(brainRow?.markdown, 140_000);
-    const system = `${tueLamBrain}\n\n${brainText ? `TÀI LIỆU NÃO DO QUẢN TRỊ VIÊN CẬP NHẬT:\n${brainText}` : ""}\n\nDANH MỤC SKILL ĐANG CÔNG KHAI:\n${JSON.stringify(catalog)}\n\nCOMBO WEBSITE ĐANG CÔNG KHAI:\n${JSON.stringify(combos)}\n\nCOMBO ĐÀO TẠO WEBSITE ĐANG HIỆN HÀNH:\n${JSON.stringify(training)}\n\nChỉ dùng danh mục đang công khai để tư vấn sản phẩm. Nếu danh mục trống hoặc thiếu thông tin, nói rõ chưa xác minh.`;
+    const system = `${tueLamBrain}\n\n${brainText ? `TÀI LIỆU NÃO DO QUẢN TRỊ VIÊN CẬP NHẬT:\n${brainText}` : ""}\n\nDANH MỤC SKILL ĐANG CÔNG KHAI:\n${JSON.stringify(catalog)}\n\nCOMBO WEBSITE ĐANG CÔNG KHAI:\n${JSON.stringify(combos)}\n\nCOMBO ĐÀO TẠO WEBSITE ĐANG HIỆN HÀNH:\n${JSON.stringify(training)}\n\nChỉ dùng danh mục đang công khai để tư vấn sản phẩm. Nếu danh mục trống hoặc thiếu thông tin, nói rõ chưa xác minh. Luôn xuống dòng giữa từng ý và từng sản phẩm, kể cả khi câu trả lời có đánh số.`;
     const apiKey = Deno.env.get("GEMINI_API_KEY");
     if (!apiKey) throw new Error("Chưa cấu hình Gemini API key.");
     const model = Deno.env.get("TUE_LAM_MODEL") ?? "gemini-3.5-flash-lite";
@@ -124,7 +124,11 @@ Deno.serve(async (request) => {
       throw new Error(`Gemini chưa trả lời được (${aiResponse.status}).`);
     }
     const result = await aiResponse.json();
-    const reply = clean(result?.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text ?? "").join(""), 2400);
+    let reply = clean(result?.candidates?.[0]?.content?.parts?.map((part: { text?: string }) => part.text ?? "").join(""), 2400)
+      .replace(/\r\n?/g, "\n")
+      .replace(/[ \t]+(?=\d+\.\s+(?:\*\*)?)/g, "\n")
+      .replace(/[ \t]+(?=-\s+)/g, "\n")
+      .trim();
     if (!reply) throw new Error("Tuệ Lâm chưa tạo được câu trả lời.");
     const savedReply = await db("tue_lam_chat_messages", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ session_id: sessionId, role: "assistant", content: reply }) });
     if (!savedReply.ok) throw new Error("Không lưu được câu trả lời.");

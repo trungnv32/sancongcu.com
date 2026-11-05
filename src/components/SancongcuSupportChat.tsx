@@ -10,6 +10,24 @@ type ChatMessage = {
   content: string;
 };
 
+function renderAgentMessage(content: string) {
+  const normalized = content
+    .replace(/\r\n?/g, "\n")
+    .replace(/[ \t]+(?=\d+\.\s+(?:\*\*)?)/g, "\n")
+    .replace(/[ \t]+(?=-\s+)/g, "\n");
+
+  return normalized.split("\n").map((line, lineIndex) => (
+    <span key={`${lineIndex}-${line}`}>
+      {lineIndex > 0 && <br />}
+      {line.split(/(\*\*[^*]+\*\*)/g).map((part, partIndex) =>
+        part.startsWith("**") && part.endsWith("**")
+          ? <strong key={partIndex}>{part.slice(2, -2)}</strong>
+          : <span key={partIndex}>{part}</span>,
+      )}
+    </span>
+  ));
+}
+
 const initialMessages: ChatMessage[] = [
   {
     id: 1,
@@ -169,15 +187,15 @@ export function SancongcuSupportChat() {
                     />
                   </div>
                 )}
-                <p
+                <div
                   className={`max-w-[78%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                     message.role === "customer"
                       ? "rounded-br-md bg-blue-600 text-white"
                       : "rounded-bl-md bg-slate-900 text-slate-100 ring-1 ring-white/10"
-                  }`}
+                  } whitespace-pre-wrap`}
                 >
-                  {message.content}
-                </p>
+                  {message.role === "agent" ? renderAgentMessage(message.content) : message.content}
+                </div>
               </div>
             ))}
 
