@@ -23,9 +23,7 @@ import {
   createFallbackTransferOrder,
   createSavedTransferOrder,
   combo10BonusLabel,
-  comboPricesUsd,
-  getComboSizeForProductCount,
-  type ComboSize,
+  getCartPrice,
   type TransferOrder,
 } from "@/lib/commerce";
 import { supabase } from "@/lib/supabase";
@@ -79,7 +77,6 @@ type Product = {
   visible?: boolean;
 };
 
-const skillPriceUsd = 1.99;
 const skillBrandOverlay = "/skill-posters/skill-thuong-hieu-overlay.jpg";
 const skillProductPoster = "/skill-posters/skill-poster-san-pham.jpg";
 const skillRemoveBg = "/skill-posters/skill-xoa-nen-anh.jpg";
@@ -116,12 +113,6 @@ type HomeCombo = {
   status?: "draft" | "published" | "hidden";
   sort_order?: number;
 };
-
-function getSavedComboSize(): ComboSize | null {
-  if (typeof window === "undefined") return null;
-  const value = Number(window.localStorage.getItem("sancongcu-combo-size"));
-  return value === 5 || value === 10 ? value : null;
-}
 
 type Category = {
   id: string;
@@ -400,7 +391,6 @@ function Landing() {
       return [];
     }
   });
-  const [comboSize, setComboSize] = useState<ComboSize | null>(getSavedComboSize);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [checkoutTitle, setCheckoutTitle] = useState<string | null>(null);
   const [checkoutLabel, setCheckoutLabel] = useState("Phí kích hoạt Skill");
@@ -414,13 +404,6 @@ function Landing() {
   useEffect(() => {
     window.localStorage.setItem("sancongcu-cart", JSON.stringify(cart));
   }, [cart]);
-  useEffect(() => {
-    if (comboSize) window.localStorage.setItem("sancongcu-combo-size", String(comboSize));
-    else window.localStorage.removeItem("sancongcu-combo-size");
-  }, [comboSize]);
-  useEffect(() => {
-    if (comboSize && cart.length > comboSize) setComboSize(null);
-  }, [cart.length, comboSize]);
   useEffect(() => {
     if (cart.length === 0) setIsCartOpen(false);
   }, [cart.length]);
@@ -544,13 +527,10 @@ function Landing() {
   const remove = (id: string) => setCart((current) => current.filter((item) => item !== id));
   const clearCart = () => {
     setCart([]);
-    setComboSize(null);
   };
-  const effectiveComboSize = getComboSizeForProductCount(cart.length, comboSize);
-  const total =
-    effectiveComboSize ? comboPricesUsd[effectiveComboSize] : cart.length * skillPriceUsd;
-  const comboReady = !comboSize || cart.length === comboSize;
-  const comboGift = effectiveComboSize === 10;
+  const cartPricing = getCartPrice(cart.length);
+  const total = cartPricing.totalUsd;
+  const comboGift = cartPricing.combo10Count > 0;
   const cartItems = cart.map((id) => ({
     id,
     title:
@@ -581,9 +561,8 @@ function Landing() {
     visibleSitePages.find((page) => page.slug === "combo-uu-dai") ??
     defaultSitePages.find((page) => page.slug === "combo-uu-dai") ??
     defaultSitePages[2];
-  const startCheckout = async (products: Product[], selectedComboSize: ComboSize | null = null) => {
+  const startCheckout = async (products: Product[]) => {
     if (products.length === 0) return;
-    const checkoutComboSize = getComboSizeForProductCount(products.length, selectedComboSize);
     setCheckoutLabel("Phí kích hoạt Skill");
     setCheckoutDeliveryNote(
       "Sau khi gửi bill và được xác nhận, bạn sẽ nhận link tải Skill và hướng dẫn sử dụng riêng qua Zalo.",
@@ -598,7 +577,7 @@ function Landing() {
     // passed to Supabase immediately after the first paint.
     const immediateOrder = createFallbackTransferOrder(
       products.map((product) => product.id),
-      checkoutComboSize,
+      null,
     );
     setTransferOrder(immediateOrder);
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
@@ -610,7 +589,7 @@ function Landing() {
       const { data, error } = await supabase.rpc("create_pending_order", {
         p_skill_slugs: products.map((product) => product.id),
         p_order_code: immediateOrder.orderCode,
-        p_combo_size: checkoutComboSize,
+        p_combo_size: null,
       });
       const savedOrder = data?.[0];
       if (error) throw error;
@@ -684,8 +663,7 @@ function Landing() {
     const selectedProducts = activeCategories
       .flatMap((category) => category.products)
       .filter((product) => cart.includes(product.id));
-    if (comboSize && selectedProducts.length !== comboSize) return;
-    await startCheckout(selectedProducts, comboSize);
+    await startCheckout(selectedProducts);
   };
   useEffect(() => {
     const activateId = new URLSearchParams(window.location.search).get("activate");
@@ -751,9 +729,7 @@ function Landing() {
           </nav>
           <div className="flex shrink-0 items-center gap-2 text-sm">
             <span className="hidden text-muted-foreground sm:inline">
-              {comboSize
-                ? `Combo ${comboSize} · ${cart.length}/${comboSize} Skill`
-                : `${cart.length} skill`}{" "}
+              Giỏ hàng · {cart.length} Skill{" "}
               · {total.toFixed(2)}$
             </span>
             <Link
@@ -1116,9 +1092,7 @@ function Landing() {
           >
             <span className="block">
               ⚡{" "}
-              {comboSize
-                ? `Combo ${comboSize} · ${cart.length}/${comboSize} Skill`
-                : `${cart.length} skill`}{" "}
+              Giỏ hàng · {cart.length} Skill{" "}
               · <strong>{total.toFixed(2)}$</strong>
             </span>
             {comboGift && (
@@ -1127,10 +1101,9 @@ function Landing() {
           </button>
           <button
             onClick={handleCartCheckout}
-            disabled={!comboReady}
             className="rounded-full bg-brand-gradient px-4 py-1.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {comboReady ? "Kích hoạt →" : `Chọn thêm ${comboSize! - cart.length} Skill`}
+            Mua ngay →
           </button>
         </div>
       )}
@@ -1139,9 +1112,7 @@ function Landing() {
           <DialogHeader>
             <DialogTitle>Giỏ Skill đã chọn</DialogTitle>
             <DialogDescription>
-              {comboSize
-                ? `Combo ${comboSize}: ${cart.length}/${comboSize} Skill · ${total.toFixed(2)}$`
-                : `${cart.length} Skill · ${total.toFixed(2)}$`}
+              {cart.length} Skill · {total.toFixed(2)}$ · đã áp dụng ưu đãi combo phù hợp
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
@@ -1183,10 +1154,9 @@ function Landing() {
               setIsCartOpen(false);
               void handleCartCheckout();
             }}
-            disabled={!comboReady}
             className="min-h-12 w-full rounded-full bg-brand-gradient px-4 py-3 text-sm font-bold text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {comboReady ? "Kích hoạt đơn hàng →" : `Chọn thêm ${comboSize! - cart.length} Skill`}
+            Mua ngay →
           </button>
         </DialogContent>
       </Dialog>

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getProductContent } from "@/lib/product-content";
 
 const orderInput = z.object({
-  productIds: z.array(z.string().min(1)).min(1).max(20),
+  productIds: z.array(z.string().min(1)).min(1),
 });
 
 type PaymentSettings = {
@@ -58,12 +58,19 @@ function buildTransferOrder(
   const uniqueProductIds = [...new Set(productIds)];
   const orderCode = `SC${Date.now().toString().slice(-8)}`;
   const configured = Object.values(paymentSettings).every(Boolean);
-  const amount =
-    comboSize ? comboPaymentAmountsVnd[comboSize] : 51000 * uniqueProductIds.length;
+  const amount = comboSize
+    ? comboPaymentAmountsVnd[comboSize]
+    : getCartPriceVnd(uniqueProductIds.length);
+  const pricing = getCartPrice(uniqueProductIds.length);
+  const pricingNote = [
+    pricing.combo10Count ? `C10X${pricing.combo10Count}` : "",
+    pricing.combo5Count ? "C5" : "",
+    pricing.singleCount ? `LE${pricing.singleCount}` : "",
+  ].filter(Boolean).join(" ");
   const transferNote = (
     comboSize
       ? `${orderCode} COMBO${comboSize} ${comboSize}SKILL`
-      : `${orderCode} ${uniqueProductIds.length}SKILL`
+      : `${orderCode} ${uniqueProductIds.length}SKILL ${pricingNote}`
   ).toUpperCase();
   const qrUrl = configured
     ? `https://img.vietqr.io/image/${paymentSettings.bankCode}-${paymentSettings.accountNumber}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(transferNote)}&accountName=${encodeURIComponent(paymentSettings.accountName)}`
@@ -115,6 +122,24 @@ export function getComboSizeForProductCount(
   if (productCount === 10) return 10;
   if (productCount === 5) return 5;
   return null;
+}
+
+export function getCartPrice(productCount: number): { totalUsd: number; combo5Count: number; combo10Count: number; singleCount: number } {
+  const combo10Count = Math.floor(productCount / 10);
+  const remainder = productCount % 10;
+  const combo5Count = remainder >= 5 ? 1 : 0;
+  const singleCount = remainder - combo5Count * 5;
+  return {
+    totalUsd: combo10Count * comboPricesUsd[10] + combo5Count * comboPricesUsd[5] + singleCount * 1.99,
+    combo5Count,
+    combo10Count,
+    singleCount,
+  };
+}
+
+export function getCartPriceVnd(productCount: number): number {
+  const { combo5Count, combo10Count, singleCount } = getCartPrice(productCount);
+  return combo10Count * comboPaymentAmountsVnd[10] + combo5Count * comboPaymentAmountsVnd[5] + singleCount * 51000;
 }
 
 export function createSavedTransferOrder({
