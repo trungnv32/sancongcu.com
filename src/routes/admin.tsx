@@ -326,6 +326,7 @@ function AdminPage() {
   const [brainFileName, setBrainFileName] = useState<string | null>(null);
   const [brainUpdatedAt, setBrainUpdatedAt] = useState<string | null>(null);
   const [brainMarkdown, setBrainMarkdown] = useState("");
+  const [brainDraftDirty, setBrainDraftDirty] = useState(false);
   const [selectedHallId, setSelectedHallId] = useState<string | null>(null);
   const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -375,6 +376,7 @@ function AdminPage() {
     setBrainFileName(null);
     setBrainUpdatedAt(null);
     setBrainMarkdown("");
+    setBrainDraftDirty(false);
     setSelectedHallId(null);
     setSelectedSkillId(null);
   }
@@ -525,6 +527,7 @@ function AdminPage() {
       setBrainFileName(brainResult.data?.file_name ?? null);
       setBrainUpdatedAt(brainResult.data?.updated_at ?? null);
       setBrainMarkdown(brainResult.data?.markdown ?? "");
+      setBrainDraftDirty(false);
       setWebappJobs(
         (
           (webappHistoryResult.error ? [] : (webappHistoryResult.data?.jobs ?? [])) as WebappJob[]
@@ -572,9 +575,42 @@ function AdminPage() {
       setBrainFileName(data.file_name);
       setBrainMarkdown(data.markdown);
       setBrainUpdatedAt(data.updated_at);
+      setBrainDraftDirty(false);
       setNotice("Đã cập nhật tài liệu não Tuệ Lâm. Chatbot dùng nội dung mới từ lượt chat tiếp theo.");
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : "Không thể lưu tài liệu não.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function saveTueLamBrain() {
+    if (!supabase) return;
+    if (!brainMarkdown.trim()) {
+      setError("Tài liệu não không được để trống.");
+      return;
+    }
+    if (new TextEncoder().encode(brainMarkdown).byteLength > 150_000) {
+      setError("Tài liệu Markdown tối đa 150 KB.");
+      return;
+    }
+    setIsSaving(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const { data, error: saveError } = await supabase
+        .from("tue_lam_brain")
+        .upsert({ id: 1, file_name: brainFileName ?? "TU-LAM-AI-BRAIN.md", markdown: brainMarkdown, updated_at: new Date().toISOString() })
+        .select("file_name,markdown,updated_at")
+        .single();
+      if (saveError) throw saveError;
+      setBrainFileName(data.file_name);
+      setBrainMarkdown(data.markdown);
+      setBrainUpdatedAt(data.updated_at);
+      setBrainDraftDirty(false);
+      setNotice("Đã lưu tài liệu não. Tuệ Lâm sẽ dùng nội dung mới từ lượt chat tiếp theo.");
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "Không thể lưu tài liệu não.");
     } finally {
       setIsSaving(false);
     }
@@ -1886,7 +1922,7 @@ function AdminPage() {
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.14em] text-primary">Tuệ Lâm</p>
                   <h2 className="mt-1 text-2xl font-black">Cập nhật tài liệu não</h2>
-                  <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Tải lên tài liệu Markdown (.md). Nội dung được lưu an toàn trong cơ sở dữ liệu quản trị và chatbot sẽ dùng bản mới ở lượt trò chuyện tiếp theo.</p>
+                  <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Anh có thể chỉnh trực tiếp trong ô Markdown bên dưới hoặc tải lên file .md. Sau khi lưu, chatbot dùng nội dung mới ở lượt trò chuyện tiếp theo.</p>
                 </div>
               </div>
               <div className="mt-6 rounded-xl border border-border bg-background p-4 sm:p-5">
@@ -1902,8 +1938,20 @@ function AdminPage() {
                     <input type="file" accept=".md,text/markdown,text/plain" className="sr-only" disabled={isSaving} onChange={(event) => void uploadTueLamBrain(event)} />
                   </label>
                 </div>
-                {brainMarkdown && <pre className="mt-4 max-h-80 overflow-auto whitespace-pre-wrap rounded-lg bg-muted/50 p-4 text-xs leading-5 text-muted-foreground">{brainMarkdown.slice(0, 12000)}{brainMarkdown.length > 12000 ? "\n… Bản xem trước được rút gọn." : ""}</pre>}
-                <p className="mt-3 text-xs leading-5 text-muted-foreground">Tối đa 150 KB. Upload bản mới sẽ thay thế tài liệu cũ. Danh mục và giá skill vẫn được lấy trực tiếp từ dữ liệu website.</p>
+                <label htmlFor="tue-lam-brain-markdown" className="mt-5 block text-sm font-bold">Nội dung tài liệu (Markdown)</label>
+                <textarea
+                  id="tue-lam-brain-markdown"
+                  value={brainMarkdown}
+                  onChange={(event) => { setBrainMarkdown(event.target.value); setBrainDraftDirty(true); }}
+                  disabled={isSaving}
+                  spellCheck={false}
+                  placeholder="# Não Tuệ Lâm\n\nNhập hướng dẫn và thông tin cho chatbot..."
+                  className="mt-2 min-h-[28rem] w-full resize-y rounded-xl border border-input bg-background p-4 font-mono text-sm leading-6 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
+                />
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-xs leading-5 text-muted-foreground">Tối đa 150 KB. Danh mục và giá skill vẫn được lấy trực tiếp từ website.</p>
+                  <button type="button" onClick={() => void saveTueLamBrain()} disabled={isSaving || !brainDraftDirty} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"><Save className="size-4" /> Lưu nội dung não</button>
+                </div>
               </div>
               <div className="mt-4 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border bg-background p-4 sm:p-5">
                 <div><h3 className="font-bold">Kết nối Telegram hai chiều</h3><p className="mt-1 max-w-2xl text-sm text-muted-foreground">Kết nối bot một lần để anh có thể trả lời khách bằng cách reply vào thông báo Telegram.</p></div>
