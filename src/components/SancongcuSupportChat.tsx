@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { MessageCircle, Minus, Send, Sparkles, X } from "lucide-react";
 
 import tueLamAvatar from "@/assets/tue-lam-chat-avatar.png";
@@ -10,8 +10,6 @@ type ChatMessage = {
   content: string;
 };
 
-type TelegramStage = "none" | "handoff" | "phone";
-
 const initialMessages: ChatMessage[] = [
   {
     id: 1,
@@ -19,58 +17,48 @@ const initialMessages: ChatMessage[] = [
     content:
       "Em chào anh/chị, em là Tuệ Lâm, KOL và đại sứ thương hiệu của Sancongcu.com. Anh/chị đang cần tìm skill AI, hỏi cách dùng, hay cần hỗ trợ đơn hàng ạ?",
   },
-  {
-    id: 2,
-    role: "agent",
-    content:
-      "Sau này Tuệ Lâm sẽ được kết nối với AI Agent đã nạp dữ liệu của Sancongcu để chăm sóc khách hàng tự động.",
-  },
 ];
 
 const quickReplies = ["Tư vấn skill phù hợp", "Hướng dẫn mua hàng", "Hỗ trợ đơn hàng"];
-
-function findPhoneNumber(value: string) {
-  const match = value.match(/(?:\+?84|0)(?:[\s.-]?\d){8,10}/);
-  return match?.[0]?.replace(/\s+/g, " ").trim() ?? "";
-}
 
 export function SancongcuSupportChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [draft, setDraft] = useState("");
   const [customerMessageCount, setCustomerMessageCount] = useState(0);
-  const [telegramStage, setTelegramStage] = useState<TelegramStage>("none");
+  const [isSending, setIsSending] = useState(false);
+  const [chatSessionId, setChatSessionId] = useState("");
+  const [lastHumanMessageId, setLastHumanMessageId] = useState(0);
 
-  const notifyTelegram = async (
-    updatedMessages: ChatMessage[],
-    phoneNumber: string,
-    stage: Exclude<TelegramStage, "none">,
-  ) => {
-    if (!supabase || telegramStage === "phone" || (telegramStage === "handoff" && stage === "handoff")) {
-      return;
+  useEffect(() => {
+    let sessionId = window.sessionStorage.getItem("tue-lam-chat-session");
+    if (!sessionId) {
+      sessionId = crypto.randomUUID();
+      window.sessionStorage.setItem("tue-lam-chat-session", sessionId);
     }
+    setChatSessionId(sessionId);
+  }, []);
 
-    setTelegramStage(stage);
+  useEffect(() => {
+    if (!isOpen || !chatSessionId || !supabase) return;
+    const timer = window.setInterval(() => {
+      void supabase.functions.invoke("tue-lam-telegram-webhook", {
+        body: { action: "poll", sessionId: chatSessionId, afterId: lastHumanMessageId },
+      }).then(({ data, error }) => {
+        if (error || !Array.isArray(data?.messages) || !data.messages.length) return;
+        const incoming = data.messages as Array<{ id: number; content: string }>;
+        setMessages((current) => {
+          const currentIds = new Set(current.map((message) => message.id));
+          const unseen = incoming.filter((message) => !currentIds.has(message.id));
+          return unseen.length ? [...current, ...unseen.map((message) => ({ id: message.id, role: "agent" as const, content: `Anh Trung: ${message.content}` }))] : current;
+        });
+        setLastHumanMessageId((current) => Math.max(current, ...incoming.map((message) => message.id)));
+      });
+    }, 3500);
+    return () => window.clearInterval(timer);
+  }, [chatSessionId, isOpen, lastHumanMessageId]);
 
-    const transcript = updatedMessages
-      .map((message) => `${message.role === "customer" ? "Khách" : "Tuệ Lâm"}: ${message.content}`)
-      .join("\n");
-
-    const { error } = await supabase.functions.invoke("tue-lam-chat-lead", {
-      body: {
-        phoneNumber,
-        transcript,
-        pageUrl: window.location.href,
-      },
-    });
-
-    if (error) {
-      console.error("Không gửi được Telegram lead Tuệ Lâm:", error);
-      setTelegramStage(stage === "phone" ? "handoff" : "none");
-    }
-  };
-
-  const sendMessage = (content: string) => {
+  const sendMessage = async (content: string) => {
     const trimmedContent = content.trim();
 
     if (!trimmedContent) {
@@ -78,33 +66,37 @@ export function SancongcuSupportChat() {
     }
 
     const nextCustomerMessageCount = customerMessageCount + 1;
-    const phoneNumber = findPhoneNumber(trimmedContent);
-    const agentReply =
-      phoneNumber && nextCustomerMessageCount >= 2
-        ? "Em đã nhận được số điện thoại của anh/chị. Tuệ Lâm đang chuyển thông tin về bộ phận phụ trách để hỗ trợ tiếp ạ."
-        : nextCustomerMessageCount === 1
-          ? "Dạ Tuệ Lâm chào anh/chị ạ. Anh/chị cứ nhắn nhu cầu hoặc vấn đề đang cần hỗ trợ, Tuệ Lâm sẽ tiếp nhận trước cho mình."
-          : "Tuệ Lâm đã tiếp nhận thông tin để chuyển về bộ phận phụ trách. Anh/chị cho em xin số điện thoại để bên em liên hệ hỗ trợ nhanh hơn nhé.";
-
     const customerMessage: ChatMessage = {
-        id: Date.now(),
-        role: "customer",
-        content: trimmedContent,
-      };
-    const agentMessage: ChatMessage = {
-        id: Date.now() + 1,
-        role: "agent",
-        content: agentReply,
-      };
-
-    const updatedMessages = [...messages, customerMessage, agentMessage];
-
-    setMessages(updatedMessages);
+      id: Date.now(), role: "customer", content: trimmedContent,
+    };
+    const withCustomerMessage = [...messages, customerMessage];
+    setMessages(withCustomerMessage);
     setCustomerMessageCount(nextCustomerMessageCount);
     setDraft("");
+    setIsSending(true);
 
-    if (nextCustomerMessageCount >= 2) {
-      void notifyTelegram(updatedMessages, phoneNumber, phoneNumber ? "phone" : "handoff");
+    try {
+      if (!supabase) throw new Error("Chưa kết nối được dịch vụ chat.");
+      const { data, error } = await supabase.functions.invoke("tue-lam-chat", {
+        body: {
+          sessionId: chatSessionId,
+          message: trimmedContent,
+          pageUrl: window.location.href,
+        },
+      });
+      if (error || !data?.reply) throw error ?? new Error(data?.error ?? "Chưa nhận được phản hồi.");
+      const agentMessage: ChatMessage = { id: Date.now() + 1, role: "agent", content: data.reply };
+      const updatedMessages = [...withCustomerMessage, agentMessage];
+      setMessages(updatedMessages);
+    } catch (error) {
+      console.error("Không gửi được tin nhắn Tuệ Lâm:", error);
+      setMessages((current) => [...current, {
+        id: Date.now() + 2,
+        role: "agent",
+        content: "Em chưa kết nối được để trả lời lúc này. Anh/chị có thể nhắn Zalo hỗ trợ qua https://zalo.me/0938069668, hoặc thử lại sau ít phút ạ.",
+      }]);
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -194,12 +186,14 @@ export function SancongcuSupportChat() {
                 <button
                   key={reply}
                   type="button"
+                  disabled={!chatSessionId || isSending}
                   onClick={() => sendMessage(reply)}
-                  className="rounded-full border border-blue-300/35 bg-blue-500/10 px-3 py-2 text-xs font-semibold text-blue-100 transition hover:border-blue-200 hover:bg-blue-500/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-200"
+                  className="rounded-full border border-blue-300/35 bg-blue-500/10 px-3 py-2 text-xs font-semibold text-blue-100 transition hover:border-blue-200 hover:bg-blue-500/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-200 disabled:opacity-50"
                 >
                   {reply}
                 </button>
               ))}
+              {isSending && <p className="px-2 text-xs text-slate-300">Tuệ Lâm đang trả lời…</p>}
             </div>
           </div>
 
@@ -211,6 +205,7 @@ export function SancongcuSupportChat() {
               id="sancongcu-support-message"
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
+              disabled={isSending || !chatSessionId}
               autoComplete="off"
               placeholder="Nhắn tin cho Tuệ Lâm..."
               className="min-h-11 min-w-0 flex-1 rounded-full border border-slate-300 bg-white px-4 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"

@@ -611,6 +611,7 @@ function Landing() {
       const savedOrder = data?.[0];
       if (error) throw error;
       if (!savedOrder) throw new Error("Không thể tạo mã đơn.");
+      void supabase.functions.invoke("tue-lam-chat", { body: { action: "new-order", orderCode: savedOrder.order_code } });
       setTransferOrder(
         createSavedTransferOrder({
           orderCode: savedOrder.order_code,
@@ -653,6 +654,7 @@ function Landing() {
       const savedOrder = data?.[0];
       if (error) throw error;
       if (!savedOrder) throw new Error("Không thể tạo mã đơn.");
+      void supabase.functions.invoke("tue-lam-chat", { body: { action: "new-order", orderCode: savedOrder.order_code } });
       setTransferOrder(
         createSavedTransferOrder({
           orderCode: savedOrder.order_code,

@@ -34,3 +34,11 @@ Recommended security:
 - API Key: alternatively set Supabase secret `SEPAY_WEBHOOK_API_KEY` to the same API key configured in SePay.
 
 The webhook reads incoming bank transactions, finds `SC...` order codes or `NAP...` wallet top-up codes in the transfer content, stores the SePay transaction for duplicate protection, then confirms the matching order/top-up when the received amount is enough.
+
+## Tuệ Lâm website chat
+
+- `tue-lam-chat` uses the `GEMINI_API_KEY` Edge Function secret and defaults to model `gemini-2.5-flash-lite` (override with `TUE_LAM_MODEL`).
+- Admins upload the current Markdown instructions in **Admin → Não Tuệ Lâm**. The authenticated admin-only `tue_lam_brain` row is read server-side for each chat; new uploads apply on the next customer message.
+- Product, combo, and training-course information is read from currently published website data for each answer.
+- `tue-lam-telegram-setup` validates the signed-in admin and registers the Telegram webhook once. After deploying the functions and site, use **Admin → Não Tuệ Lâm → Kết nối Telegram**. Reply directly to a Tuệ Lâm support notification in Telegram to send that message back to the same website chat.
+- Newly saved skill and training-combo orders trigger an immediate Telegram notification. Notifications are idempotent per order.

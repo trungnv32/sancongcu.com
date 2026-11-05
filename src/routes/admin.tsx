@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowLeft,
+  Brain,
   Check,
   ChevronRight,
   CircleAlert,
@@ -322,6 +323,9 @@ function AdminPage() {
   const [sitePages, setSitePages] = useState<SitePage[]>(defaultSitePages);
   const [trainingCourses, setTrainingCourses] = useState<TrainingCourse[]>(defaultTrainingCourses);
   const [freeResources, setFreeResources] = useState<FreeResource[]>([]);
+  const [brainFileName, setBrainFileName] = useState<string | null>(null);
+  const [brainUpdatedAt, setBrainUpdatedAt] = useState<string | null>(null);
+  const [brainMarkdown, setBrainMarkdown] = useState("");
   const [selectedHallId, setSelectedHallId] = useState<string | null>(null);
   const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -332,7 +336,7 @@ function AdminPage() {
   const [newHallName, setNewHallName] = useState("");
   const [hallFormDirty, setHallFormDirty] = useState(false);
   const [adminSection, setAdminSection] = useState<
-    "orders" | "topups" | "webapp-history" | "combos" | "pages" | "catalog" | "account"
+    "orders" | "topups" | "webapp-history" | "combos" | "pages" | "catalog" | "account" | "tue-lam-brain"
   >("orders");
 
   const selectedSkill = useMemo(
@@ -368,6 +372,9 @@ function AdminPage() {
     setSitePages([]);
     setTrainingCourses([]);
     setFreeResources([]);
+    setBrainFileName(null);
+    setBrainUpdatedAt(null);
+    setBrainMarkdown("");
     setSelectedHallId(null);
     setSelectedSkillId(null);
   }
@@ -435,6 +442,7 @@ function AdminPage() {
       pageResult,
       trainingCourseResult,
       resourceResult,
+      brainResult,
     ] = await Promise.all([
       supabase.from("halls").select("*").order("sort_order").order("name"),
       supabase.from("skills").select("*").order("sort_order").order("title"),
@@ -457,6 +465,7 @@ function AdminPage() {
       supabase.from("site_pages").select("*").order("sort_order"),
       supabase.from("training_courses").select("*").order("sort_order"),
       supabase.from("free_resources").select("*").order("sort_order"),
+      supabase.from("tue_lam_brain").select("file_name,markdown,updated_at").eq("id", 1).maybeSingle(),
     ]);
     const requestError =
       hallResult.error ??
@@ -513,6 +522,9 @@ function AdminPage() {
           : defaultTrainingCourses) ?? []) as TrainingCourse[],
       );
       setFreeResources((resourceResult.data ?? []) as FreeResource[]);
+      setBrainFileName(brainResult.data?.file_name ?? null);
+      setBrainUpdatedAt(brainResult.data?.updated_at ?? null);
+      setBrainMarkdown(brainResult.data?.markdown ?? "");
       setWebappJobs(
         (
           (webappHistoryResult.error ? [] : (webappHistoryResult.data?.jobs ?? [])) as WebappJob[]
@@ -531,6 +543,55 @@ function AdminPage() {
       setIsAdminReady(true);
     }
     setIsLoading(false);
+  }
+
+  async function uploadTueLamBrain(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = "";
+    if (!supabase || !file) return;
+    if (!/\.md$/i.test(file.name)) {
+      setError("Anh vui lòng chọn tài liệu có đuôi .md.");
+      return;
+    }
+    if (file.size > 150_000) {
+      setError("Tài liệu Markdown tối đa 150 KB.");
+      return;
+    }
+    setIsSaving(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const markdown = await file.text();
+      if (!markdown.trim()) throw new Error("Tài liệu đang trống.");
+      const { data, error: saveError } = await supabase
+        .from("tue_lam_brain")
+        .upsert({ id: 1, file_name: file.name, markdown, updated_at: new Date().toISOString() })
+        .select("file_name,markdown,updated_at")
+        .single();
+      if (saveError) throw saveError;
+      setBrainFileName(data.file_name);
+      setBrainMarkdown(data.markdown);
+      setBrainUpdatedAt(data.updated_at);
+      setNotice("Đã cập nhật tài liệu não Tuệ Lâm. Chatbot dùng nội dung mới từ lượt chat tiếp theo.");
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Không thể lưu tài liệu não.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function connectTueLamTelegram() {
+    if (!supabase) return;
+    setIsSaving(true);
+    setError(null);
+    setNotice(null);
+    const { data, error: setupError } = await supabase.functions.invoke("tue-lam-telegram-setup", { body: {} });
+    setIsSaving(false);
+    if (setupError || !data?.ok) {
+      setError(data?.error ?? setupError?.message ?? "Chưa thể kết nối Telegram.");
+      return;
+    }
+    setNotice("Đã kết nối Telegram. Anh reply trực tiếp vào tin thông báo của Tuệ Lâm để phản hồi khách.");
   }
 
   async function confirmWalletTopup(topup: WalletTopup) {
@@ -1727,6 +1788,15 @@ function AdminPage() {
           </button>
           <button
             type="button"
+            onClick={() => setAdminSection("tue-lam-brain")}
+            aria-current={adminSection === "tue-lam-brain" ? "page" : undefined}
+            className={`mb-4 flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-bold transition ${adminSection === "tue-lam-brain" ? "bg-foreground text-background" : "border border-border hover:bg-muted"}`}
+          >
+            <Brain className="size-4" />
+            Não Tuệ Lâm
+          </button>
+          <button
+            type="button"
             onClick={() => setAdminSection("pages")}
             aria-current={adminSection === "pages" ? "page" : undefined}
             className={`mb-4 flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-bold transition ${adminSection === "pages" ? "bg-foreground text-background" : "border border-border hover:bg-muted"}`}
@@ -1809,6 +1879,38 @@ function AdminPage() {
             <TopupsPanel topups={walletTopups} onConfirmTopup={confirmWalletTopup} />
           )}
           {adminSection === "webapp-history" && <WebappHistoryPanel jobs={webappJobs} />}
+          {adminSection === "tue-lam-brain" && (
+            <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-7">
+              <div className="flex items-start gap-3">
+                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><Brain className="size-5" /></span>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-primary">Tuệ Lâm</p>
+                  <h2 className="mt-1 text-2xl font-black">Cập nhật tài liệu não</h2>
+                  <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Tải lên tài liệu Markdown (.md). Nội dung được lưu an toàn trong cơ sở dữ liệu quản trị và chatbot sẽ dùng bản mới ở lượt trò chuyện tiếp theo.</p>
+                </div>
+              </div>
+              <div className="mt-6 rounded-xl border border-border bg-background p-4 sm:p-5">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-bold">Tài liệu hiện hành</h3>
+                    {brainFileName ? (
+                      <p className="mt-1 text-sm text-muted-foreground">{brainFileName}{brainUpdatedAt ? ` · cập nhật ${new Date(brainUpdatedAt).toLocaleString("vi-VN")}` : ""}</p>
+                    ) : <p className="mt-1 text-sm text-amber-700">Chưa có tài liệu được tải lên.</p>}
+                  </div>
+                  <label className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:opacity-90 ${isSaving ? "pointer-events-none opacity-50" : ""}`}>
+                    <Upload className="size-4" /> Tải tài liệu Markdown
+                    <input type="file" accept=".md,text/markdown,text/plain" className="sr-only" disabled={isSaving} onChange={(event) => void uploadTueLamBrain(event)} />
+                  </label>
+                </div>
+                {brainMarkdown && <pre className="mt-4 max-h-80 overflow-auto whitespace-pre-wrap rounded-lg bg-muted/50 p-4 text-xs leading-5 text-muted-foreground">{brainMarkdown.slice(0, 12000)}{brainMarkdown.length > 12000 ? "\n… Bản xem trước được rút gọn." : ""}</pre>}
+                <p className="mt-3 text-xs leading-5 text-muted-foreground">Tối đa 150 KB. Upload bản mới sẽ thay thế tài liệu cũ. Danh mục và giá skill vẫn được lấy trực tiếp từ dữ liệu website.</p>
+              </div>
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border bg-background p-4 sm:p-5">
+                <div><h3 className="font-bold">Kết nối Telegram hai chiều</h3><p className="mt-1 max-w-2xl text-sm text-muted-foreground">Kết nối bot một lần để anh có thể trả lời khách bằng cách reply vào thông báo Telegram.</p></div>
+                <button type="button" disabled={isSaving} onClick={() => void connectTueLamTelegram()} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-bold transition hover:bg-muted disabled:opacity-50"><Check className="size-4" /> Kết nối Telegram</button>
+              </div>
+            </section>
+          )}
           {adminSection === "combos" && (
             <CombosPanel
               comboSection={comboSection}
