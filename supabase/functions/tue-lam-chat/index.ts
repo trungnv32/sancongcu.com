@@ -130,21 +130,29 @@ Deno.serve(async (request) => {
       .replace(/[ \t]+(?=-\s+)/g, "\n")
       .trim();
     if (!reply) throw new Error("Tuệ Lâm chưa tạo được câu trả lời.");
-    const savedReply = await db("tue_lam_chat_messages", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ session_id: sessionId, role: "assistant", content: reply }) });
-    if (!savedReply.ok) throw new Error("Không lưu được câu trả lời.");
     const savedSessionResponse = await db(`tue_lam_chat_sessions?id=eq.${sessionId}&select=customer_phone`);
     const [savedSession] = savedSessionResponse.ok ? await savedSessionResponse.json() : [];
-    const complaint = /(khiếu nại|hoàn tiền|đổi skill|chưa nhận|đã thanh toán|gặp quản lý|người thật|không hài lòng|thất vọng|phàn nàn|phản ánh)/i.test(content);
-    const needsHuman = complaint && Boolean(savedSession?.customer_phone);
+    const customerContext = history
+      .filter((item: { role: string }) => item.role === "customer")
+      .map((item: { content: string }) => item.content)
+      .join("\n");
+    const handoffRequested = /(tư vấn riêng|gặp anh|gặp anh trung|nói chuyện với anh|nói chuyện trực tiếp|người thật|nhân viên tư vấn|gặp tư vấn viên|chuyển (?:anh|người|nhân viên)|cho (?:anh|em) gặp|muốn gặp|cần gặp)/i.test(customerContext);
+    const complaint = /(khiếu nại|hoàn tiền|đổi skill|chưa nhận|đã thanh toán|gặp quản lý|người thật|không hài lòng|thất vọng|phàn nàn|phản ánh)/i.test(customerContext);
+    const needsHuman = handoffRequested || complaint;
+    const phone = savedSession?.customer_phone;
     let handoffSent = false;
-    if (needsHuman) {
+    if (needsHuman && phone) {
       try { await sendHandoff(sessionId); handoffSent = true; } catch (error) { console.error("Telegram handoff failed", error); }
     }
-    if (needsHuman && !handoffSent) {
-      const fallback = "\n\nHiện em chưa chuyển được thông báo tự động. Anh/chị vui lòng nhắn trực tiếp Zalo 0938.069.668 để anh Trung hỗ trợ nhé.";
-      reply += fallback;
-      await db("tue_lam_chat_messages", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ session_id: sessionId, role: "assistant", content: fallback.trim() }) });
+    if (needsHuman && !phone) {
+      reply = "Dạ, em chuyển anh Trung hỗ trợ riêng cho mình nhé. Anh/chị cho em xin số điện thoại để anh tiện liên hệ ạ.";
+    } else if (needsHuman && handoffSent) {
+      reply = "Dạ, em đã chuyển nội dung và số điện thoại của anh/chị cho anh Trung qua Telegram. Anh sẽ xem và phản hồi mình trong 2–4 giờ làm việc ạ.";
+    } else if (needsHuman && !handoffSent) {
+      reply = "Dạ, em xin lỗi, hiện em chưa gửi được thông tin cho anh Trung. Anh/chị vui lòng nhắn Zalo https://zalo.me/0938069668 để được hỗ trợ trực tiếp ạ.";
     }
+    const savedReply = await db("tue_lam_chat_messages", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ session_id: sessionId, role: "assistant", content: reply }) });
+    if (!savedReply.ok) throw new Error("Không lưu được câu trả lời.");
     return json(request, { reply, handoff: handoffSent });
   } catch (error) {
     console.error("Tuệ Lâm chat failed", error);
