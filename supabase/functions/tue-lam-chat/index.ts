@@ -136,20 +136,24 @@ Deno.serve(async (request) => {
       .filter((item: { role: string }) => item.role === "customer")
       .map((item: { content: string }) => item.content)
       .join("\n");
-    const handoffRequested = /(tư vấn riêng|gặp anh|gặp anh trung|nói chuyện với anh|nói chuyện trực tiếp|người thật|nhân viên tư vấn|gặp tư vấn viên|chuyển (?:anh|người|nhân viên)|cho (?:anh|em) gặp|muốn gặp|cần gặp)/i.test(customerContext);
-    const complaint = /(khiếu nại|hoàn tiền|đổi skill|chưa nhận|đã thanh toán|gặp quản lý|người thật|không hài lòng|thất vọng|phàn nàn|phản ánh)/i.test(customerContext);
-    const needsHuman = handoffRequested || complaint;
+    const handoffPattern = /(tư vấn riêng|gặp anh|gặp anh trung|nói chuyện với anh|nói chuyện trực tiếp|người thật|nhân viên tư vấn|gặp tư vấn viên|chuyển (?:anh|người|nhân viên)|cho (?:anh|em) gặp|muốn gặp|cần gặp)/i;
+    const complaintPattern = /(khiếu nại|hoàn tiền|đổi skill|chưa nhận|đã thanh toán|gặp quản lý|người thật|không hài lòng|thất vọng|phàn nàn|phản ánh)/i;
+    const phoneRequestWasPending = history.some((item: { role: string; content: string }) =>
+      item.role === "assistant" && /cho em xin số điện thoại/i.test(item.content)
+    );
+    const phoneCompletesPendingHandoff = Boolean(phoneInMessage) && phoneRequestWasPending && (handoffPattern.test(customerContext) || complaintPattern.test(customerContext));
+    const needsHuman = handoffPattern.test(content) || complaintPattern.test(content) || phoneCompletesPendingHandoff;
     const phone = savedSession?.customer_phone;
     let handoffSent = false;
     if (needsHuman && phone) {
       try { await sendHandoff(sessionId); handoffSent = true; } catch (error) { console.error("Telegram handoff failed", error); }
     }
     if (needsHuman && !phone) {
-      reply = "Dạ, em chuyển anh Trung hỗ trợ riêng cho mình nhé. Anh/chị cho em xin số điện thoại để anh tiện liên hệ ạ.";
+      reply = "Dạ, để bộ phận hỗ trợ liên hệ với mình, anh/chị cho em xin số điện thoại ạ.";
     } else if (needsHuman && handoffSent) {
-      reply = "Dạ, em đã chuyển nội dung và số điện thoại của anh/chị cho anh Trung qua Telegram. Anh sẽ xem và phản hồi mình trong 2–4 giờ làm việc ạ.";
+      reply = "Dạ, em đã chuyển thông tin của mình đến bộ phận hỗ trợ. Bộ phận sẽ xem và phản hồi mình trong 2–4 giờ làm việc ạ.";
     } else if (needsHuman && !handoffSent) {
-      reply = "Dạ, em xin lỗi, hiện em chưa gửi được thông tin cho anh Trung. Anh/chị vui lòng nhắn Zalo https://zalo.me/0938069668 để được hỗ trợ trực tiếp ạ.";
+      reply = "Dạ, em xin lỗi, hiện thông tin chưa gửi được đến bộ phận hỗ trợ. Anh/chị vui lòng nhắn Zalo https://zalo.me/0938069668 để được hỗ trợ trực tiếp ạ.";
     }
     const savedReply = await db("tue_lam_chat_messages", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ session_id: sessionId, role: "assistant", content: reply }) });
     if (!savedReply.ok) throw new Error("Không lưu được câu trả lời.");
