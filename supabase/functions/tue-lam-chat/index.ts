@@ -92,8 +92,8 @@ Deno.serve(async (request) => {
   try {
     const session = await db("tue_lam_chat_sessions?on_conflict=id", { method: "POST", headers: { Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify({ id: sessionId, page_url: clean(payload?.pageUrl, 300) }) });
     if (!session.ok) throw new Error("Không lưu được phiên chat.");
-    const phone = content.match(/(?:\+?84|0)(?:[\s.-]?\d){8,10}/)?.[0] ?? "";
-    if (phone) await db(`tue_lam_chat_sessions?id=eq.${sessionId}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ customer_phone: phone.replace(/\s/g, " ") }) });
+    const phoneInMessage = content.match(/(?:\+?84|0)(?:[\s.-]?\d){8,10}/)?.[0] ?? "";
+    if (phoneInMessage) await db(`tue_lam_chat_sessions?id=eq.${sessionId}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ customer_phone: phoneInMessage.replace(/\s/g, " ") }) });
     const inserted = await db("tue_lam_chat_messages", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ session_id: sessionId, role: "customer", content }) });
     if (!inserted.ok) throw new Error("Không lưu được tin nhắn.");
 
