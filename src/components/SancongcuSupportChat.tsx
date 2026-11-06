@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { MessageCircle, Minus, Send, Sparkles, X } from "lucide-react";
 
 import tueLamAvatar from "@/assets/tue-lam-chat-avatar.png";
@@ -47,6 +47,17 @@ export function SancongcuSupportChat() {
   const [isSending, setIsSending] = useState(false);
   const [chatSessionId, setChatSessionId] = useState("");
   const [lastHumanMessageId, setLastHumanMessageId] = useState(0);
+  const messageListRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const messageList = messageListRef.current;
+    if (!messageList) return;
+    const frame = window.requestAnimationFrame(() => {
+      messageList.scrollTo({ top: messageList.scrollHeight, behavior: "smooth" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [isOpen, isSending, messages]);
 
   useEffect(() => {
     let sessionId = window.sessionStorage.getItem("tue-lam-chat-session");
@@ -170,7 +181,7 @@ export function SancongcuSupportChat() {
             </div>
           </header>
 
-          <div className="max-h-[min(22rem,calc(100vh-20rem))] min-h-[12rem] space-y-3 overflow-y-auto bg-slate-950 px-4 py-4 max-[420px]:max-h-[calc(100vh-18rem)]">
+          <div ref={messageListRef} className="max-h-[min(22rem,calc(100vh-20rem))] min-h-[12rem] space-y-3 overflow-y-auto bg-slate-950 px-4 py-4 max-[420px]:max-h-[calc(100vh-18rem)]">
             {messages.map((message) => (
               <div
                 key={message.id}
