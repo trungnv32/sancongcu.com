@@ -46,7 +46,7 @@ const features = [
   {
     icon: FileAudio,
     title: "Học thay bạn",
-    text: "Gửi link YouTube, Facebook, video Zoom hoặc file PDF. Trợ lý nghe hết bài, lấy lời giảng có mốc thời gian, không bỏ đoạn nào.",
+    text: "Gửi link YouTube, Facebook, video Zoom hoặc file PDF. Trợ lý nghe trọn bài, lấy lời giảng có mốc thời gian để ghi chú và tra lại.",
   },
   {
     icon: NotebookPen,
@@ -104,7 +104,7 @@ const audiences = [
 
 const packageItems = [
   "Bộ não trợ lý: quy trình học thay, tra cứu, tiến độ, ôn tập",
-  "File cài tự động: Windows bấm đúp là chạy, Mac 1 lệnh",
+  "File cài tự động: Windows bấm đúp là chạy, Mac chạy 1 file cài trong Terminal",
   "Kho tra cứu riêng trên máy, tìm được cả khi gõ không dấu",
   "4 lệnh nhanh: /hoc · /tra · /tien-do · /on-tap",
   "Bộ hướng dẫn cài đặt, sử dụng và bảng xử lý lỗi thường gặp",
@@ -126,7 +126,7 @@ const requirements = [
   {
     icon: Clock,
     title: "15–20 phút cài đặt",
-    text: "File cài tự lo Python, ffmpeg và các thư viện cần thiết.",
+    text: "File cài tự lo Python, ffmpeg và các thư viện. Máy còn thiếu Git hoặc Homebrew đã có hướng dẫn từng bước.",
   },
 ];
 
@@ -205,8 +205,7 @@ function ChatPreview() {
         <div className="max-w-[92%] rounded-2xl rounded-bl-md bg-secondary px-4 py-3 text-foreground">
           <p>
             Bài 3, <strong>phút 12:30</strong>: hook 3 giây gồm câu hỏi gây tò mò + con số + lời hứa
-            kết quả. Mở đúng phút:{" "}
-            <span className="text-primary underline">youtu.be/…&amp;t=750</span>
+            kết quả. Mở đúng phút: <span className="text-primary underline">youtu.be/…?t=750</span>
           </p>
         </div>
       </div>
@@ -214,6 +213,28 @@ function ChatPreview() {
         Hình minh hoạ cách trò chuyện với trợ lý
       </figcaption>
     </figure>
+  );
+}
+
+function DownloadButton({
+  isLoading,
+  canDownload,
+  onOpen,
+}: {
+  isLoading: boolean;
+  canDownload: boolean;
+  onOpen: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={!canDownload}
+      onClick={onOpen}
+      className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-brand-gradient px-6 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      <Download className="size-4" />
+      {isLoading ? "Đang kiểm tra..." : canDownload ? "Tải miễn phí" : "Sắp mở tải"}
+    </button>
   );
 }
 
@@ -242,21 +263,11 @@ function StudyAssistantPage() {
     })();
   }, []);
 
-  const canDownload = Boolean(resource);
-
-  function DownloadButton({ className = "" }: { className?: string }) {
-    return (
-      <button
-        type="button"
-        disabled={!canDownload}
-        onClick={() => setIsDialogOpen(true)}
-        className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-brand-gradient px-6 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
-      >
-        <Download className="size-4" />
-        {isLoading ? "Đang tải..." : canDownload ? "Tải miễn phí" : "Sắp mở tải"}
-      </button>
-    );
-  }
+  const downloadProps = {
+    isLoading,
+    canDownload: Boolean(resource),
+    onOpen: () => setIsDialogOpen(true),
+  };
 
   return (
     <main className="min-h-dvh bg-soft-gradient text-foreground">
@@ -287,11 +298,11 @@ function StudyAssistantPage() {
           </h1>
           <p className="mt-5 max-w-xl text-base leading-8 text-muted-foreground">
             Khoá học mua rồi để đó, video dài 2 tiếng không có thời gian xem, xem xong lại quên? Gửi
-            bài cho trợ lý. Trợ lý xem hết, ghi chú đủ để bạn làm lại được, và trả lời bạn kèm đúng
-            bài, đúng phút.
+            bài cho trợ lý. Trợ lý nghe trọn bài, ghi chú đủ để bạn làm lại được, và trả lời bạn kèm
+            đúng bài, đúng phút.
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-            <DownloadButton />
+            <DownloadButton {...downloadProps} />
             <a
               href="#cach-hoat-dong"
               className="inline-flex min-h-12 items-center justify-center rounded-full border border-border bg-white px-6 text-sm font-bold transition hover:border-primary hover:text-primary"
@@ -416,7 +427,7 @@ function StudyAssistantPage() {
         <div className="mt-6 grid gap-3 rounded-3xl border border-primary/20 bg-primary/5 p-5 text-sm leading-7 sm:grid-cols-3 sm:p-6">
           <p>
             <strong className="text-foreground">1. Giải nén</strong> gói tải về vào một thư mục cố
-            định, tên không dấu.
+            định, tên không dấu, không khoảng trắng (ví dụ <code>D:\TroLyHocTap</code>).
           </p>
           <p>
             <strong className="text-foreground">2. Chạy file cài</strong>: Windows bấm đúp{" "}
@@ -473,7 +484,7 @@ function StudyAssistantPage() {
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
-              <DownloadButton />
+              <DownloadButton {...downloadProps} />
               <a
                 href="https://zalo.me/0938069668"
                 target="_blank"

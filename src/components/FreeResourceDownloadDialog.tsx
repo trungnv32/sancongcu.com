@@ -1,5 +1,5 @@
 import { LoaderCircle, Mail, X } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import type { FreeResource } from "@/lib/site-content";
 import { supabase } from "@/lib/supabase";
 
@@ -18,6 +18,14 @@ export function FreeResourceDownloadDialog({
 }) {
   const [requestStatus, setRequestStatus] = useState<RequestStatus>("idle");
   const [requestMessage, setRequestMessage] = useState("");
+
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
   async function requestDownload(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -53,7 +61,12 @@ export function FreeResourceDownloadDialog({
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/45 px-4 py-6">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-2xl">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Nhận link tải: ${resource.title}`}
+        className="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-2xl"
+      >
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">

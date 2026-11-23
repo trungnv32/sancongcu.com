@@ -106,57 +106,60 @@ function FreeResourcesPage() {
           </div>
         ) : resources.length > 0 ? (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {resources.map((resource) => (
-              <article
-                key={resource.id}
-                className="flex min-h-72 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card"
-              >
-                <div className="h-40 w-full bg-secondary">
-                  {resource.thumbnail_url ? (
-                    <img
-                      src={resource.thumbnail_url}
-                      alt={resource.title}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <span className="grid h-full w-full place-items-center text-primary">
-                      <span className="grid size-14 place-items-center rounded-2xl bg-primary/10">
-                        <FileText className="size-7" />
+            {resources.map((resource) => {
+              const detailPage = findFreeResourceDetailPage(resource);
+              return (
+                <article
+                  key={resource.id}
+                  className="flex min-h-72 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card"
+                >
+                  <div className="h-40 w-full bg-secondary">
+                    {resource.thumbnail_url ? (
+                      <img
+                        src={resource.thumbnail_url}
+                        alt={resource.title}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="grid h-full w-full place-items-center text-primary">
+                        <span className="grid size-14 place-items-center rounded-2xl bg-primary/10">
+                          <FileText className="size-7" />
+                        </span>
                       </span>
-                    </span>
-                  )}
-                </div>
-                <div className="flex flex-1 flex-col p-6">
-                  <h2 className="text-xl leading-snug">{resource.title}</h2>
-                  <p className="mt-3 flex-1 text-sm leading-6 text-muted-foreground">
-                    {resource.description || "Tài nguyên miễn phí từ sancongcu.com."}
-                  </p>
-                  {findFreeResourceDetailPage(resource) ? (
-                    <a
-                      href={findFreeResourceDetailPage(resource)!.href}
-                      className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-brand-gradient px-4 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90"
-                    >
-                      Xem chi tiết &amp; tải về
-                      <ArrowRight className="size-4" />
-                    </a>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => openDownloadForm(resource)}
-                      className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-brand-gradient px-4 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90"
-                    >
-                      <Download className="size-4" />
-                      Tải về
-                    </button>
-                  )}
-                  {resource.file_name && (
-                    <p className="mt-2 truncate text-center text-xs text-muted-foreground">
-                      {resource.file_name}
+                    )}
+                  </div>
+                  <div className="flex flex-1 flex-col p-6">
+                    <h2 className="text-xl leading-snug">{resource.title}</h2>
+                    <p className="mt-3 flex-1 text-sm leading-6 text-muted-foreground">
+                      {resource.description || "Tài nguyên miễn phí từ sancongcu.com."}
                     </p>
-                  )}
-                </div>
-              </article>
-            ))}
+                    {detailPage ? (
+                      <Link
+                        to={detailPage.href}
+                        className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-brand-gradient px-4 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90"
+                      >
+                        Xem chi tiết &amp; tải về
+                        <ArrowRight className="size-4" />
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => openDownloadForm(resource)}
+                        className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-brand-gradient px-4 text-sm font-bold text-primary-foreground shadow-brand transition hover:opacity-90"
+                      >
+                        <Download className="size-4" />
+                        Tải về
+                      </button>
+                    )}
+                    {resource.file_name && (
+                      <p className="mt-2 truncate text-center text-xs text-muted-foreground">
+                        {resource.file_name}
+                      </p>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
           </div>
         ) : (
           <div className="rounded-3xl border border-dashed border-primary/30 bg-card p-8 text-center shadow-card">
