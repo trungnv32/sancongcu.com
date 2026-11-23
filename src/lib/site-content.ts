@@ -33,6 +33,19 @@ export type FreeResource = {
   is_visible: boolean;
 };
 
+/**
+ * Tài nguyên có trang giới thiệu riêng. Nhận diện theo tên file tải lên trong admin
+ * (Kho tài nguyên → Tải file), ví dụ "tro-ly-hoc-tap-sancongcu.zip".
+ */
+export const freeResourceDetailPages = [
+  { fileNamePrefix: "tro-ly-hoc-tap", href: "/tai-nguyen/tro-ly-hoc-tap" },
+] as const;
+
+export function findFreeResourceDetailPage(resource: Pick<FreeResource, "file_name">) {
+  const fileName = (resource.file_name || "").toLowerCase();
+  return freeResourceDetailPages.find((page) => fileName.startsWith(page.fileNamePrefix));
+}
+
 export type TrainingCourse = {
   id: string;
   name: string;
@@ -87,7 +100,8 @@ export const defaultTrainingCourses: TrainingCourse[] = [
     sale_amount_vnd: null,
     transfer_label: "COMBO SKILL WEBSITE",
     bonus: "Kèm 5 skill tùy chọn",
-    highlight: "Gồm các skill phục vụ công việc thương mại và hướng dẫn làm website giới thiệu hoặc bán sản phẩm.",
+    highlight:
+      "Gồm các skill phục vụ công việc thương mại và hướng dẫn làm website giới thiệu hoặc bán sản phẩm.",
     sort_order: 3,
     is_visible: true,
   },
