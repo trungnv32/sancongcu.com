@@ -835,7 +835,7 @@ function resolveShot(b, made) {
     round.score += pts;
     const subs = [];
     if (swish) {
-      subs.push('SWISH');
+      subs.push('VÀO GỌN');
     }
     if (mult > 1) {
       subs.push('×' + mult);
@@ -955,7 +955,7 @@ function lifetimeLine() {
     return '';
   }
   const pct = Math.round((life.makes / life.shots) * 100);
-  return `${life.shots.toLocaleString()} shots thrown · ${pct}% made · best ${life.best}`;
+  return `${life.shots.toLocaleString()} lần ném · vào ${pct}% · kỷ lục ${life.best}`;
 }
 
 function updateHud() {
@@ -1710,7 +1710,7 @@ function shareCanvas(res) {
   });
   ctx.restore();
 
-  const stats = [[`${made}/${ROUND}`, 'MADE'], [`${Math.round((made / ROUND) * 100)}%`, 'ACCURACY']];
+  const stats = [[`${made}/${ROUND}`, 'VÀO RỔ'], [`${Math.round((made / ROUND) * 100)}%`, 'ĐỘ CHÍNH XÁC']];
   stats.forEach((s, i) => {
     const x = 90 + i * 300;
     ctx.fillStyle = COL.ink;

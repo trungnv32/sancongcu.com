@@ -400,21 +400,21 @@ function gauss() {
 }
 
 const ZONES = [
-  { at: 0, name: 'Khu Vườn', where: 'in the Garden', tip: '', feast: 'Picnic!', ground: 'grass' },
-  { at: 55, name: 'Sân Sau', where: 'in the Backyard', tip: 'Chickens, sheds and the dog', feast: 'Barbecue!', ground: 'grass' },
-  { at: 150, name: 'Con Phố', where: 'on the Street', tip: 'Bins, bikes and people', feast: 'Parade!', ground: 'city' },
-  { at: 350, name: 'Công Viên', where: 'in the Park', tip: 'Slides and jugglers. Obstacles come in pairs now', feast: 'Fun fair!', ground: 'grass' },
-  { at: 750, name: 'Phố Lớn', where: 'on the High Street', tip: 'Shops, taxis and food trucks', feast: 'Market day!', ground: 'city' },
-  { at: 1400, name: 'Thị Trấn', where: 'in Town', tip: 'Schools, churches, the whole block', feast: 'Town fair!', ground: 'city' },
-  { at: 2600, name: 'Nông Trại & Sở Thú', where: 'at the Farm & Zoo', tip: "Big things overhead now. Don't jump into them", feast: 'Harvest!', ground: 'grass' },
-  { at: 4500, name: 'Bến Cảng', where: 'in the Harbour', tip: 'Boats, cranes and lighthouses', feast: 'Regatta!', ground: 'wave' },
-  { at: 8000, name: 'Thành Phố', where: 'in the City', tip: 'Eat the skyline', feast: 'Rush hour!', ground: 'city' },
-  { at: 15000, name: 'Vòng Quanh Thế Giới', where: 'on the World Tour', tip: 'Roll up the wonders of the world', feast: 'Sightseeing!', ground: 'city' },
-  { at: 1e5, name: 'Núi Non', where: 'in the Mountains', tip: 'Castles, volcanoes and a yeti', feast: 'Landslide!', ground: 'rock' },
-  { at: 6e5, name: 'Bầu Trời', where: 'in the Sky', tip: 'Storms, tornadoes, floating islands', feast: 'Cloudburst!', ground: 'cloud' },
-  { at: 4e6, name: 'Hành Tinh', where: 'on the Planet', tip: 'Islands, hurricanes, whole cities', feast: 'Archipelago!', ground: 'grass' },
-  { at: 2.5e7, name: 'Space', where: 'in Space', tip: 'Satellites, moons and planets', feast: 'Debris field!', ground: 'star' },
-  { at: 1.5e8, name: 'Thiên Hà', where: 'in the Galaxy', tip: 'Stars, nebulas and black holes', feast: 'Star nursery!', ground: 'star' },
+  { at: 0, name: 'Khu Vườn', where: 'ở Khu Vườn', tip: '', feast: 'Dã ngoại!', ground: 'grass' },
+  { at: 55, name: 'Sân Sau', where: 'ở Sân Sau', tip: 'Gà, nhà kho và chú chó', feast: 'Tiệc nướng!', ground: 'grass' },
+  { at: 150, name: 'Con Phố', where: 'trên Con Phố', tip: 'Thùng rác, xe đạp và người', feast: 'Diễu hành!', ground: 'city' },
+  { at: 350, name: 'Công Viên', where: 'ở Công Viên', tip: 'Cầu trượt và người tung hứng. Vật cản tới theo cặp', feast: 'Hội chợ!', ground: 'grass' },
+  { at: 750, name: 'Phố Lớn', where: 'trên Phố Lớn', tip: 'Cửa hàng, taxi và xe đồ ăn', feast: 'Phiên chợ!', ground: 'city' },
+  { at: 1400, name: 'Thị Trấn', where: 'ở Thị Trấn', tip: 'Trường học, nhà thờ, cả khu phố', feast: 'Hội làng!', ground: 'city' },
+  { at: 2600, name: 'Nông Trại & Sở Thú', where: 'ở Nông Trại & Sở Thú', tip: "Có vật to trên cao. Đừng nhảy vào", feast: 'Mùa gặt!', ground: 'grass' },
+  { at: 4500, name: 'Bến Cảng', where: 'ở Bến Cảng', tip: 'Thuyền, cần cẩu và hải đăng', feast: 'Đua thuyền!', ground: 'wave' },
+  { at: 8000, name: 'Thành Phố', where: 'ở Thành Phố', tip: 'Nuốt cả đường chân trời', feast: 'Giờ cao điểm!', ground: 'city' },
+  { at: 15000, name: 'Vòng Quanh Thế Giới', where: 'khi Vòng Quanh Thế Giới', tip: 'Cuốn các kỳ quan thế giới', feast: 'Tham quan!', ground: 'city' },
+  { at: 1e5, name: 'Núi Non', where: 'ở Núi Non', tip: 'Lâu đài, núi lửa và người tuyết', feast: 'Lở đất!', ground: 'rock' },
+  { at: 6e5, name: 'Bầu Trời', where: 'trên Bầu Trời', tip: 'Bão, lốc xoáy, đảo bay', feast: 'Mưa như trút!', ground: 'cloud' },
+  { at: 4e6, name: 'Hành Tinh', where: 'trên Hành Tinh', tip: 'Đảo, siêu bão, cả thành phố', feast: 'Quần đảo!', ground: 'grass' },
+  { at: 2.5e7, name: 'Space', where: 'ngoài Không Gian', tip: 'Vệ tinh, mặt trăng và hành tinh', feast: 'Bãi mảnh vỡ!', ground: 'star' },
+  { at: 1.5e8, name: 'Thiên Hà', where: 'trong Thiên Hà', tip: 'Sao, tinh vân và hố đen', feast: 'Lò sinh sao!', ground: 'star' },
 ];
 const BANG = 2e9;
 function zoneOf(D) {
@@ -427,25 +427,25 @@ function zoneOf(D) {
   return z;
 }
 const RANKS = [
-  [0, 'Pebble', 'A start. The daisies are nervous.'],
-  [55, 'Snowball', 'The chickens noticed you.'],
-  [150, 'Boulder', 'The bins on this street fear you now.'],
-  [350, 'Hill', 'The park is half empty.'],
-  [750, 'Landslide', 'The shops closed early.'],
-  [1400, 'Mountain', 'The whole town moved out.'],
-  [2600, 'Glacier', 'The zoo wants its giraffes back.'],
-  [4500, 'Iceberg', 'The harbour is a lot quieter.'],
-  [8000, 'Megaball', 'The skyline is shorter now.'],
-  [15000, 'Wonder', 'A world tour, all in one ball.'],
-  [1e5, 'Peak', 'Taller than the mountains.'],
-  [6e5, 'Storm', 'The weather report mentions you.'],
-  [4e6, 'Moon', 'The planet has a new moon.'],
-  [2.5e7, 'Planet', 'Astronomers are confused.'],
-  [1.5e8, 'Star', 'You can be seen from very far away.'],
+  [0, 'Viên sỏi', 'Mới bắt đầu. Hoa cúc bắt đầu lo.'],
+  [55, 'Quả cầu tuyết', 'Lũ gà đã để ý tới bạn.'],
+  [150, 'Tảng đá', 'Thùng rác cả phố giờ sợ bạn.'],
+  [350, 'Ngọn đồi', 'Công viên vắng một nửa.'],
+  [750, 'Đất lở', 'Cửa hàng đóng cửa sớm.'],
+  [1400, 'Ngọn núi', 'Cả thị trấn dọn đi hết.'],
+  [2600, 'Sông băng', 'Sở thú đòi lại hươu cao cổ.'],
+  [4500, 'Tảng băng trôi', 'Bến cảng yên ắng hẳn.'],
+  [8000, 'Siêu quả cầu', 'Đường chân trời thấp hẳn đi.'],
+  [15000, 'Kỳ quan', 'Vòng quanh thế giới, gói trong một quả cầu.'],
+  [1e5, 'Đỉnh núi', 'Cao hơn cả núi.'],
+  [6e5, 'Cơn bão', 'Bản tin thời tiết nhắc tới bạn.'],
+  [4e6, 'Mặt trăng', 'Hành tinh có thêm mặt trăng mới.'],
+  [2.5e7, 'Hành tinh', 'Các nhà thiên văn bối rối.'],
+  [1.5e8, 'Ngôi sao', 'Từ rất xa cũng thấy bạn.'],
 ];
 function rankOf(D, lap) {
   if (lap) {
-    return { name: 'Universe', quip: lap > 1 ? `You rolled up everything ${lap} times.` : 'You rolled up everything. Then kept going.', next: null };
+    return { name: 'Vũ trụ', quip: lap > 1 ? `Bạn đã cuốn mọi thứ ${lap} lần.` : 'Bạn đã cuốn mọi thứ. Rồi vẫn lăn tiếp.', next: null };
   }
   let i = 0;
   for (let k = 1; k < RANKS.length; k++) {
@@ -454,7 +454,7 @@ function rankOf(D, lap) {
     }
   }
   const nx = RANKS[i + 1];
-  return { name: RANKS[i][1], quip: RANKS[i][2], next: nx ? `Next rank: ${nx[1]} at ${fmtSize(nx[0])}` : 'Next rank: roll up the galaxy' };
+  return { name: RANKS[i][1], quip: RANKS[i][2], next: nx ? `Hạng tiếp: ${nx[1]} khi đạt ${fmtSize(nx[0])}` : 'Hạng tiếp: cuốn cả thiên hà' };
 }
 const ANIMALS = new Set('ladybug butterfly snail hedgehog bird cat dog frog tortoise squirrel rabbit chicken pig sheep horse cow elephant giraffe zebra camel rhino hippo lion whale dolphin seagull yeti'.split(' '));
 const VEHICLES = new Set('scooter bike pram trolley motorbike car taxi policecar ambulance van truck foodtruck bus doubledecker firetruck tram tractor combine train heli plane jet blimp zeppelin yacht rowboat fishingboat cargo cruise submarine rocket ufo hotdog'.split(' '));
@@ -3926,205 +3926,205 @@ const DRAW = {
   },
 };
 const CAT = [
-  { id: 'acorn', name: 'Acorn', w: 3, h: 4, z: 0 },
-  { id: 'ladybug', name: 'Ladybug', w: 5, h: 4, z: 0 },
-  { id: 'pebble', name: 'Pebble', w: 6, h: 4, z: 0 },
-  { id: 'apple', name: 'Apple', w: 8, h: 9, z: 0 },
-  { id: 'flower', name: 'Daisy', w: 6, h: 15, z: 0 },
-  { id: 'butterfly', name: 'Butterfly', w: 9, h: 7, fly: true, z: 0 },
-  { id: 'mushroom', name: 'Mushroom', w: 9, h: 10, z: 0 },
-  { id: 'duck', name: 'Rubber duck', w: 12, h: 11, z: 0 },
-  { id: 'snail', name: 'Snail', w: 12, h: 8, z: 0, walk: 2 },
-  { id: 'hedgehog', name: 'Hedgehog', w: 22, h: 12, z: 0, walk: 8 },
-  { id: 'football', name: 'Football', w: 22, h: 22, z: 0, roll: true },
-  { id: 'pot', name: 'Flowerpot', w: 18, h: 26, z: 0 },
-  { id: 'shoe', name: 'Sneaker', w: 28, h: 13, z: 0 },
-  { id: 'bird', name: 'Pigeon', w: 26, h: 15, fly: true, z: 1 },
-  { id: 'teddy', name: 'Teddy', w: 26, h: 32, z: 0 },
-  { id: 'gnome', name: 'Gnome', w: 15, h: 33, z: 0 },
-  { id: 'can', name: 'Watering can', w: 32, h: 26, z: 0 },
-  { id: 'cat', name: 'Cat', w: 40, h: 34, z: 0 },
-  { id: 'cone', name: 'Cone', w: 34, h: 55, z: 1 },
-  { id: 'tire', name: 'Tire', w: 62, h: 62, z: 1, roll: true },
-  { id: 'hydrant', name: 'Hydrant', w: 32, h: 72, z: 1 },
-  { id: 'balloon', name: 'Balloon', w: 34, h: 80, fly: true, z: 1 },
-  { id: 'dog', name: 'Dog', w: 74, h: 58, walk: 60, z: 1 },
-  { id: 'scooter', name: 'Scooter', w: 90, h: 95, z: 1 },
-  { id: 'bin', name: 'Bin', w: 52, h: 98, z: 1 },
-  { id: 'pram', name: 'Pram', w: 85, h: 100, z: 1 },
-  { id: 'trolley', name: 'Trolley', w: 95, h: 100, z: 1 },
-  { id: 'kid', name: 'Kid', w: 40, h: 112, fig: true, walk: 70, z: 1 },
-  { id: 'mailbox', name: 'Mailbox', w: 44, h: 125, z: 1 },
-  { id: 'pig', name: 'Pig', w: 120, h: 80, walk: 40, z: 3 },
-  { id: 'sheep', name: 'Sheep', w: 120, h: 92, walk: 30, z: 3 },
-  { id: 'kite', name: 'Kite', w: 90, h: 160, fly: true, z: 1 },
-  { id: 'bench', name: 'Bench', w: 165, h: 88, flat: true, z: 1 },
-  { id: 'icecream', name: 'Ice cream cart', w: 160, h: 175, z: 1 },
-  { id: 'person', name: 'Person', w: 50, h: 175, fig: true, walk: 90, z: 1 },
-  { id: 'bike', name: 'Bike', w: 170, h: 100, z: 1 },
-  { id: 'scarecrow', name: 'Scarecrow', w: 130, h: 220, z: 3 },
-  { id: 'horse', name: 'Horse', w: 240, h: 210, walk: 80, z: 3 },
-  { id: 'cow', name: 'Cow', w: 240, h: 155, walk: 40, z: 3 },
-  { id: 'phonebox', name: 'Phone box', w: 100, h: 250, z: 2 },
-  { id: 'boulder', name: 'Boulder', w: 300, h: 240, z: 3, roll: true },
-  { id: 'busstop', name: 'Bus stop', w: 300, h: 260, flat: true, z: 2 },
-  { id: 'kiosk', name: 'Kiosk', w: 270, h: 300, flat: true, z: 2 },
-  { id: 'elephant', name: 'Elephant', w: 420, h: 330, walk: 60, z: 2 },
-  { id: 'haystack', name: 'Haystack', w: 340, h: 260, z: 3 },
-  { id: 'fountain', name: 'Fountain', w: 500, h: 360, z: 2 },
-  { id: 'car', name: 'Car', w: 420, h: 150, flat: true, drive: true, z: 2 },
-  { id: 'tractor', name: 'Tractor', w: 460, h: 330, drive: true, z: 3 },
-  { id: 'van', name: 'Van', w: 520, h: 240, flat: true, drive: true, z: 2 },
-  { id: 'lamppost', name: 'Lamppost', w: 70, h: 520, z: 2 },
-  { id: 'tree', name: 'Tree', w: 340, h: 620, z: 2 },
-  { id: 'truck', name: 'Truck', w: 950, h: 360, flat: true, drive: true, z: 2 },
-  { id: 'house', name: 'House', w: 950, h: 900, z: 3 },
-  { id: 'bus', name: 'Bus', w: 1150, h: 340, flat: true, drive: true, z: 2 },
-  { id: 'firetruck', name: 'Fire truck', w: 1050, h: 400, flat: true, drive: true, z: 4 },
-  { id: 'heli', name: 'Helicopter', w: 1200, h: 420, fly: true, z: 4 },
-  { id: 'barn', name: 'Barn', w: 1300, h: 1000, z: 3 },
-  { id: 'oak', name: 'Oak', w: 900, h: 1600, draw: 'tree', z: 3 },
-  { id: 'silo', name: 'Silo', w: 450, h: 1600, z: 3 },
-  { id: 'billboard', name: 'Billboard', w: 1400, h: 1500, z: 4 },
-  { id: 'windmill', name: 'Windmill', w: 800, h: 1900, z: 3, land: true, still: true },
-  { id: 'sailboat', name: 'Sailboat', w: 1500, h: 2200, z: 5 },
-  { id: 'palm', name: 'Palm tree', w: 900, h: 2200, z: 5 },
-  { id: 'watertower', name: 'Water tower', w: 1300, h: 3000, z: 4 },
-  { id: 'block', name: 'Flats', w: 2400, h: 3200, flat: true, z: 4 },
-  { id: 'statue', name: 'Statue', w: 1200, h: 4200, z: 4, land: true, still: true },
-  { id: 'plane', name: 'Plane', w: 3600, h: 1100, fly: true, z: 4 },
-  { id: 'lighthouse', name: 'Lighthouse', w: 1300, h: 4800, z: 5, land: true, still: true },
-  { id: 'yacht', name: 'Yacht', w: 5000, h: 2000, flat: true, drive: true, z: 5 },
-  { id: 'whale', name: 'Whale', w: 4200, h: 1700, fly: true, z: 5 },
-  { id: 'crane', name: 'Crane', w: 3000, h: 5500, z: 4 },
-  { id: 'train', name: 'Train', w: 7000, h: 480, flat: true, drive: true, z: 4 },
-  { id: 'tower', name: 'Office tower', w: 1800, h: 7000, z: 4 },
-  { id: 'ferris', name: 'Ferris wheel', w: 7000, h: 7600, z: 5, land: true, still: true },
-  { id: 'blimp', name: 'Blimp', w: 7500, h: 2400, fly: true, z: 5 },
-  { id: 'oilrig', name: 'Oil rig', w: 9000, h: 12000, z: 5 },
-  { id: 'castle', name: 'Castle', w: 10000, h: 8500, z: 6, land: true, still: true },
-  { id: 'stadium', name: 'Stadium', w: 12000, h: 3000, flat: true, z: 4, land: true, still: true },
-  { id: 'jet', name: 'Jumbo jet', w: 7000, h: 2100, fly: true, z: 6, draw: 'plane' },
-  { id: 'skyscraper', name: 'Skyscraper', w: 3200, h: 16000, z: 4, land: true, still: true },
-  { id: 'cargo', name: 'Cargo ship', w: 25000, h: 7000, flat: true, drive: true, z: 5 },
-  { id: 'yeti', name: 'Yeti', w: 9000, h: 14000, walk: 3000, z: 6 },
-  { id: 'island', name: 'Island', w: 30000, h: 11000, draw: 'volcisland', z: 5 },
-  { id: 'cruise', name: 'Cruise ship', w: 40000, h: 10000, flat: true, drive: true, z: 5, land: true },
-  { id: 'pines', name: 'Pine forest', w: 24000, h: 8000, flat: true, z: 6, still: true },
-  { id: 'dam', name: 'Dam', w: 32000, h: 15000, flat: true, z: 6 },
-  { id: 'storm', name: 'Storm cloud', w: 60000, h: 25000, fly: true, z: 7 },
-  { id: 'mountain', name: 'Mountain', w: 60000, h: 30000, z: 6 },
-  { id: 'glacier', name: 'Glacier', w: 80000, h: 26000, flat: true, z: 6 },
-  { id: 'tornado', name: 'Tornado', w: 45000, h: 150000, walk: 15000, z: 7, still: true },
-  { id: 'volcano', name: 'Volcano', w: 160000, h: 65000, z: 6, land: true, still: true },
-  { id: 'skyisland', name: 'Floating island', w: 260000, h: 200000, fly: true, z: 7, land: true },
-  { id: 'peaks', name: 'Mountain range', w: 700000, h: 260000, z: 7 },
-  { id: 'iceberg', name: 'Iceberg', w: 400000, h: 300000, z: 8 },
-  { id: 'rainbow', name: 'Rainbow', w: 700000, h: 340000, fly: true, z: 7, still: true },
-  { id: 'zeppelin', name: 'Sky zeppelin', w: 300000, h: 95000, fly: true, z: 7, draw: 'blimp' },
-  { id: 'volcisland', name: 'Volcanic island', w: 1500000, h: 600000, z: 8 },
-  { id: 'hurricane', name: 'Hurricane', w: 3000000, h: 1100000, fly: true, z: 8, still: true },
-  { id: 'megacity', name: 'Megacity', w: 4000000, h: 1500000, flat: true, z: 8, land: true, still: true },
-  { id: 'satellite', name: 'Satellite', w: 1800000, h: 900000, fly: true, z: 9 },
-  { id: 'rocket', name: 'Rocket', w: 1200000, h: 4500000, z: 9, land: true, still: true },
-  { id: 'continent', name: 'Continent', w: 9000000, h: 2400000, flat: true, z: 8 },
-  { id: 'asteroid', name: 'Asteroid', w: 4000000, h: 3200000, z: 9, roll: true },
-  { id: 'ufo', name: 'UFO', w: 3500000, h: 1400000, fly: true, z: 9 },
-  { id: 'station', name: 'Space station', w: 7000000, h: 3000000, fly: true, z: 9, land: true, still: true },
-  { id: 'comet', name: 'Comet', w: 25000000, h: 6000000, fly: true, z: 10 },
-  { id: 'moon', name: 'Moon', w: 30000000, h: 30000000, z: 9, roll: true },
-  { id: 'redplanet', name: 'Red planet', w: 60000000, h: 60000000, z: 10, roll: true },
-  { id: 'blueplanet', name: 'Home planet', w: 120000000, h: 120000000, z: 10, roll: true, land: true },
-  { id: 'gasgiant', name: 'Gas giant', w: 220000000, h: 220000000, z: 10, roll: true },
-  { id: 'ringed', name: 'Ringed planet', w: 330000000, h: 140000000, z: 10, land: true, still: true },
-  { id: 'sun', name: 'Star', w: 600000000, h: 600000000, z: 11, land: true, still: true },
-  { id: 'blackhole', name: 'Black hole', w: 700000000, h: 500000000, fly: true, z: 11, land: true, still: true },
-  { id: 'redgiant', name: 'Red giant', w: 1100000000, h: 1100000000, z: 11, still: true },
-  { id: 'nebula', name: 'Nebula', w: 1300000000, h: 800000000, fly: true, z: 11, still: true },
-  { id: 'galaxy', name: 'Galaxy', w: 1500000000, h: 700000000, fly: true, z: 11, land: true, still: true },
+  { id: 'acorn', name: 'Hạt sồi', w: 3, h: 4, z: 0 },
+  { id: 'ladybug', name: 'Bọ rùa', w: 5, h: 4, z: 0 },
+  { id: 'pebble', name: 'Viên sỏi', w: 6, h: 4, z: 0 },
+  { id: 'apple', name: 'Quả táo', w: 8, h: 9, z: 0 },
+  { id: 'flower', name: 'Hoa cúc', w: 6, h: 15, z: 0 },
+  { id: 'butterfly', name: 'Bươm bướm', w: 9, h: 7, fly: true, z: 0 },
+  { id: 'mushroom', name: 'Cây nấm', w: 9, h: 10, z: 0 },
+  { id: 'duck', name: 'Vịt cao su', w: 12, h: 11, z: 0 },
+  { id: 'snail', name: 'Ốc sên', w: 12, h: 8, z: 0, walk: 2 },
+  { id: 'hedgehog', name: 'Nhím', w: 22, h: 12, z: 0, walk: 8 },
+  { id: 'football', name: 'Quả bóng đá', w: 22, h: 22, z: 0, roll: true },
+  { id: 'pot', name: 'Chậu hoa', w: 18, h: 26, z: 0 },
+  { id: 'shoe', name: 'Giày thể thao', w: 28, h: 13, z: 0 },
+  { id: 'bird', name: 'Bồ câu', w: 26, h: 15, fly: true, z: 1 },
+  { id: 'teddy', name: 'Gấu bông', w: 26, h: 32, z: 0 },
+  { id: 'gnome', name: 'Chú lùn', w: 15, h: 33, z: 0 },
+  { id: 'can', name: 'Bình tưới', w: 32, h: 26, z: 0 },
+  { id: 'cat', name: 'Con mèo', w: 40, h: 34, z: 0 },
+  { id: 'cone', name: 'Cọc giao thông', w: 34, h: 55, z: 1 },
+  { id: 'tire', name: 'Lốp xe', w: 62, h: 62, z: 1, roll: true },
+  { id: 'hydrant', name: 'Trụ cứu hoả', w: 32, h: 72, z: 1 },
+  { id: 'balloon', name: 'Bóng bay', w: 34, h: 80, fly: true, z: 1 },
+  { id: 'dog', name: 'Con chó', w: 74, h: 58, walk: 60, z: 1 },
+  { id: 'scooter', name: 'Xe trượt', w: 90, h: 95, z: 1 },
+  { id: 'bin', name: 'Thùng rác', w: 52, h: 98, z: 1 },
+  { id: 'pram', name: 'Xe nôi', w: 85, h: 100, z: 1 },
+  { id: 'trolley', name: 'Xe đẩy', w: 95, h: 100, z: 1 },
+  { id: 'kid', name: 'Em bé', w: 40, h: 112, fig: true, walk: 70, z: 1 },
+  { id: 'mailbox', name: 'Hộp thư', w: 44, h: 125, z: 1 },
+  { id: 'pig', name: 'Con lợn', w: 120, h: 80, walk: 40, z: 3 },
+  { id: 'sheep', name: 'Con cừu', w: 120, h: 92, walk: 30, z: 3 },
+  { id: 'kite', name: 'Con diều', w: 90, h: 160, fly: true, z: 1 },
+  { id: 'bench', name: 'Ghế đá', w: 165, h: 88, flat: true, z: 1 },
+  { id: 'icecream', name: 'Xe kem', w: 160, h: 175, z: 1 },
+  { id: 'person', name: 'Người đi đường', w: 50, h: 175, fig: true, walk: 90, z: 1 },
+  { id: 'bike', name: 'Xe đạp', w: 170, h: 100, z: 1 },
+  { id: 'scarecrow', name: 'Bù nhìn', w: 130, h: 220, z: 3 },
+  { id: 'horse', name: 'Con ngựa', w: 240, h: 210, walk: 80, z: 3 },
+  { id: 'cow', name: 'Con bò', w: 240, h: 155, walk: 40, z: 3 },
+  { id: 'phonebox', name: 'Bốt điện thoại', w: 100, h: 250, z: 2 },
+  { id: 'boulder', name: 'Tảng đá', w: 300, h: 240, z: 3, roll: true },
+  { id: 'busstop', name: 'Trạm xe buýt', w: 300, h: 260, flat: true, z: 2 },
+  { id: 'kiosk', name: 'Ki-ốt', w: 270, h: 300, flat: true, z: 2 },
+  { id: 'elephant', name: 'Con voi', w: 420, h: 330, walk: 60, z: 2 },
+  { id: 'haystack', name: 'Đống rơm', w: 340, h: 260, z: 3 },
+  { id: 'fountain', name: 'Đài phun nước', w: 500, h: 360, z: 2 },
+  { id: 'car', name: 'Ô tô', w: 420, h: 150, flat: true, drive: true, z: 2 },
+  { id: 'tractor', name: 'Máy cày', w: 460, h: 330, drive: true, z: 3 },
+  { id: 'van', name: 'Xe tải nhỏ', w: 520, h: 240, flat: true, drive: true, z: 2 },
+  { id: 'lamppost', name: 'Cột đèn', w: 70, h: 520, z: 2 },
+  { id: 'tree', name: 'Cái cây', w: 340, h: 620, z: 2 },
+  { id: 'truck', name: 'Xe tải', w: 950, h: 360, flat: true, drive: true, z: 2 },
+  { id: 'house', name: 'Ngôi nhà', w: 950, h: 900, z: 3 },
+  { id: 'bus', name: 'Xe buýt', w: 1150, h: 340, flat: true, drive: true, z: 2 },
+  { id: 'firetruck', name: 'Xe cứu hoả', w: 1050, h: 400, flat: true, drive: true, z: 4 },
+  { id: 'heli', name: 'Trực thăng', w: 1200, h: 420, fly: true, z: 4 },
+  { id: 'barn', name: 'Kho thóc', w: 1300, h: 1000, z: 3 },
+  { id: 'oak', name: 'Cây sồi', w: 900, h: 1600, draw: 'tree', z: 3 },
+  { id: 'silo', name: 'Tháp chứa', w: 450, h: 1600, z: 3 },
+  { id: 'billboard', name: 'Biển quảng cáo', w: 1400, h: 1500, z: 4 },
+  { id: 'windmill', name: 'Cối xay gió', w: 800, h: 1900, z: 3, land: true, still: true },
+  { id: 'sailboat', name: 'Thuyền buồm', w: 1500, h: 2200, z: 5 },
+  { id: 'palm', name: 'Cây cọ', w: 900, h: 2200, z: 5 },
+  { id: 'watertower', name: 'Tháp nước', w: 1300, h: 3000, z: 4 },
+  { id: 'block', name: 'Chung cư', w: 2400, h: 3200, flat: true, z: 4 },
+  { id: 'statue', name: 'Bức tượng', w: 1200, h: 4200, z: 4, land: true, still: true },
+  { id: 'plane', name: 'Máy bay', w: 3600, h: 1100, fly: true, z: 4 },
+  { id: 'lighthouse', name: 'Hải đăng', w: 1300, h: 4800, z: 5, land: true, still: true },
+  { id: 'yacht', name: 'Du thuyền', w: 5000, h: 2000, flat: true, drive: true, z: 5 },
+  { id: 'whale', name: 'Cá voi', w: 4200, h: 1700, fly: true, z: 5 },
+  { id: 'crane', name: 'Cần cẩu', w: 3000, h: 5500, z: 4 },
+  { id: 'train', name: 'Tàu hoả', w: 7000, h: 480, flat: true, drive: true, z: 4 },
+  { id: 'tower', name: 'Toà văn phòng', w: 1800, h: 7000, z: 4 },
+  { id: 'ferris', name: 'Vòng quay', w: 7000, h: 7600, z: 5, land: true, still: true },
+  { id: 'blimp', name: 'Khinh khí cầu', w: 7500, h: 2400, fly: true, z: 5 },
+  { id: 'oilrig', name: 'Giàn khoan', w: 9000, h: 12000, z: 5 },
+  { id: 'castle', name: 'Lâu đài', w: 10000, h: 8500, z: 6, land: true, still: true },
+  { id: 'stadium', name: 'Sân vận động', w: 12000, h: 3000, flat: true, z: 4, land: true, still: true },
+  { id: 'jet', name: 'Máy bay phản lực', w: 7000, h: 2100, fly: true, z: 6, draw: 'plane' },
+  { id: 'skyscraper', name: 'Nhà chọc trời', w: 3200, h: 16000, z: 4, land: true, still: true },
+  { id: 'cargo', name: 'Tàu hàng', w: 25000, h: 7000, flat: true, drive: true, z: 5 },
+  { id: 'yeti', name: 'Người tuyết', w: 9000, h: 14000, walk: 3000, z: 6 },
+  { id: 'island', name: 'Hòn đảo', w: 30000, h: 11000, draw: 'volcisland', z: 5 },
+  { id: 'cruise', name: 'Du thuyền lớn', w: 40000, h: 10000, flat: true, drive: true, z: 5, land: true },
+  { id: 'pines', name: 'Rừng thông', w: 24000, h: 8000, flat: true, z: 6, still: true },
+  { id: 'dam', name: 'Con đập', w: 32000, h: 15000, flat: true, z: 6 },
+  { id: 'storm', name: 'Mây giông', w: 60000, h: 25000, fly: true, z: 7 },
+  { id: 'mountain', name: 'Ngọn núi', w: 60000, h: 30000, z: 6 },
+  { id: 'glacier', name: 'Sông băng', w: 80000, h: 26000, flat: true, z: 6 },
+  { id: 'tornado', name: 'Lốc xoáy', w: 45000, h: 150000, walk: 15000, z: 7, still: true },
+  { id: 'volcano', name: 'Núi lửa', w: 160000, h: 65000, z: 6, land: true, still: true },
+  { id: 'skyisland', name: 'Đảo bay', w: 260000, h: 200000, fly: true, z: 7, land: true },
+  { id: 'peaks', name: 'Dãy núi', w: 700000, h: 260000, z: 7 },
+  { id: 'iceberg', name: 'Tảng băng trôi', w: 400000, h: 300000, z: 8 },
+  { id: 'rainbow', name: 'Cầu vồng', w: 700000, h: 340000, fly: true, z: 7, still: true },
+  { id: 'zeppelin', name: 'Khí cầu', w: 300000, h: 95000, fly: true, z: 7, draw: 'blimp' },
+  { id: 'volcisland', name: 'Đảo núi lửa', w: 1500000, h: 600000, z: 8 },
+  { id: 'hurricane', name: 'Siêu bão', w: 3000000, h: 1100000, fly: true, z: 8, still: true },
+  { id: 'megacity', name: 'Siêu đô thị', w: 4000000, h: 1500000, flat: true, z: 8, land: true, still: true },
+  { id: 'satellite', name: 'Vệ tinh', w: 1800000, h: 900000, fly: true, z: 9 },
+  { id: 'rocket', name: 'Tên lửa', w: 1200000, h: 4500000, z: 9, land: true, still: true },
+  { id: 'continent', name: 'Lục địa', w: 9000000, h: 2400000, flat: true, z: 8 },
+  { id: 'asteroid', name: 'Tiểu hành tinh', w: 4000000, h: 3200000, z: 9, roll: true },
+  { id: 'ufo', name: 'Đĩa bay', w: 3500000, h: 1400000, fly: true, z: 9 },
+  { id: 'station', name: 'Trạm vũ trụ', w: 7000000, h: 3000000, fly: true, z: 9, land: true, still: true },
+  { id: 'comet', name: 'Sao chổi', w: 25000000, h: 6000000, fly: true, z: 10 },
+  { id: 'moon', name: 'Mặt trăng', w: 30000000, h: 30000000, z: 9, roll: true },
+  { id: 'redplanet', name: 'Hành tinh đỏ', w: 60000000, h: 60000000, z: 10, roll: true },
+  { id: 'blueplanet', name: 'Hành tinh nhà', w: 120000000, h: 120000000, z: 10, roll: true, land: true },
+  { id: 'gasgiant', name: 'Hành tinh khí', w: 220000000, h: 220000000, z: 10, roll: true },
+  { id: 'ringed', name: 'Hành tinh có vành', w: 330000000, h: 140000000, z: 10, land: true, still: true },
+  { id: 'sun', name: 'Ngôi sao', w: 600000000, h: 600000000, z: 11, land: true, still: true },
+  { id: 'blackhole', name: 'Hố đen', w: 700000000, h: 500000000, fly: true, z: 11, land: true, still: true },
+  { id: 'redgiant', name: 'Sao khổng lồ đỏ', w: 1100000000, h: 1100000000, z: 11, still: true },
+  { id: 'nebula', name: 'Tinh vân', w: 1300000000, h: 800000000, fly: true, z: 11, still: true },
+  { id: 'galaxy', name: 'Thiên hà', w: 1500000000, h: 700000000, fly: true, z: 11, land: true, still: true },
 ];
 const MORE = [
-  { id: 'frog', name: 'Frog', w: 10, h: 8, walk: 5 },
-  { id: 'tortoise', name: 'Tortoise', w: 28, h: 16, walk: 3 },
-  { id: 'bucket', name: 'Bucket', w: 30, h: 30 },
-  { id: 'squirrel', name: 'Squirrel', w: 30, h: 30, walk: 25 },
-  { id: 'rabbit', name: 'Rabbit', w: 32, h: 30, walk: 30 },
-  { id: 'chicken', name: 'Chicken', w: 40, h: 42, walk: 20 },
-  { id: 'beehive', name: 'Beehive', w: 50, h: 65 },
-  { id: 'bbq', name: 'Barbecue', w: 70, h: 100 },
-  { id: 'deckchair', name: 'Deck chair', w: 80, h: 90 },
-  { id: 'kennel', name: 'Kennel', w: 100, h: 95 },
-  { id: 'lawnmower', name: 'Lawn mower', w: 110, h: 95 },
-  { id: 'wheelbarrow', name: 'Wheelbarrow', w: 130, h: 70 },
-  { id: 'birdhouse', name: 'Birdhouse', w: 40, h: 140, still: true },
-  { id: 'sunflower', name: 'Sunflower', w: 60, h: 180, still: true },
-  { id: 'pool', name: 'Paddling pool', w: 200, h: 40, flat: true },
-  { id: 'shed', name: 'Shed', w: 250, h: 240 },
-  { id: 'trampoline', name: 'Trampoline', w: 300, h: 90, flat: true },
-  { id: 'parkingmeter', name: 'Parking meter', w: 35, h: 150, still: true },
-  { id: 'jogger', name: 'Jogger', w: 50, h: 175, fig: true, walk: 170, prop: 'jogger' },
-  { id: 'cop', name: 'Police officer', w: 50, h: 180, fig: true, walk: 60, prop: 'cop' },
-  { id: 'grandpa', name: 'Grandpa', w: 60, h: 165, fig: true, walk: 25, prop: 'cane' },
-  { id: 'skater', name: 'Skater', w: 80, h: 180, fig: true, walk: 160, prop: 'skate' },
-  { id: 'motorbike', name: 'Motorbike', w: 210, h: 115, drive: true },
-  { id: 'streetsign', name: 'Street sign', w: 100, h: 280, still: true },
-  { id: 'trafficlight', name: 'Traffic light', w: 60, h: 380, still: true },
-  { id: 'balloonkid', name: 'Kid with a balloon', w: 50, h: 200, fig: true, walk: 50, prop: 'balloon', figH: 150 },
-  { id: 'juggler', name: 'Juggler', w: 60, h: 195, fig: true, prop: 'juggle', figH: 145 },
-  { id: 'tourist', name: 'Tourist', w: 50, h: 175, fig: true, walk: 50, prop: 'camera' },
-  { id: 'hoop', name: 'Basketball hoop', w: 150, h: 350 },
-  { id: 'picnic', name: 'Picnic table', w: 220, h: 110, flat: true },
-  { id: 'hotdog', name: 'Hot dog cart', w: 220, h: 240, drive: true },
-  { id: 'sandbox', name: 'Sandbox', w: 250, h: 70, flat: true },
-  { id: 'tent', name: 'Tent', w: 260, h: 200 },
-  { id: 'slide', name: 'Slide', w: 300, h: 220 },
-  { id: 'swingset', name: 'Swings', w: 320, h: 250, still: true },
-  { id: 'seesaw', name: 'Seesaw', w: 380, h: 120, still: true },
-  { id: 'goal', name: 'Football goal', w: 600, h: 250, still: true },
-  { id: 'carousel', name: 'Carousel', w: 650, h: 600, still: true, land: true },
-  { id: 'chef', name: 'Chef', w: 50, h: 195, fig: true, walk: 40, prop: 'chef', figH: 142 },
-  { id: 'vending', name: 'Vending machine', w: 100, h: 190 },
-  { id: 'marketstall', name: 'Market stall', w: 320, h: 260 },
+  { id: 'frog', name: 'Con ếch', w: 10, h: 8, walk: 5 },
+  { id: 'tortoise', name: 'Con rùa', w: 28, h: 16, walk: 3 },
+  { id: 'bucket', name: 'Cái xô', w: 30, h: 30 },
+  { id: 'squirrel', name: 'Sóc', w: 30, h: 30, walk: 25 },
+  { id: 'rabbit', name: 'Con thỏ', w: 32, h: 30, walk: 30 },
+  { id: 'chicken', name: 'Con gà', w: 40, h: 42, walk: 20 },
+  { id: 'beehive', name: 'Tổ ong', w: 50, h: 65 },
+  { id: 'bbq', name: 'Lò nướng', w: 70, h: 100 },
+  { id: 'deckchair', name: 'Ghế xếp', w: 80, h: 90 },
+  { id: 'kennel', name: 'Chuồng chó', w: 100, h: 95 },
+  { id: 'lawnmower', name: 'Máy cắt cỏ', w: 110, h: 95 },
+  { id: 'wheelbarrow', name: 'Xe cút kít', w: 130, h: 70 },
+  { id: 'birdhouse', name: 'Nhà chim', w: 40, h: 140, still: true },
+  { id: 'sunflower', name: 'Hoa hướng dương', w: 60, h: 180, still: true },
+  { id: 'pool', name: 'Bể bơi phao', w: 200, h: 40, flat: true },
+  { id: 'shed', name: 'Nhà kho', w: 250, h: 240 },
+  { id: 'trampoline', name: 'Bạt nhún', w: 300, h: 90, flat: true },
+  { id: 'parkingmeter', name: 'Cột đỗ xe', w: 35, h: 150, still: true },
+  { id: 'jogger', name: 'Người chạy bộ', w: 50, h: 175, fig: true, walk: 170, prop: 'jogger' },
+  { id: 'cop', name: 'Cảnh sát', w: 50, h: 180, fig: true, walk: 60, prop: 'cop' },
+  { id: 'grandpa', name: 'Ông cụ', w: 60, h: 165, fig: true, walk: 25, prop: 'cane' },
+  { id: 'skater', name: 'Người trượt ván', w: 80, h: 180, fig: true, walk: 160, prop: 'skate' },
+  { id: 'motorbike', name: 'Xe máy', w: 210, h: 115, drive: true },
+  { id: 'streetsign', name: 'Biển báo', w: 100, h: 280, still: true },
+  { id: 'trafficlight', name: 'Đèn giao thông', w: 60, h: 380, still: true },
+  { id: 'balloonkid', name: 'Bé cầm bóng bay', w: 50, h: 200, fig: true, walk: 50, prop: 'balloon', figH: 150 },
+  { id: 'juggler', name: 'Người tung hứng', w: 60, h: 195, fig: true, prop: 'juggle', figH: 145 },
+  { id: 'tourist', name: 'Khách du lịch', w: 50, h: 175, fig: true, walk: 50, prop: 'camera' },
+  { id: 'hoop', name: 'Rổ bóng rổ', w: 150, h: 350 },
+  { id: 'picnic', name: 'Bàn dã ngoại', w: 220, h: 110, flat: true },
+  { id: 'hotdog', name: 'Xe xúc xích', w: 220, h: 240, drive: true },
+  { id: 'sandbox', name: 'Hố cát', w: 250, h: 70, flat: true },
+  { id: 'tent', name: 'Lều', w: 260, h: 200 },
+  { id: 'slide', name: 'Cầu trượt', w: 300, h: 220 },
+  { id: 'swingset', name: 'Xích đu', w: 320, h: 250, still: true },
+  { id: 'seesaw', name: 'Bập bênh', w: 380, h: 120, still: true },
+  { id: 'goal', name: 'Khung thành', w: 600, h: 250, still: true },
+  { id: 'carousel', name: 'Vòng quay ngựa gỗ', w: 650, h: 600, still: true, land: true },
+  { id: 'chef', name: 'Đầu bếp', w: 50, h: 195, fig: true, walk: 40, prop: 'chef', figH: 142 },
+  { id: 'vending', name: 'Máy bán hàng', w: 100, h: 190 },
+  { id: 'marketstall', name: 'Sạp chợ', w: 320, h: 260 },
   { id: 'taxi', name: 'Taxi', w: 430, h: 170, flat: true, drive: true },
-  { id: 'policecar', name: 'Police car', w: 450, h: 170, flat: true, drive: true },
-  { id: 'ambulance', name: 'Ambulance', w: 600, h: 280, flat: true, drive: true },
-  { id: 'cafe', name: 'Cafe', w: 600, h: 420, still: true },
-  { id: 'shop', name: 'Shop', w: 650, h: 500, still: true },
-  { id: 'foodtruck', name: 'Food truck', w: 700, h: 300, flat: true, drive: true },
-  { id: 'doubledecker', name: 'Double-decker', w: 1100, h: 440, flat: true, drive: true },
-  { id: 'clocktower', name: 'Clock tower', w: 600, h: 2400, still: true, land: true },
-  { id: 'church', name: 'Church', w: 1300, h: 2200, still: true },
-  { id: 'bank', name: 'Bank', w: 1600, h: 1100, still: true },
-  { id: 'tram', name: 'Tram', w: 1600, h: 380, flat: true, drive: true },
-  { id: 'gasstation', name: 'Petrol station', w: 1800, h: 700, still: true },
-  { id: 'school', name: 'School', w: 2200, h: 1300, still: true },
-  { id: 'hospital', name: 'Hospital', w: 2400, h: 1800, still: true },
-  { id: 'haybale', name: 'Hay bale', w: 160, h: 160, roll: true },
-  { id: 'coop', name: 'Chicken coop', w: 220, h: 200 },
-  { id: 'zebra', name: 'Zebra', w: 230, h: 200, walk: 70 },
-  { id: 'lion', name: 'Lion', w: 240, h: 140, walk: 60 },
-  { id: 'camel', name: 'Camel', w: 300, h: 260, walk: 40 },
-  { id: 'giraffe', name: 'Giraffe', w: 320, h: 560, walk: 60 },
-  { id: 'rhino', name: 'Rhino', w: 380, h: 200, walk: 40 },
-  { id: 'hippo', name: 'Hippo', w: 400, h: 180, walk: 20 },
-  { id: 'greenhouse', name: 'Greenhouse', w: 700, h: 400, still: true },
-  { id: 'combine', name: 'Combine harvester', w: 950, h: 450, drive: true },
-  { id: 'airballoon', name: 'Hot air balloon', w: 1700, h: 2300, fly: true, still: true },
-  { id: 'seagull', name: 'Seagull', w: 120, h: 50, fly: true },
-  { id: 'surfboard', name: 'Surfboard', w: 70, h: 260, still: true },
-  { id: 'buoy', name: 'Buoy', w: 120, h: 220, still: true },
-  { id: 'dolphin', name: 'Dolphin', w: 250, h: 130, fly: true },
-  { id: 'beachumbrella', name: 'Beach umbrella', w: 250, h: 250, still: true },
-  { id: 'beachhut', name: 'Beach hut', w: 300, h: 380, still: true },
-  { id: 'rowboat', name: 'Rowboat', w: 400, h: 130, drive: true },
-  { id: 'lifeguard', name: 'Lifeguard tower', w: 400, h: 650 },
-  { id: 'fishingboat', name: 'Fishing boat', w: 1300, h: 900, drive: true },
-  { id: 'portcrane', name: 'Port crane', w: 4500, h: 6000 },
-  { id: 'submarine', name: 'Submarine', w: 6500, h: 1300, drive: true },
-  { id: 'radiotower', name: 'Radio tower', w: 1800, h: 8000, still: true },
-  { id: 'windturbine', name: 'Wind turbine', w: 4000, h: 9000, still: true },
-  { id: 'factory', name: 'Factory', w: 5000, h: 3000, still: true },
-  { id: 'bridge', name: 'Bridge', w: 20000, h: 3500, flat: true, still: true },
+  { id: 'policecar', name: 'Xe cảnh sát', w: 450, h: 170, flat: true, drive: true },
+  { id: 'ambulance', name: 'Xe cứu thương', w: 600, h: 280, flat: true, drive: true },
+  { id: 'cafe', name: 'Quán cà phê', w: 600, h: 420, still: true },
+  { id: 'shop', name: 'Cửa hàng', w: 650, h: 500, still: true },
+  { id: 'foodtruck', name: 'Xe đồ ăn', w: 700, h: 300, flat: true, drive: true },
+  { id: 'doubledecker', name: 'Xe buýt hai tầng', w: 1100, h: 440, flat: true, drive: true },
+  { id: 'clocktower', name: 'Tháp đồng hồ', w: 600, h: 2400, still: true, land: true },
+  { id: 'church', name: 'Nhà thờ', w: 1300, h: 2200, still: true },
+  { id: 'bank', name: 'Ngân hàng', w: 1600, h: 1100, still: true },
+  { id: 'tram', name: 'Xe điện', w: 1600, h: 380, flat: true, drive: true },
+  { id: 'gasstation', name: 'Cây xăng', w: 1800, h: 700, still: true },
+  { id: 'school', name: 'Trường học', w: 2200, h: 1300, still: true },
+  { id: 'hospital', name: 'Bệnh viện', w: 2400, h: 1800, still: true },
+  { id: 'haybale', name: 'Kiện rơm', w: 160, h: 160, roll: true },
+  { id: 'coop', name: 'Chuồng gà', w: 220, h: 200 },
+  { id: 'zebra', name: 'Ngựa vằn', w: 230, h: 200, walk: 70 },
+  { id: 'lion', name: 'Sư tử', w: 240, h: 140, walk: 60 },
+  { id: 'camel', name: 'Lạc đà', w: 300, h: 260, walk: 40 },
+  { id: 'giraffe', name: 'Hươu cao cổ', w: 320, h: 560, walk: 60 },
+  { id: 'rhino', name: 'Tê giác', w: 380, h: 200, walk: 40 },
+  { id: 'hippo', name: 'Hà mã', w: 400, h: 180, walk: 20 },
+  { id: 'greenhouse', name: 'Nhà kính', w: 700, h: 400, still: true },
+  { id: 'combine', name: 'Máy gặt', w: 950, h: 450, drive: true },
+  { id: 'airballoon', name: 'Khinh khí cầu', w: 1700, h: 2300, fly: true, still: true },
+  { id: 'seagull', name: 'Mòng biển', w: 120, h: 50, fly: true },
+  { id: 'surfboard', name: 'Ván lướt sóng', w: 70, h: 260, still: true },
+  { id: 'buoy', name: 'Phao', w: 120, h: 220, still: true },
+  { id: 'dolphin', name: 'Cá heo', w: 250, h: 130, fly: true },
+  { id: 'beachumbrella', name: 'Ô bãi biển', w: 250, h: 250, still: true },
+  { id: 'beachhut', name: 'Chòi bãi biển', w: 300, h: 380, still: true },
+  { id: 'rowboat', name: 'Thuyền chèo', w: 400, h: 130, drive: true },
+  { id: 'lifeguard', name: 'Chòi cứu hộ', w: 400, h: 650 },
+  { id: 'fishingboat', name: 'Thuyền câu', w: 1300, h: 900, drive: true },
+  { id: 'portcrane', name: 'Cần cẩu cảng', w: 4500, h: 6000 },
+  { id: 'submarine', name: 'Tàu ngầm', w: 6500, h: 1300, drive: true },
+  { id: 'radiotower', name: 'Tháp phát sóng', w: 1800, h: 8000, still: true },
+  { id: 'windturbine', name: 'Tua-bin gió', w: 4000, h: 9000, still: true },
+  { id: 'factory', name: 'Nhà máy', w: 5000, h: 3000, still: true },
+  { id: 'bridge', name: 'Cây cầu', w: 20000, h: 3500, flat: true, still: true },
 ];
 for (const c of MORE) {
   c.z = 0;
@@ -4201,18 +4201,18 @@ for (const c of CAT) {
   c.fn = c.fn || DRAW[c.draw || c.id];
   CATS[c.id] = c;
 }
-const GIFT = { id: 'gift', name: 'Gift', w: 1, h: 1, z: -1, special: true, still: true };
-const RAMP = { id: 'ramp', name: 'Ramp', w: 1, h: 1, z: -1, special: true, still: true };
+const GIFT = { id: 'gift', name: 'Hộp quà', w: 1, h: 1, z: -1, special: true, still: true };
+const RAMP = { id: 'ramp', name: 'Dốc nhảy', w: 1, h: 1, z: -1, special: true, still: true };
 for (const c of [GIFT, RAMP]) {
   c.size = 1;
   c.fn = DRAW[c.id];
   CATS[c.id] = c;
 }
 const POWERS = {
-  magnet: { name: 'Magnet', tip: 'PULLS THINGS IN', dur: 9 },
-  rocket: { name: 'Rocket', tip: 'SMASH THROUGH ANYTHING', dur: 4.5 },
-  shield: { name: 'Shield', tip: 'ONE FREE BONK', dur: 25 },
-  wings: { name: 'Wings', tip: 'DOUBLE JUMP', dur: 12 },
+  magnet: { name: 'Nam châm', tip: 'HÚT ĐỒ VÀO', dur: 9 },
+  rocket: { name: 'Tên lửa', tip: 'PHÁ XUYÊN MỌI THỨ', dur: 4.5 },
+  shield: { name: 'Khiên', tip: 'ONE FREE BONK', dur: 25 },
+  wings: { name: 'Đôi cánh', tip: 'NHẢY ĐÔI', dur: 12 },
 };
 function sizeOf(o) {
   return Math.max(o.w, o.h);
@@ -4417,7 +4417,7 @@ function spawnEvent(x) {
     if (!first) {
       kind = 'ramp';
     } else {
-      first.label = 'Bounce across!';
+      first.label = 'Nảy qua!';
       R.lastObX = x;
       R.nextX = x + r * rnd(3.5, 5);
       return true;
@@ -4434,7 +4434,7 @@ function spawnEvent(x) {
         o.vx = -r * rnd(2, 3);
         items.push(o);
         if (!i) {
-          o.label = 'Stampede!';
+          o.label = 'Chạy tán loạn!';
         }
         x = o.x + o.w / 2 + r * rnd(0.4, 0.8);
       }
@@ -4475,7 +4475,7 @@ function spawnEvent(x) {
       o.x = cx;
       o.alt = Math.max(0, r * (2 + 1.2 * Math.sin(k * 0.9)) - o.h / 2);
       if (!k) {
-        o.label = 'Up high!';
+        o.label = 'Trên cao!';
       }
       x = cx;
     }
@@ -4489,7 +4489,7 @@ function spawnEvent(x) {
     o.x = x + o.w / 2;
     o.gold = gold;
     if (!i) {
-      o.label = gold ? 'Jackpot!' : ZONES[R.zone].feast;
+      o.label = gold ? 'Trúng lớn!' : ZONES[R.zone].feast;
     }
     x = o.x + o.w / 2 + r * rnd(0.15, 0.4);
   }
@@ -4513,7 +4513,7 @@ function spawnWonder(x) {
   const o = makeItem(T, x, 1);
   o.x = x + o.w / 2;
   o.vx = 0;
-  o.label = T.name + (tease ? ' · too big, jump it' : '');
+  o.label = T.name + (tease ? ' · to quá, nhảy qua' : '');
   items.push(o);
   if (tease) {
     R.wonderTeased[T.id] = true;
@@ -4541,7 +4541,7 @@ function spawnHazard(x) {
   o.vx = -r * rnd(0.6, 1.4);
   if (!R.warnedSky) {
     R.warnedSky = true;
-    o.label = "Don't jump into it!";
+    o.label = "Đừng nhảy vào!";
   }
   items.push(o);
   return o;
@@ -4561,7 +4561,7 @@ function spawnNext() {
     o.gift = true;
     if (!R.gifted) {
       R.gifted = true;
-      o.label = 'Power-up!';
+      o.label = 'Sức mạnh!';
     }
     R.nextX = o.x + o.w / 2 + r * rnd(1.5, 2.5);
     return;
@@ -4840,7 +4840,7 @@ function absorb(o) {
     const bonus = Math.round((T.real ? 600 : 300) * mult());
     addScore(bonus);
     round.lands++;
-    let sub = 'LANDMARK +' + (pts + bonus);
+    let sub = 'KỲ QUAN +' + (pts + bonus);
     if (T.real) {
       round.wonders++;
       const fresh = life.wonders.indexOf(T.id) < 0;
@@ -4848,7 +4848,7 @@ function absorb(o) {
         life.wonders.push(T.id);
         store.set('life', life);
       }
-      sub = T.from.toUpperCase() + (fresh ? ' · NEW! ' + life.wonders.length + '/' + WONDERS.length : '') + ' · +' + (pts + bonus);
+      sub = T.from.toUpperCase() + (fresh ? ' · MỚI! ' + life.wonders.length + '/' + WONDERS.length : '') + ' · +' + (pts + bonus);
     }
     popup(T.name + '!', sub, true, ix, iy - o.h * 0.6 - r * 0.5, 1.3);
     SND.zone();
@@ -5086,7 +5086,7 @@ function cleared(o) {
     popup('Sát nút!', '+' + pts, true, o.x, -(o.h + o.alt) - r * 0.8, 1);
     buzz(10);
   } else {
-    popup('Clear', '+' + pts, false, o.x, -(o.h + o.alt) - r * 0.8, 0.85, true);
+    popup('Qua', '+' + pts, false, o.x, -(o.h + o.alt) - r * 0.8, 0.85, true);
   }
 }
 function collide() {
@@ -5178,7 +5178,7 @@ function updateItems(dt) {
       if (o.chase && !o.charging && dx > 0 && dx < 9 * r && danger(o)) {
         o.charging = true;
         o.vx = -r * rnd(2.2, 3);
-        o.label = 'Chase!';
+        o.label = 'Rượt đuổi!';
         SND.bark();
       } else if (!o.fled && !o.fig && CATS[o.type].walk && dx > 0 && dx < 5 * r && !danger(o)) {
         o.fled = true;
@@ -5359,7 +5359,7 @@ function hideZone() {
     $('zone').classList.remove('on');
   }
 }
-const CAUSE = { bury: 'Buried by the avalanche' };
+const CAUSE = { bury: 'Bị lở tuyết vùi' };
 function endGame() {
   mode = 'over';
   doneAt = real;
@@ -5405,7 +5405,7 @@ function lifetimeLine() {
   if (!life.games) {
     return '';
   }
-  return `Best ${life.best} · ${fmtSize(life.bestSize)} · chain ${life.bestChain}<br>${bookCount()} of ${BOOK.length} stickers · ${life.wonders.length} of ${WONDERS.length} wonders`;
+  return `Kỷ lục ${life.best} · ${fmtSize(life.bestSize)} · chuỗi ${life.bestChain}<br>${bookCount()}/${BOOK.length} hình dán · ${life.wonders.length}/${WONDERS.length} kỳ quan`;
 }
 
 function riderTarget(dt) {
@@ -5487,7 +5487,7 @@ function updateHud() {
     $('hLast').textContent = hudLast ? 'Gần nhất: ' + hudLast : '';
   }
   const cur = round.missions.find((m) => !m.done);
-  const mtext = cur ? cur.text + (cur.stat !== 'zone' && cur.stat !== 'clean' ? ` · ${Math.min(missionProgress(cur), cur.goal)}/${cur.goal}` : '') : round.missions.length ? 'All missions done' : '';
+  const mtext = cur ? cur.text + (cur.stat !== 'zone' && cur.stat !== 'clean' ? ` · ${Math.min(missionProgress(cur), cur.goal)}/${cur.goal}` : '') : round.missions.length ? 'Xong mọi nhiệm vụ' : '';
   if (mtext !== hudMission) {
     hudMission = mtext;
     const me = $('mission');
@@ -6472,7 +6472,7 @@ function shareCanvas(res) {
     ctx.fillStyle = COL.ink;
   }
   ctx.letterSpacing = '0px';
-  const stats = [[String(res.rolled), 'ROLLED UP'], [String(res.chain), 'BEST CHAIN'], [String(res.wonders), 'WONDERS']];
+  const stats = [[String(res.rolled), 'ĐÃ CUỐN'], [String(res.chain), 'CHUỖI DÀI NHẤT'], [String(res.wonders), 'KỲ QUAN']];
   stats.forEach((st, i) => {
     const x = 84 + i * 300;
     ctx.fillStyle = COL.ink;

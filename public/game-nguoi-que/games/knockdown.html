@@ -2185,7 +2185,7 @@ const AMMO_BAG = ['ball', 'ball', 'ball', 'bowl', 'big', 'split', 'bomb', 'bounc
 function endlessLevel(seed, round) {
   const r = mulberry(seed * 7919 + round * 104729);
   return {
-    name: 'Round ' + (round + 1), ch: -1, endless: true,
+    name: 'Vòng ' + (round + 1), ch: -1, endless: true,
     build(B) {
       const slots = [];
       const n = Math.min(2 + Math.floor(round / 2), 4) + (r() < 0.3 ? 1 : 0);
@@ -3097,7 +3097,7 @@ function startLevel(i, opts) {
   showOverlay(null);
   $('hud').classList.remove('hidden');
   const zn = i >= 0 ? `Màn ${i + 1}` : `Vô tận · vòng ${run.round + 1}`;
-  zone(zn, i >= 0 ? L.name : run.round === 0 ? 'Knock it all down' : 'More blocks');
+  zone(zn, i >= 0 ? L.name : run.round === 0 ? 'Hạ đổ tất cả' : 'Thêm khối');
   if (!prog.seenHint && i === 0) {
     $('hint').classList.remove('hidden');
   }

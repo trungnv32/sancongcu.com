@@ -380,10 +380,10 @@ const CHAPTERS = ['Bầu bạn', 'Đồng hồ', 'Đổi quá khứ', 'Tất c�
 const LEVELS = [
   {
     id: 'door', name: 'Giữ cửa', loop: 8, par: 2, chapter: 0,
-    tip: 'Stand on the plate and press R. Your past self will keep holding it.',
+    tip: 'Đứng lên tấm nút và bấm R. Bản sao quá khứ sẽ giữ nó giúp bạn.',
     hints: [
-      'The door only stays open while someone is standing on the plate.',
-      'Stand on the plate and press R. Then walk through while your past self holds it.',
+      'Cửa chỉ mở khi có người đứng trên tấm nút.',
+      'Đứng lên tấm nút và bấm R. Rồi đi qua cửa trong lúc bản sao giữ nút.',
     ],
     map: [
       '....................',
@@ -402,10 +402,10 @@ const LEVELS = [
   },
   {
     id: 'leg', name: 'Đỡ một chân', loop: 8, par: 2, chapter: 0,
-    tip: 'Past selves are solid. You can stand on their heads.',
+    tip: 'Bản sao quá khứ là vật cứng. Bạn đứng lên đầu chúng được.',
     hints: [
-      'The ledge is too high for one of you.',
-      'Walk up to the wall and press R. Next time, jump on your past self\'s head.',
+      'Gờ quá cao với một mình bạn.',
+      'Đi tới sát tường và bấm R. Lượt sau, nhảy lên đầu bản sao của bạn.',
     ],
     map: [
       '....................',
@@ -424,10 +424,10 @@ const LEVELS = [
   },
   {
     id: 'both', name: 'Hai tay', loop: 10, par: 3, chapter: 0,
-    tip: 'This door wants both plates down at once.',
+    tip: 'Cửa này cần cả hai tấm nút được giữ cùng lúc.',
     hints: [
-      'Two plates, one door. Both need someone on them.',
-      'Record one self on each plate, then walk through yourself.',
+      'Hai tấm nút, một cửa. Cả hai đều cần có người đứng.',
+      'Ghi một bản sao trên mỗi tấm nút, rồi tự bạn đi qua.',
     ],
     ch: { a: { need: 2 } },
     map: [
@@ -447,10 +447,10 @@ const LEVELS = [
   },
   {
     id: 'doorstep', name: 'Bậc cửa', loop: 9, par: 2, chapter: 0,
-    tip: 'A plate at the foot of a wall is a good place to stand.',
+    tip: 'Tấm nút ngay chân tường là chỗ đứng rất hợp.',
     hints: [
-      'The plate is right where you would want a step.',
-      'Record a self standing on the plate against the wall. It holds the door and gives you a leg up.',
+      'Tấm nút nằm đúng chỗ bạn cần một bậc kê chân.',
+      'Ghi một bản sao đứng trên tấm nút sát tường. Nó vừa giữ cửa vừa làm bậc cho bạn.',
     ],
     map: [
       '....................',
@@ -469,10 +469,10 @@ const LEVELS = [
   },
   {
     id: 'relay', name: 'Chuyền tiếp', loop: 12, par: 3, chapter: 0,
-    tip: 'Each self opens the way for the next.',
+    tip: 'Mỗi bản sao mở đường cho bản sau.',
     hints: [
-      'The second plate is behind the first door.',
-      'Self 1 holds the first plate. Self 2 goes through and stands on the second. You walk through both.',
+      'Tấm nút thứ hai nằm sau cánh cửa thứ nhất.',
+      'Bản sao 1 giữ tấm nút đầu. Bản sao 2 đi qua và đứng lên tấm nút thứ hai. Bạn đi qua cả hai cửa.',
     ],
     map: [
       '......#......#......',
@@ -3900,7 +3900,7 @@ function captionFor() {
   if (mode === 'demo') {
     return LEVELS[li].hints[1];
   }
-  const offer = hintOffered && !hintOpen && hintStep === 0 ? ` <span class="soft">Stuck? ${TOUCH ? 'Tap the bulb' : 'Press H'} for a hint.</span>` : '';
+  const offer = hintOffered && !hintOpen && hintStep === 0 ? ` <span class="soft">Bí à? ${TOUCH ? 'Chạm bóng đèn' : 'Bấm H'} để xem gợi ý.</span>` : '';
   return baseCaption() + offer;
 }
 function baseCaption() {
@@ -3908,15 +3908,15 @@ function baseCaption() {
   const newSelf = TOUCH ? K('&#8635;') : K('R');
   if (L.id === 'door') {
     if (!tapes.length) {
-      return `Walk onto the plate, then press ${newSelf}. That attempt becomes a past self.`;
+      return `Bước lên tấm nút, rồi bấm ${newSelf}. Lượt đó sẽ thành một bản sao quá khứ.`;
     }
     return `Your past self is holding the plate. Head for the door.`;
   }
   if (L.id === 'leg' && !tapes.length) {
-    return `Walk up to the wall and press ${newSelf}. Then jump on your past self.`;
+    return `Đi tới sát tường và bấm ${newSelf}. Rồi nhảy lên bản sao của bạn.`;
   }
   if (L.id === 'lean') {
-    return `Hold ${TOUCH ? K('&rarr;') : K('&rarr;')} against a shut door and press ${newSelf}. That self keeps pushing.`;
+    return `Giữ ${TOUCH ? K('&rarr;') : K('&rarr;')} đẩy vào cửa đang đóng rồi bấm ${newSelf}. Bản sao đó sẽ đẩy mãi.`;
   }
   return L.tip;
 }
@@ -3957,8 +3957,8 @@ function renderHint() {
   $('hintK').textContent = `Gợi ý ${hintStep}/2`;
   $('hintT').textContent = L.hints[hintStep - 1];
   const more = hintStep < 2
-    ? `<button class="link" id="hintMore">Another hint</button>`
-    : `<button class="link go" id="hintSolve">Show the solution</button>${TOUCH ? '' : '<span class="kb">S</span>'}`;
+    ? `<button class="link" id="hintMore">Gợi ý khác</button>`
+    : `<button class="link go" id="hintSolve">Xem lời giải</button>${TOUCH ? '' : '<span class="kb">S</span>'}`;
   $('hintA').innerHTML = `${more}<button class="link" id="hintHide">Ẩn</button>`;
   if ($('hintMore')) {
     $('hintMore').addEventListener('click', openHint);
@@ -4142,7 +4142,7 @@ function showWin() {
   const L = LEVELS[I.li];
   $('winLabel').textContent = `Màn ${I.li + 1} · ${L.name}`;
   $('winSelves').textContent = I.selves;
-  $('winSelvesLabel').textContent = I.selves === 1 ? 'Self' : 'Selves';
+  $('winSelvesLabel').textContent = I.selves === 1 ? 'Bản sao' : 'Bản sao';
   $('winPar').textContent = I.par;
   $('winLoops').textContent = I.loops;
   $('winTime').textContent = I.time.toFixed(1) + 's';
@@ -4159,17 +4159,17 @@ function showWin() {
   }
   let sub = '';
   if (I.helped) {
-    sub = 'Solved with the solution\'s help. It gets a pencil mark.';
+    sub = 'Giải nhờ lời giải. Màn này được đánh dấu bút chì.';
   } else if (I.selves > I.par) {
-    sub = `It can be done with ${I.par}. Worth another look?`;
+    sub = `Làm được với ${I.par} bản sao. Thử lại xem?`;
   } else if (I.prevBest && I.selves < I.prevBest) {
-    sub = `New best, down from ${I.prevBest}.`;
+    sub = `Kỷ lục mới, bớt so với ${I.prevBest}.`;
   }
   $('winSub').textContent = sub;
   const last = I.li === LEVELS.length - 1;
   $('nextLabel').textContent = last ? 'Hoàn thành' : 'Màn tiếp';
   const pl = progressLine();
-  $('winFoot').innerHTML = `${pl ? pl + '<br>' : ''}<button class="link" id="winRetry">Try again</button> &nbsp;·&nbsp; <button class="link" id="winLevels">Levels</button>`;
+  $('winFoot').innerHTML = `${pl ? pl + '<br>' : ''}<button class="link" id="winRetry">Thử lại</button> &nbsp;·&nbsp; <button class="link" id="winLevels">Các màn</button>`;
   $('winRetry').addEventListener('click', () => {
     audio();
     $('replayTag').classList.remove('on');
@@ -4281,7 +4281,7 @@ function buildGrid() {
     b.disabled = !open;
     const mk = best ? markSvg(marks[L.id] || 'ink') : '';
     b.innerHTML = `<span class="n">${i + 1}</span><span class="nm">${open ? L.name : '&nbsp;'}</span><span class="st">${best ? best + '/' + L.par : open ? '' : '&#8226;'}${mk}</span>`;
-    b.title = best ? `${L.name}: best ${best}, par ${L.par}${marks[L.id] === 'pencil' ? ', solved with help' : ''}` : L.name;
+    b.title = best ? `${L.name}: kỷ lục ${best}, chuẩn ${L.par}${marks[L.id] === 'pencil' ? ', giải nhờ gợi ý' : ''}` : L.name;
     b.addEventListener('click', () => {
       if (!open) {
         return;
@@ -4661,7 +4661,7 @@ function shareCanvas(info) {
   lay.S = ps;
   ctx.restore();
   const y0 = 330 + LH * s + 170;
-  const stats = [[String(info.selves), info.selves === 1 ? 'SELF' : 'SELVES'], [String(L.par), 'PAR'], [info.time.toFixed(1) + 's', 'RUN TIME']];
+  const stats = [[String(info.selves), info.selves === 1 ? 'BẢN SAO' : 'BẢN SAO'], [String(L.par), 'CHUẨN'], [info.time.toFixed(1) + 's', 'THỜI GIAN']];
   stats.forEach((st, i) => {
     const x = 84 + i * 300;
     ctx.fillStyle = COL.ink;

@@ -1310,7 +1310,7 @@ function onEvent(e) {
     return;
   }
   if (e.k === 'tier') {
-    const label = e.mult >= 4 ? 'ON FIRE' : 'COMBO';
+    const label = e.mult >= 4 ? 'ĐANG BỐC' : 'COMBO';
     popup(`×${e.mult}`, label, true, false, fig.x, -215, 1.3 + 0.1 * e.mult);
     burst(fig.x, -180, 10 + e.mult * 4, true);
     SND.streak(e.mult);
@@ -1489,7 +1489,7 @@ function lifetimeLine() {
   if (!life.games) {
     return '';
   }
-  return `Best ${life.bestLogs} logs · score ${life.best}<br>${life.games} ${life.games === 1 ? 'game' : 'games'} · ${life.chopped.toLocaleString()} logs chopped`;
+  return `Kỷ lục ${life.bestLogs} khúc gỗ · điểm ${life.best}<br>${life.games} lượt · ${life.chopped.toLocaleString()} khúc gỗ đã chặt`;
 }
 
 let hudLogs = -1, hudCombo = -1;
@@ -2656,7 +2656,7 @@ function drawBars() {
     ctx.font = FONT(11);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
-    const msg = run.honing ? (s >= 1 ? 'sharp! go chop' : 'sharpening…') : TOUCH ? 'dull! hold to sharpen' : 'dull! hold space to sharpen';
+    const msg = run.honing ? (s >= 1 ? 'sắc rồi! chặt đi' : 'đang mài…') : TOUCH ? 'cùn rồi! giữ để mài' : 'cùn rồi! giữ Space để mài';
     ctx.fillText(msg, 0, y2 + h2 + 15);
   }
   ctx.restore();
@@ -2953,7 +2953,7 @@ function shareCanvas(res) {
     }
   }
   lines.forEach((l, i) => ctx.fillText(l, 80, 470 + i * 56));
-  const stats = [[String(res.score), 'SCORE'], [String(res.bestCombo), 'BEST COMBO'], [res.sharpPct + '%', 'SHARP CHOPS']];
+  const stats = [[String(res.score), 'ĐIỂM'], [String(res.bestCombo), 'COMBO CAO NHẤT'], [res.sharpPct + '%', 'NHÁT SẮC']];
   stats.forEach((st, i) => {
     const y = 690 + i * 150;
     ctx.fillStyle = COL.ink;

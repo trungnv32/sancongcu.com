@@ -183,7 +183,7 @@
 
 <script>
 const SLUG = 'crossing';
-const GAME = 'Hop Across';
+const GAME = 'Nhảy Qua Đường';
 const COL = { bg: '#ffffff', ink: '#141414', fig: '#141414', muted: '#737373', faint: '#d4d4d4', butter: '#fde68a', butterHi: '#fcd34d', butterSoft: '#fef3c7', umber: '#78350f', accent: '#b45309', dot: 'rgba(31,41,55,0.13)' };
 const GOON = { ink: '#7c7c7c', far: '#bdbdbd', head: '#5f5f5f' };
 const cv = document.getElementById('c');
@@ -1781,9 +1781,9 @@ function enterZone(zi) {
 
 const DEATH = {
   car: 'Bị ô tô cán dẹp', van: 'Bị xe tải nhỏ cán dẹp', truck: 'Bị xe tải cán dẹp', bus: 'Bị xe buýt cán dẹp',
-  icecream: 'Bị xe kem cán qua', tractor: 'Bị máy cày đè bẹp', roller: 'Rolled flat by a steamroller',
+  icecream: 'Bị xe kem cán qua', tractor: 'Bị máy cày đè bẹp', roller: 'Bị xe lu cán dẹp',
   mixer: 'Bị xe trộn bê tông cán dẹp', rover: 'Bị xe tự hành mặt trăng cán qua', buggy: 'Bị xe mặt trăng cán qua',
-  peng: 'Bị chim cánh cụt húc ngã', sheep: 'Bị đàn cừu giẫm', cow: 'Bị bò đá', goons: 'Trampled by a parade',
+  peng: 'Bị chim cánh cụt húc ngã', sheep: 'Bị đàn cừu giẫm', cow: 'Bị bò đá', goons: 'Bị đoàn diễu hành giẫm',
   train: 'Bị tàu hoả tông', meteor: 'Bị thiên thạch rơi trúng', drown: 'Rơi xuống nước', space: 'Lạc ngoài không gian',
   swept: 'Bị cuốn ra khỏi mép', belt: 'Đi băng chuyền rơi khỏi mép', erase: 'Bị tẩy mất!',
 };
@@ -1837,7 +1837,7 @@ function die(kind, m) {
   } else if (ty === 'fling') {
     SND.splat();
     kick(what === 'train' ? 220 : 150);
-    fxs.push({ ty: 'star', x: x - (L && L.dir ? L.dir : 1) * 10, y: laneY(rF) - 26, t: 0, word: what === 'train' ? 'WHAM!' : what === 'meteor' ? 'BOOM!' : pick(['BONK!', 'BOINK!', 'THUD!']), big: what === 'train' || what === 'meteor' });
+    fxs.push({ ty: 'star', x: x - (L && L.dir ? L.dir : 1) * 10, y: laneY(rF) - 26, t: 0, word: what === 'train' ? 'BỐP!' : what === 'meteor' ? 'BÙM!' : pick(['BỐP!', 'BOONG!', 'RẦM!']), big: what === 'train' || what === 'meteor' });
     dust(x, laneY(rF), 30, 10);
   } else {
     SND.splat();
@@ -1923,7 +1923,7 @@ function startEvent() {
       const w = n * gap;
       const far = visHalf() + 60;
       L.cross = { kind, n, gap, w, dir, speed: kind === 'goons' ? 52 : kind === 'peng' ? 70 : 95, x: dir > 0 ? -far - w : far, ph: 0, drum: 0, hats: Array.from({ length: n }, () => pick(['party', 'tophat', 'cap', 'cowboy', 'chef', 'crown'])) };
-      const label = kind === 'goons' ? 'Parade!' : kind === 'peng' ? 'Penguin parade!' : 'Stampede!';
+      const label = kind === 'goons' ? 'Diễu hành!' : kind === 'peng' ? 'Diễu hành cánh cụt!' : 'Chạy tán loạn!';
       popup(label, `CÒN ${r - hero.row} HÀNG`, true, hero.x, laneY(hero.row) - 60);
       if (kind === 'sheep') {
         SND.baa();
@@ -2088,9 +2088,9 @@ function endGame() {
 function lifetimeLine() {
   const found = Math.min(NZ, life.zones);
   const dots = Array.from({ length: NZ }, (_, i) => `<i class="${i < found ? 'on' : ''}"></i>`).join('');
-  let s = `<div class="zones">${dots}</div>${found} of ${NZ} zones found`;
+  let s = `<div class="zones">${dots}</div>Đã tìm ${found}/${NZ} vùng`;
   if (life.games) {
-    s += `<br>Best ${life.best} · ${life.games} ${life.games === 1 ? 'game' : 'games'} · ${life.fish} fish`;
+    s += `<br>Kỷ lục ${life.best} · ${life.games} lượt · ${life.fish} con cá`;
   }
   return s;
 }

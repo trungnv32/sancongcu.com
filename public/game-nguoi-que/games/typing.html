@@ -211,7 +211,7 @@
     </div>
     <div class="stars" id="endStars"></div>
     <div class="result">
-      <div><span id="endScore">0</span><div class="label" id="endScoreLabel">WPM</div></div>
+      <div><span id="endScore">0</span><div class="label" id="endScoreLabel">TỪ/PHÚT</div></div>
       <div><div class="mid" id="endB">0</div><div class="label" id="endBLabel">Độ chính xác</div></div>
       <div><div class="mid" id="endC">0</div><div class="label" id="endCLabel">Đã hạ</div></div>
     </div>
@@ -919,17 +919,17 @@ const SND = {
 // ── Levels and words ───────────────────────────────────────────────────────
 
 const TIPS = [
-  'Rest your fingers on f and j. Type the letters on a sign to knock them off.',
-  'The whole home row. Keep your fingers resting on it between words.',
-  'Goons come from both sides now. Type a first letter to pick who to punch.',
-  'Runners join in: small, quick and carrying short words.',
-  'Tanks join in: big and slow, with long words.',
-  'Every letter now. The boss carries the whole alphabet.',
-  'Real words, short and long.',
-  'A crowd. Up to five goons at once, so keep moving.',
-  'Capitals, commas and question marks. Balloon goons float in from above.',
-  'Numbers live on the top row. Reach up, then come home.',
-  'Everything at once, and fast.',
+  'Đặt ngón tay lên phím f và j. Gõ các chữ trên biển để đánh rơi chúng.',
+  'Cả hàng phím giữa. Giữa các từ, để ngón tay nghỉ trên hàng này.',
+  'Lâu la tới từ cả hai phía. Gõ chữ đầu để chọn đánh ai.',
+  'Thêm gã chạy nhanh: nhỏ, lẹ, cầm từ ngắn.',
+  'Thêm gã to xác: to, chậm, cầm từ dài.',
+  'Giờ là mọi chữ cái. Trùm mang cả bảng chữ cái.',
+  'Từ thật, ngắn và dài.',
+  'Đám đông. Tối đa năm lâu la một lúc, đừng dừng tay.',
+  'Chữ hoa, dấu phẩy và dấu hỏi. Lâu la bóng bay lơ lửng từ trên xuống.',
+  'Số nằm ở hàng trên cùng. Với lên rồi quay về.',
+  'Tất cả cùng lúc, và nhanh.',
 ];
 const BOSSES = [
   { name: 'Big Gary', hat: 'cap', col: '#5b6470', hc: '#e76f51', stache: true },
@@ -965,17 +965,17 @@ const tint = (hex, k) => {
 };
 const L = (name, o) => Object.assign({ name, add: '', wpm: 12, n: 12, cap: 3, sides: 2, kinds: {}, gap: 1 }, o);
 const BOUTS = [
-  L('Home keys', { add: 'fjdk', wpm: 8, n: 8, cap: 2, sides: 1, boss: 'jd fk dj kf' }),
-  L('Home row', { add: 'aslgh', wpm: 10, n: 10, cap: 2, sides: 1, boss: 'a glad lad has a flask' }),
-  L('Reach up', { add: 'eiru', wpm: 12, n: 11, cap: 2, boss: 'a red deer hides a fire' }),
-  L('Top row', { add: 'towyqp', wpm: 14, n: 12, kinds: { runner: 0.2 }, boss: 'the quiet otter sat up a tree with a pie' }),
-  L('Reach down', { add: 'nmcv', wpm: 15, n: 12, kinds: { runner: 0.15, tank: 0.2 }, boss: 'the clever camel ran to the moon' }),
-  L('Every letter', { add: 'bxz', wpm: 17, n: 13, kinds: { runner: 0.2, tank: 0.2 }, boss: 'six brave zebras munch the bumpy cabbage' }),
-  L('Real words', { wpm: 21, n: 14, len: [2, 11], kinds: { runner: 0.25, tank: 0.25 }, boss: 'five jumpy wizards quickly vexed the big lazy catfish' }),
-  L('Crowd', { wpm: 23, n: 16, cap: 5, gap: 0.75, kinds: { runner: 0.25, tank: 0.15 }, boss: 'pack my box with five dozen jumbo noodles' }),
-  L('Capitals', { wpm: 18, n: 13, marks: 'mix', kinds: { balloon: 0.35, runner: 0.15 }, boss: 'Mr Troll, can I cross, please? "Go on then," he said.' }),
-  L('Numbers', { wpm: 18, n: 13, digits: '1234567890', boss: 'I ate 12 waffles and 3 pickles at 7' }),
-  L('Grand master', { wpm: 24, n: 16, cap: 5, gap: 0.8, marks: 'all', kinds: { runner: 0.3, tank: 0.15, balloon: 0.15 }, boss: 'The Moon called. It wants its 3 socks back, and it is NOT joking!' }),
+  L('Phím cơ sở', { add: 'fjdk', wpm: 8, n: 8, cap: 2, sides: 1, boss: 'jd fk dj kf' }),
+  L('Hàng phím giữa', { add: 'aslgh', wpm: 10, n: 10, cap: 2, sides: 1, boss: 'a glad lad has a flask' }),
+  L('Với lên', { add: 'eiru', wpm: 12, n: 11, cap: 2, boss: 'a red deer hides a fire' }),
+  L('Hàng phím trên', { add: 'towyqp', wpm: 14, n: 12, kinds: { runner: 0.2 }, boss: 'the quiet otter sat up a tree with a pie' }),
+  L('Với xuống', { add: 'nmcv', wpm: 15, n: 12, kinds: { runner: 0.15, tank: 0.2 }, boss: 'the clever camel ran to the moon' }),
+  L('Mọi chữ cái', { add: 'bxz', wpm: 17, n: 13, kinds: { runner: 0.2, tank: 0.2 }, boss: 'six brave zebras munch the bumpy cabbage' }),
+  L('Từ thật', { wpm: 21, n: 14, len: [2, 11], kinds: { runner: 0.25, tank: 0.25 }, boss: 'five jumpy wizards quickly vexed the big lazy catfish' }),
+  L('Đám đông', { wpm: 23, n: 16, cap: 5, gap: 0.75, kinds: { runner: 0.25, tank: 0.15 }, boss: 'pack my box with five dozen jumbo noodles' }),
+  L('Chữ hoa', { wpm: 18, n: 13, marks: 'mix', kinds: { balloon: 0.35, runner: 0.15 }, boss: 'Mr Troll, can I cross, please? "Go on then," he said.' }),
+  L('Số', { wpm: 18, n: 13, digits: '1234567890', boss: 'I ate 12 waffles and 3 pickles at 7' }),
+  L('Đại cao thủ', { wpm: 24, n: 16, cap: 5, gap: 0.8, marks: 'all', kinds: { runner: 0.3, tank: 0.15, balloon: 0.15 }, boss: 'The Moon called. It wants its 3 socks back, and it is NOT joking!' }),
 ];
 (() => {
   let pool = '';
@@ -1868,7 +1868,7 @@ function showEnd(r) {
   const b = BOUTS[r.bout];
   const label = r.gauntlet ? 'Vô tận' : `${r.cleared ? 'Đã qua' : 'Đã hạ'} · màn ${r.bout + 1}`;
   $('endLabel').textContent = label;
-  const chip = r.isBest && (r.gauntlet ? r.kos > 0 : r.cleared) ? 'New best' : '';
+  const chip = r.isBest && (r.gauntlet ? r.kos > 0 : r.cleared) ? 'Kỷ lục mới' : '';
   $('endChip').textContent = chip;
   $('endChip').style.display = chip ? '' : 'none';
   if (r.gauntlet) {
@@ -1876,7 +1876,7 @@ function showEnd(r) {
     $('endScore').textContent = r.kos;
     $('endScoreLabel').textContent = 'Đã hạ';
     $('endB').textContent = r.wpm;
-    $('endBLabel').textContent = 'WPM';
+    $('endBLabel').textContent = 'TỪ/PHÚT';
     $('endC').textContent = r.acc + '%';
     $('endCLabel').textContent = 'Độ chính xác';
     $('againText').textContent = 'Thử lại';
@@ -1885,7 +1885,7 @@ function showEnd(r) {
     const s = r.stars;
     $('endStars').innerHTML = [['Đã qua', s >= 1], ['chính xác 92%', s >= 2], ['96% và không bị đánh', s >= 3]].map(([t, on]) => `<div>${star(on)}<span>${t}</span></div>`).join('');
     $('endScore').textContent = r.wpm;
-    $('endScoreLabel').textContent = 'WPM';
+    $('endScoreLabel').textContent = 'TỪ/PHÚT';
     $('endB').textContent = r.acc + '%';
     $('endBLabel').textContent = 'Độ chính xác';
     $('endC').textContent = `${r.kos}/${r.total}`;
@@ -1933,11 +1933,11 @@ function lifetimeLine() {
   if (!life.games) {
     return '';
   }
-  const parts = [`${totalStars()} of ${BOUTS.length * 3} stars`];
+  const parts = [`${totalStars()}/${BOUTS.length * 3} sao`];
   if (life.bestWpm) {
-    parts.push(`best ${life.bestWpm} wpm`);
+    parts.push(`kỷ lục ${life.bestWpm} từ/phút`);
   }
-  return `${parts.join(' · ')}<br>${life.games} ${life.games === 1 ? 'fight' : 'fights'} · ${life.kos.toLocaleString()} goons knocked out`;
+  return `${parts.join(' · ')}<br>${life.games} trận · ${life.kos.toLocaleString()} lâu la bị hạ`;
 }
 
 function updateHud() {
@@ -1966,7 +1966,7 @@ function drawMenu() {
       const s = life.stars[i] || 0;
       return `<button class="lv${i === sel ? ' sel' : ''}" data-i="${i}"><span class="n">${i + 1}</span><span class="st">${star(s >= 1)}${star(s >= 2)}${star(s >= 3)}</span></button>`;
     }).join('') +
-    `<button class="lv${sel === BOUTS.length ? ' sel' : ''}" data-i="${BOUTS.length}"><span class="n">∞</span><small>${life.best ? 'best ' + life.best : 'endless'}</small></button>`;
+    `<button class="lv${sel === BOUTS.length ? ' sel' : ''}" data-i="${BOUTS.length}"><span class="n">∞</span><small>${life.best ? 'kỷ lục ' + life.best : 'vô tận'}</small></button>`;
   if (sel === BOUTS.length) {
     $('lvName').innerHTML = `<b>Vô tận</b><span>${life.best ? 'Kỷ lục ' + life.best + ' lâu la' : ''}</span>`;
     $('tip').textContent = 'Đủ mọi phím, và chúng ngày càng nhanh. Bạn hạ được bao nhiêu?';
@@ -2724,8 +2724,8 @@ function shareCanvas(res) {
   ctx.font = FONT(30);
   ctx.fillText(res.gauntlet ? 'LÂU LA BỊ HẠ' : 'TỪ MỖI PHÚT', 82, 386);
   const stats = res.gauntlet
-    ? [[String(res.wpm), 'WPM'], [res.acc + '%', 'ACCURACY']]
-    : [[res.acc + '%', 'ACCURACY'], [`${res.kos}/${res.total}`, 'KNOCKED OUT']];
+    ? [[String(res.wpm), 'TỪ/PHÚT'], [res.acc + '%', 'ĐỘ CHÍNH XÁC']]
+    : [[res.acc + '%', 'ĐỘ CHÍNH XÁC'], [`${res.kos}/${res.total}`, 'ĐÃ HẠ']];
   stats.forEach(([v, l], i) => {
     ctx.fillStyle = COL.ink;
     ctx.font = FONT(64);

@@ -169,7 +169,7 @@
 
 <script>
 const SLUG = 'planks';
-const GAME = 'Chop Stack';
+const GAME = 'Xếp Ván Cắt Thừa';
 const COL = { bg: '#ffffff', ink: '#141414', fig: '#141414', muted: '#737373', faint: '#d4d4d4', butter: '#fde68a', butterSoft: '#fef3c7', accent: '#b45309', dot: 'rgba(31,41,55,0.13)' };
 const cv = document.getElementById('c');
 let ctx = cv.getContext('2d');
@@ -929,7 +929,7 @@ function lifetimeLine() {
   if (!life.games) {
     return '';
   }
-  return `Best ${life.best} · longest perfect streak ${life.bestStreak}<br>${life.games} ${life.games === 1 ? 'game' : 'games'} · ${life.floors.toLocaleString()} floors`;
+  return `Kỷ lục ${life.best} · chuỗi chuẩn dài nhất ${life.bestStreak}<br>${life.games} lượt · ${life.floors.toLocaleString()} tầng`;
 }
 
 function updateHud() {
@@ -978,7 +978,7 @@ function land() {
   if (o1 - o0 < 1) {
     offcuts.push(makeOffcut(p0, p1, y, p0 < t.x0 ? -1 : 1));
     plank = null;
-    popAt('Miss!', '', false);
+    popAt('Trượt!', '', false);
     SND.thunk(0.5);
     me.clear();
     me.push({ pose: P.whoa, d: 0.18, ez: 'out' });
@@ -1001,7 +1001,7 @@ function land() {
       grew = true;
     }
     SND.perfect(streak);
-    popAt(grew ? 'Grow!' : 'Perfect', streak > 1 ? `${streak} IN A ROW` : '', true);
+    popAt(grew ? 'Nở ra!' : 'Hoàn hảo', streak > 1 ? `${streak} LẦN LIÊN TIẾP` : '', true);
     burst((x0 + x1) / 2, y, grew ? 14 : 8);
   } else {
     x0 = o0;
@@ -1318,7 +1318,7 @@ function shareCanvas(res) {
   ctx.font = font(30);
   ctx.fillText(res.score === 1 ? 'TẦNG' : 'TẦNG', 82, 386);
   ctx.letterSpacing = '0px';
-  const stats = [[res.perfects, 'PERFECT DROPS'], [res.streak, 'LONGEST STREAK']];
+  const stats = [[res.perfects, 'LẦN THẢ CHUẨN'], [res.streak, 'CHUỖI DÀI NHẤT']];
   stats.forEach(([v, label], i) => {
     ctx.fillStyle = COL.ink;
     ctx.font = font(64);

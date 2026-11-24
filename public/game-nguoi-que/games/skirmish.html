@@ -225,7 +225,7 @@
 
 <script>
 const SLUG = 'skirmish';
-const GAME = 'Skirmish';
+const GAME = 'Đại Chiến Người Que';
 const COL = { bg: '#ffffff', ink: '#141414', fig: '#141414', muted: '#737373', faint: '#d4d4d4', butter: '#fde68a', butterHi: '#fcd34d', accent: '#b45309', dot: 'rgba(31,41,55,0.13)', goon: '#8e8e8e', goonFar: '#c8c8c8', orange: '#f97316' };
 const cv = document.getElementById('c');
 let ctx = cv.getContext('2d');
@@ -2275,8 +2275,8 @@ function lifetimeLine() {
   if (!life.games) {
     return '';
   }
-  const bosses = life.kings ? ` · ${life.kings} ${life.kings === 1 ? 'boss' : 'bosses'} toppled` : '';
-  return `Best ${life.best} ${life.best === 1 ? 'round' : 'rounds'} · ${life.games} ${life.games === 1 ? 'game' : 'games'}<br>${life.bonked.toLocaleString()} goons bonked${bosses}`;
+  const bosses = life.kings ? ` · ${life.kings} trùm bị hạ` : '';
+  return `Kỷ lục ${life.best} vòng · ${life.games} trận<br>${life.bonked.toLocaleString()} lâu la bị hạ${bosses}`;
 }
 function bumpEl(id, val) {
   const el = $(id);
@@ -2315,7 +2315,7 @@ function buildTray() {
       const b = document.createElement('button');
       b.className = 'tool';
       b.dataset.k = k;
-      b.title = k === 'wall' ? 'Fence (drag)' : TYPES[k].name;
+      b.title = k === 'wall' ? 'Rào (kéo)' : TYPES[k].name;
       b.setAttribute('aria-label', b.title);
       const c = document.createElement('canvas');
       b.appendChild(c);

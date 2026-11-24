@@ -211,7 +211,7 @@
 
 <script>
 const SLUG = 'bopping';
-const GAME = 'Keep It Up';
+const GAME = 'Đừng Để Bóng Rơi';
 const COL = { bg: '#ffffff', ink: '#141414', far: '#9a9a9a', muted: '#737373', faint: '#d4d4d4', deco: '#dcdcdc', butter: '#fde68a', butterHi: '#fcd34d', accent: '#b45309', dot: 'rgba(31,41,55,0.13)' };
 const FILLS = ['#fde68a', '#ffffff', '#e5e5e5'];
 
@@ -800,7 +800,7 @@ function lifetimeLine() {
   if (!life.games) {
     return '';
   }
-  return `Best ${life.best} · ${life.games} ${life.games === 1 ? 'game' : 'games'} · ${life.bops.toLocaleString()} bops`;
+  return `Kỷ lục ${life.best} · ${life.games} lượt · ${life.bops.toLocaleString()} lần đỡ`;
 }
 
 let hudScore = -1;
@@ -1139,7 +1139,7 @@ function addBalloon() {
   SND.squeak();
   popup('Thêm một!', 'MỖI LẦN ĐỠ GIỜ ×2', true, false, b.x, topY + 230, 1.1);
   if (live.length === 2) {
-    popups[popups.length - 1].sub = 'EVERY BOP NOW ×3';
+    popups[popups.length - 1].sub = 'MỖI LẦN ĐỠ GIỜ ×3';
   }
   updateHud(true);
 }
@@ -2200,7 +2200,7 @@ function shareCanvas(res) {
   ctx.font = font(21);
   ctx.fillStyle = COL.muted;
   ctx.fillText('TRÊN KHÔNG', 84, 570);
-  const stats = [[String(res.bops), 'BOPS'], [String(res.perfects), 'HOÀN HẢO'], [String(res.saves + res.blocks), 'SAVES + BLOCKS']];
+  const stats = [[String(res.bops), 'LẦN ĐỠ'], [String(res.perfects), 'HOÀN HẢO'], [String(res.saves + res.blocks), 'CỨU + CHẶN']];
   stats.forEach((st, i) => {
     const y = 730 + i * 140;
     ctx.letterSpacing = '0px';

@@ -302,7 +302,7 @@ function mulberry(a) {
   };
 }
 
-const WORDS = ['BOOKS', 'MISC', 'KITCHEN', 'TOYS', 'MUGS', 'RECORDS', 'LAMP', 'SHOES', 'PLATES', 'JUNK', 'VINYL', 'TOOLS'];
+const WORDS = ['SÁCH', 'LINH TINH', 'BẾP', 'ĐỒ CHƠI', 'CỐC', 'ĐĨA NHẠC', 'ĐÈN', 'GIÀY', 'ĐĨA', 'ĐỒ CŨ', 'ĐĨA THAN', 'DỤNG CỤ'];
 const FEATS = [['arrows', 'word'], ['fragile', 'label'], ['handle', 'word'], ['arrows', 'label'], ['fragile', 'word'], ['handle', 'label'], ['arrows', 'fragile'], ['label', 'word']];
 function swingFor(i) {
   return i < 10 ? 100 + 8 * i : Math.min(430, 180 + 4.8 * (i - 10));
@@ -1050,7 +1050,7 @@ function judge(idx, kind, x, y, side) {
   } else {
     const subs = [];
     if (kind === 'perfect') {
-      subs.push('PERFECT');
+      subs.push('HOÀN HẢO');
     }
     if (mult > 1) {
       subs.push('×' + mult);
@@ -1180,7 +1180,7 @@ function lifetimeLine() {
   if (!life.games) {
     return '';
   }
-  return `Best ${life.bestBoxes} boxes · ${meters(life.bestHeight)} · score ${life.best}<br>${life.games} ${life.games === 1 ? 'game' : 'games'} · ${life.stacked.toLocaleString()} boxes stacked`;
+  return `Kỷ lục ${life.bestBoxes} hộp · ${meters(life.bestHeight)} · điểm ${life.best}<br>${life.games} lượt · ${life.stacked.toLocaleString()} hộp đã xếp`;
 }
 
 let hudBoxes = -1;
@@ -2285,7 +2285,7 @@ function shareCanvas(res) {
   ctx.font = font(104);
   ctx.fillText(meters(res.height), 76, 530);
   ctx.letterSpacing = '0px';
-  const stats = [[String(res.score), 'SCORE'], [String(res.perfects), 'PERFECT'], [String(res.bestStreak), 'BEST CHAIN']];
+  const stats = [[String(res.score), 'ĐIỂM'], [String(res.perfects), 'HOÀN HẢO'], [String(res.bestStreak), 'CHUỖI DÀI NHẤT']];
   stats.forEach((st, i) => {
     const y = 700 + i * 150;
     ctx.fillStyle = COL.ink;

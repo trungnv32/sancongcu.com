@@ -384,7 +384,7 @@ function landAt(c, x0, y0, yT) {
   return { x: x0 + v.vx * t, t };
 }
 
-const KIND_NOTE = { sink: 'this one sinks', bob: 'bobs up and down', lily: 'tips if you land off-centre', log: 'drifting log', turtle: 'dives now and then, land while it is up' };
+const KIND_NOTE = { sink: 'hòn này chìm', bob: 'nhấp nhô lên xuống', lily: 'nghiêng nếu đáp lệch tâm', log: 'khúc gỗ trôi', turtle: 'thỉnh thoảng lặn, đáp lúc nó nổi' };
 const FIRST = { 8: 'sink', 15: 'bob', 22: 'lily', 33: 'log', 62: 'turtle' };
 const ZONES = [
   { at: 0, name: 'Bãi Cạn', tip: '' },
@@ -1105,13 +1105,13 @@ function land(j, off) {
     life.crossed += adv;
     const subs = [];
     if (kind === 'perfect') {
-      subs.push('PERFECT');
+      subs.push('HOÀN HẢO');
     }
     if (adv > 1) {
-      subs.push('SKIP');
+      subs.push('BỎ QUA');
     }
     if (close) {
-      subs.push('CLOSE CALL');
+      subs.push('SUÝT NỮA');
     }
     if (mult > 1) {
       subs.push('×' + mult);
@@ -1337,7 +1337,7 @@ function lifetimeLine() {
   if (!life.games) {
     return '';
   }
-  return `Best ${life.bestStones} stones · ${meters(life.bestDist)} · score ${life.best}<br>${life.games} ${life.games === 1 ? 'game' : 'games'} · ${life.crossed.toLocaleString()} stones crossed`;
+  return `Kỷ lục ${life.bestStones} hòn đá · ${meters(life.bestDist)} · điểm ${life.best}<br>${life.games} lượt · ${life.crossed.toLocaleString()} hòn đá đã qua`;
 }
 
 let hudStones = -1;
@@ -3342,7 +3342,7 @@ function shareCanvas(res) {
   ctx.font = font(104);
   ctx.fillText(meters(res.dist), 76, 530);
   ctx.letterSpacing = '0px';
-  const stats = [[String(res.score), 'SCORE'], [String(res.perfects), 'PERFECT'], [String(res.bestStreak), 'BEST CHAIN']];
+  const stats = [[String(res.score), 'ĐIỂM'], [String(res.perfects), 'HOÀN HẢO'], [String(res.bestStreak), 'CHUỖI DÀI NHẤT']];
   stats.forEach((st, i) => {
     const x = 84 + i * 300;
     ctx.fillStyle = COL.ink;

@@ -218,7 +218,7 @@
     </div>
     <div class="distrow">
       <div class="korow"><div id="dist"><span id="kosN">0</span><span class="unit">Hạ gục</span></div><div id="hearts"></div></div>
-      <div class="meter" id="meter"><div class="mbar"><div id="meterFill"></div></div><div class="label">SLAM</div></div>
+      <div class="meter" id="meter"><div class="mbar"><div id="meterFill"></div></div><div class="label">ĐẬP SÀN</div></div>
       <div class="label" id="distLabel">Con hẻm</div>
     </div>
   </div>
@@ -265,7 +265,7 @@
   </div>
 </div>
 
-<button id="slamBtn"><kbd class="kbd-only">&darr;</kbd><span class="touch-only">Chạm</span><span>SLAM</span></button>
+<button id="slamBtn"><kbd class="kbd-only">&darr;</kbd><span class="touch-only">Chạm</span><span>ĐẬP SÀN</span></button>
 <div id="toast"></div>
 <script id="core">
 const DT = 1 / 120;
@@ -292,9 +292,9 @@ const KINDS = {
   crate: { speed: 1, hp: 1, stop: 40, wind: 1, prop: true },
 };
 const NOTE = {
-  runner: 'runner · fast!', armour: 'armour · hit twice', feint: 'feinter · stops short, wait for it', pair: 'a pair · both sides at once', staff: 'staff · longer reach, strike early',
-  barrel: 'barrel · {up} to jump it', thrower: 'thrower · punch the bottle back', crate: 'crate · smash it for a power-up', leaper: 'leaper · hit him in the air',
-  sweeper: 'sweeper · jump the sweep, then hit', skater: 'skater · too low to punch, {up}',
+  runner: 'gã chạy · nhanh lắm!', armour: 'mặc giáp · đấm hai lần', feint: 'gã đánh lừa · dừng đột ngột, chờ nó', pair: 'một cặp · hai bên cùng lúc', staff: 'gã cầm gậy · tầm xa hơn, đấm sớm',
+  barrel: 'thùng gỗ · {up} để nhảy qua', thrower: 'gã ném · đấm chai bay ngược lại', crate: 'thùng · đập để lấy sức mạnh', leaper: 'gã nhảy · đấm khi nó trên không',
+  sweeper: 'gã quét chân · nhảy né rồi đấm', skater: 'gã trượt ván · thấp quá không đấm được, {up}',
 };
 const FIRST = { 15: 'peel', 7: 'barrel', 12: 'runner', 18: 'thrower', 22: 'crate', 26: 'armour', 37: 'leaper', 46: 'feint', 55: 'pair', 66: 'sweeper', 82: 'staff', 100: 'boss', 112: 'skater' };
 const MIX = [
@@ -1032,7 +1032,7 @@ function spawn(R) {
   if (!R.seen[key] && (NOTE[key] || kind === 'boss')) {
     R.seen[key] = true;
     if (R.notes) {
-      const txt = kind === 'boss' ? (side < 0 ? 'boss · left, right, left' : 'boss · right, left, right') : NOTE[key];
+      const txt = kind === 'boss' ? (side < 0 ? 'trùm · trái, phải, trái' : 'trùm · phải, trái, phải') : NOTE[key];
       for (const g of gs) {
         g.note = txt;
       }
@@ -2283,7 +2283,7 @@ function bumpScore() {
 
 const JUMP_H = 74;
 const REACHOF = { jab: 64, hook: 58, kick: 61, spin: 56, elbow: 46, fly: 62, upper: 40, knee: 40, axe: 48, high: 52, airkick: 62, dive: 42, dropkick: 64, torn: 52, elbowdrop: 34, charge: 40 };
-const WORD = { dropkick: 'DROPKICK!', torn: 'TORNADO KICK!', elbowdrop: 'ELBOW DROP!', charge: 'SHOULDER CHARGE!', upper: 'UPPERCUT!', kick: 'THWACK!', spin: 'WHIRL!', fly: 'FLYING KICK!', airkick: 'FLYING KICK!', dive: 'DẪM!', axe: 'RẦM!', knee: 'KNEE!', elbow: 'ELBOW!', high: 'SWAT!' };
+const WORD = { dropkick: 'ĐẠP BAY!', torn: 'ĐÁ LỐC XOÁY!', elbowdrop: 'CÙI CHỎ RƠI!', charge: 'HÚC VAI!', upper: 'MÓC HÀM!', kick: 'BỐP!', spin: 'XOAY!', fly: 'ĐÁ BAY!', airkick: 'ĐÁ BAY!', dive: 'DẪM!', axe: 'RẦM!', knee: 'GỐI!', elbow: 'CÙI CHỎ!', high: 'ĐẬP!' };
 const BIG = { fly: 1, dropkick: 1, torn: 1, charge: 1, elbowdrop: 1 };
 const FOOT = { dropkick: 1, torn: 1, kick: 1, spin: 1, fly: 1, high: 1, airkick: 1, dive: 1, axe: 1, knee: 1 };
 function propY(g) {
@@ -2445,10 +2445,10 @@ function shards(x, y, n) {
   }
 }
 function gradeWord(g) {
-  return g === 'perfect' ? 'PERFECT' : g === 'good' ? 'GOOD' : 'EARLY';
+  return g === 'perfect' ? 'HOÀN HẢO' : g === 'good' ? 'TỐT' : 'SỚM';
 }
-const HURTWORD = { barrel: 'BỐP!', skater: 'RUN OVER!', bottle: 'CLONK!', sweeper: 'SWEPT!', leaper: 'KICKED!' };
-const DIEWORD = { barrel: 'BOWLED!', skater: 'FLATTENED!', bottle: 'CLONK!', sweeper: 'SWEPT!', leaper: 'K.O.!' };
+const HURTWORD = { barrel: 'BỐP!', skater: 'BỊ TÔNG!', bottle: 'CỐC!', sweeper: 'BỊ QUÉT!', leaper: 'ĐÁ!' };
+const DIEWORD = { barrel: 'ĐỔ NHÀO!', skater: 'BẸP!', bottle: 'CỐC!', sweeper: 'BỊ QUÉT!', leaper: 'K.O.!' };
 function onEvent(e) {
   const R = run;
   if (e.k === 'spawn') {
@@ -2480,7 +2480,7 @@ function onEvent(e) {
     if (e.pts) {
       subs.push('+' + e.pts);
     }
-    subs.push(e.close ? 'CLOSE CALL' : gradeWord(e.grade));
+    subs.push(e.close ? 'SUÝT NỮA' : gradeWord(e.grade));
     if (e.mult > 1) {
       subs.push('×' + e.mult);
     }
@@ -2521,7 +2521,7 @@ function onEvent(e) {
         popup(subs.join('  '), '', false, true, cx, Math.min(cy, -90) - 50);
       } else {
         const big = 1.15 + Math.min(0.25, e.combo * 0.01) + (BIG[move] ? 0.15 : 0);
-        const word = e.slip ? 'OOPS!' : WORD[move] || 'BỐP!';
+        const word = e.slip ? 'ÚI!' : WORD[move] || 'BỐP!';
         popup(word, subs.join('  '), true, false, cx, Math.min(cy, -90) - 64, word.length > 6 ? big * 0.85 : big);
       }
     }
@@ -2595,7 +2595,7 @@ function onEvent(e) {
     if (e.mult > 1) {
       subs.push('×' + e.mult);
     }
-    const word = sw ? 'DODGED!' : e.kind === 'skater' ? 'OVER!' : 'HOP!';
+    const word = sw ? 'NÉ ĐƯỢC!' : e.kind === 'skater' ? 'QUA!' : 'NHẢY!';
     popup(word, sw ? 'GIỜ ĐẤM NÓ' : subs.join('  '), perfect, false, x, -150 - JUMP_H * 0.6, perfect ? 1.3 : 1.05);
     if (sw) {
       popup(subs.join('  '), '', perfect, true, x - e.side * 50, -110);
@@ -2650,7 +2650,7 @@ function onEvent(e) {
       e.g.parryT = clock;
     } else {
       SND.whiff();
-      const sub = e.low ? 'TOO LOW · JUMP IT' : e.combo >= 3 ? `MẤT COMBO · ${e.combo}` : 'TOO EARLY';
+      const sub = e.low ? 'THẤP QUÁ · NHẢY QUA' : e.combo >= 3 ? `MẤT COMBO · ${e.combo}` : 'SỚM QUÁ';
       popup(e.low ? 'thấp quá!' : 'whiff', sub, false, !e.low, e.side * 70, -150);
     }
     buzz(6);
@@ -2658,7 +2658,7 @@ function onEvent(e) {
     return;
   }
   if (e.k === 'tier') {
-    const label = e.mult >= 4 ? 'UNSTOPPABLE' : e.mult >= 3 ? 'ON FIRE' : 'COMBO';
+    const label = e.mult >= 4 ? 'KHÔNG AI CẢN NỔI' : e.mult >= 3 ? 'ĐANG BỐC' : 'COMBO';
     popup(`×${e.mult}`, label, true, false, 0, -262, 1.3 + 0.1 * e.mult);
     burst(0, -220, 10 + e.mult * 4, true);
     SND.streak(e.mult);
@@ -3050,7 +3050,7 @@ function lifetimeLine() {
   if (!life.games) {
     return '';
   }
-  return `Best ${life.bestKos} KOs · score ${life.best} · combo ${life.bestCombo}<br>${life.games} ${life.games === 1 ? 'fight' : 'fights'} · ${life.kos.toLocaleString()} goons floored`;
+  return `Kỷ lục ${life.bestKos} lần hạ · điểm ${life.best} · combo ${life.bestCombo}<br>${life.games} trận · ${life.kos.toLocaleString()} lâu la bị hạ`;
 }
 
 const HEART = '<svg class="heart" viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2z" fill="#fcd34d" stroke="#141414" stroke-width="1.8" stroke-linejoin="round"/></svg>';
@@ -4363,7 +4363,7 @@ function drawNote(g, idx) {
     return;
   }
   const x = wx(g.side * g.d);
-  const text = g.note.replace('{up}', TOUCH ? 'swipe up' : 'jump with ↑');
+  const text = g.note.replace('{up}', TOUCH ? 'vuốt lên' : 'nhảy bằng ↑');
   const vl = -viewOx / viewS + 10, vr = (cw - viewOx) / viewS - 10;
   ctx.save();
   ctx.font = FONT(11.5);
@@ -5497,7 +5497,7 @@ function shareCanvas(res) {
     }
   }
   lines.forEach((l, i) => ctx.fillText(l, 80, 470 + i * 56));
-  const stats = [[String(res.score), 'SCORE'], [String(res.bestCombo), 'BEST COMBO'], [res.perfPct + '%', 'PERFECT HITS']];
+  const stats = [[String(res.score), 'ĐIỂM'], [String(res.bestCombo), 'COMBO CAO NHẤT'], [res.perfPct + '%', 'ĐÒN HOÀN HẢO']];
   stats.forEach((st, i) => {
     const y = 700 + i * 140;
     ctx.fillStyle = COL.ink;

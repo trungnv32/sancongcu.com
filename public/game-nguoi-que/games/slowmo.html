@@ -178,7 +178,7 @@
 
 <script>
 const SLUG = 'slowmo';
-const GAME = 'Slow Mo Hop';
+const GAME = 'Nhảy Quay Chậm';
 const COL = { bg: '#ffffff', ink: '#141414', fig: '#141414', muted: '#737373', faint: '#d4d4d4', butter: '#fde68a', accent: '#b45309', dot: 'rgba(31,41,55,0.13)' };
 const cv = document.getElementById('c');
 let ctx = cv.getContext('2d');
@@ -1046,7 +1046,7 @@ function lifetimeLine() {
   if (!life.games) {
     return '';
   }
-  return `Best ${life.best} · most spins in one jump ${life.bestSpins}<br>${life.games} ${life.games === 1 ? 'game' : 'games'} · ${life.hops.toLocaleString()} jumps · ${life.stickers.toLocaleString()} stickers`;
+  return `Kỷ lục ${life.best} · xoay nhiều nhất một lần nhảy ${life.bestSpins}<br>${life.games} lượt · ${life.hops.toLocaleString()} cú nhảy · ${life.stickers.toLocaleString()} hình dán`;
 }
 
 function updateHud() {
@@ -1335,7 +1335,7 @@ function land(sf) {
     subs.push(`×${combo} COMBO`);
   }
   if (fig.spins) {
-    subs.push(fig.spins === 1 ? '1 SPIN' : `${fig.spins} SPINS`);
+    subs.push(fig.spins === 1 ? '1 VÒNG XOAY' : `${fig.spins} VÒNG XOAY`);
   }
   if (k.name && k.bonus) {
     subs.push(k.name.toUpperCase());
@@ -2143,7 +2143,7 @@ function shareCanvas(res) {
   ctx.fillStyle = COL.muted;
   ctx.font = font(30);
   ctx.fillText('ĐIỂM', 82, 386);
-  const stats = [[res.hops, 'HOPS'], [res.spins, 'MOST SPINS'], [res.stickers, 'STICKERS']];
+  const stats = [[res.hops, 'CÚ NHẢY'], [res.spins, 'XOAY NHIỀU NHẤT'], [res.stickers, 'HÌNH DÁN']];
   stats.forEach(([v, l], i) => {
     ctx.fillStyle = COL.ink;
     ctx.font = font(64);

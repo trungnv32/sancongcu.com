@@ -1653,7 +1653,7 @@ function onEvent(e) {
   const s = run.p;
   if (e.k === 'pass') {
     if (e.kind) {
-      const label = e.kind === 'thread' ? 'THREADED' : e.kind === 'whisker' ? 'WHISKER!' : 'CLOSE SHAVE';
+      const label = e.kind === 'thread' ? 'LUỒN QUA' : e.kind === 'whisker' ? 'SÁT NÚT!' : 'SUÝT NỮA';
       popup('+' + e.pts, e.mult > 1 ? `${label}  ×${e.mult}` : label, true, false, s.x + 6, s.y - 14);
       burst(s.x, s.y, e.kind === 'whisker' ? 20 : 14, true);
       streaks(s.x, s.y, 4 + e.mult * 2);
@@ -1947,7 +1947,7 @@ function lifetimeLine() {
   if (!life.games) {
     return '';
   }
-  return `Best ${Math.floor(life.bestDist)} m · score ${life.best}<br>${life.games} ${life.games === 1 ? 'flight' : 'flights'} · ${Math.floor(life.flown).toLocaleString()} m flown`;
+  return `Kỷ lục ${Math.floor(life.bestDist)} m · điểm ${life.best}<br>${life.games} chuyến bay · ${Math.floor(life.flown).toLocaleString()} m đã bay`;
 }
 
 let hudDist = -1;
@@ -3578,7 +3578,7 @@ function shareCanvas(res) {
   ctx.font = FONT(30);
   ctx.fillText('MÉT ĐÃ BAY', 82, 386);
   ctx.letterSpacing = '0px';
-  const stats = [[String(res.score), 'SCORE'], [String(res.perfects), 'PERFECT'], [String(res.bestCombo), 'BEST CHAIN'], [String(res.stars), 'STARS']];
+  const stats = [[String(res.score), 'ĐIỂM'], [String(res.perfects), 'HOÀN HẢO'], [String(res.bestCombo), 'CHUỖI DÀI NHẤT'], [String(res.stars), 'SAO']];
   stats.forEach((st, i) => {
     const x = 82 + i * 240;
     ctx.fillStyle = COL.ink;

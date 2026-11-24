@@ -270,11 +270,11 @@ function gauss(r) {
 }
 
 const ZONES = [
-  { at: 0, t: 0, d: 0, name: 'Bữa sáng', where: 'at Breakfast', sub: 'Vuốt nhanh · coi chừng ong', paper: '#ffffff', grass: '#cfd9bb' },
-  { at: 100, t: 28, d: 0.3, name: 'Bữa trưa', where: 'at Lunch', sub: 'Đồ ăn bắt đầu hỏng · bóng tennis', paper: '#fffefa', grass: '#cbd6b5' },
-  { at: 380, t: 75, d: 0.55, name: 'Hội chợ ẩm thực', where: 'at the Food Fair', sub: 'Dao nĩa · đợt dồn dập · hỏng nhanh hơn', paper: '#fffaf0', grass: '#c8d3b2' },
-  { at: 900, t: 135, d: 0.78, name: 'Chợ đêm', where: 'at the Night Market', sub: 'Hộp cơm · bẫy nấp sau đồ ăn', paper: '#f5f3f8', grass: '#bfcab1' },
-  { at: 1700, t: 200, d: 0.92, name: 'Tiệc nửa đêm', where: 'at the Midnight Feast', sub: 'Hết tốc lực · giữ bình tĩnh', paper: '#eeedf4', grass: '#b8c2ad' },
+  { at: 0, t: 0, d: 0, name: 'Bữa sáng', where: 'lúc Bữa sáng', sub: 'Vuốt nhanh · coi chừng ong', paper: '#ffffff', grass: '#cfd9bb' },
+  { at: 100, t: 28, d: 0.3, name: 'Bữa trưa', where: 'lúc Bữa trưa', sub: 'Đồ ăn bắt đầu hỏng · bóng tennis', paper: '#fffefa', grass: '#cbd6b5' },
+  { at: 380, t: 75, d: 0.55, name: 'Hội chợ ẩm thực', where: 'ở Hội chợ ẩm thực', sub: 'Dao nĩa · đợt dồn dập · hỏng nhanh hơn', paper: '#fffaf0', grass: '#c8d3b2' },
+  { at: 900, t: 135, d: 0.78, name: 'Chợ đêm', where: 'ở Chợ đêm', sub: 'Hộp cơm · bẫy nấp sau đồ ăn', paper: '#f5f3f8', grass: '#bfcab1' },
+  { at: 1700, t: 200, d: 0.92, name: 'Tiệc nửa đêm', where: 'ở Tiệc nửa đêm', sub: 'Hết tốc lực · giữ bình tĩnh', paper: '#eeedf4', grass: '#b8c2ad' },
 ];
 const HARD_AT = 2700, HARD_T = 290;
 function zoneBy(v, key) {
@@ -302,8 +302,8 @@ function multFor(c) {
   return c >= 10 ? 4 : c >= 6 ? 3 : c >= 3 ? 2 : 1;
 }
 const HAZ_BY_ZONE = [['wasp'], ['wasp', 'wasp', 'ball'], ['wasp', 'ball', 'cutlery'], ['wasp', 'ball', 'cutlery', 'lunchbox'], ['wasp', 'wasp', 'ball', 'cutlery', 'lunchbox']];
-const CAUSE = { wasp: 'Stung', cutlery: 'Poked', lunchbox: 'Clonked', ball: 'Popped the ball' };
-const HAZ_NOTE = { wasp: 'Leave the wasps alone', ball: 'Leave the tennis ball alone', cutlery: 'Mind the cutlery', lunchbox: 'Lunchboxes are hard. Swipe around' };
+const CAUSE = { wasp: 'Bị ong đốt', cutlery: 'Bị dĩa chọc', lunchbox: 'Bị bóng đập', ball: 'Chém thủng bóng' };
+const HAZ_NOTE = { wasp: 'Đừng chém ong', ball: 'Đừng chém bóng tennis', cutlery: 'Coi chừng dao nĩa', lunchbox: 'Hộp cơm cứng lắm. Vuốt vòng qua' };
 
 function P2(fn) {
   const p = new Path2D();
@@ -393,7 +393,7 @@ function def(name, o) {
 }
 
 def('hotdog', {
-  food: true, r: 40, hit: 36, label: 'hot dog', flesh: '#f3e2bd', crumbs: [M.tan, M.roseD, M.mustard], snd: 'bread',
+  food: true, r: 40, hit: 36, label: 'xúc xích', flesh: '#f3e2bd', crumbs: [M.tan, M.roseD, M.mustard], snd: 'bread',
   paths: [rrP(-32, -13, 64, 25, 11), rrP(-40, -9, 80, 15, 7.5)],
   paint(g) {
     fs(g, rrP(-32, -13, 64, 22, 11), M.tan);
@@ -435,7 +435,7 @@ def('hotdog', {
 });
 
 def('burger', {
-  food: true, r: 38, hit: 35, label: 'burger', flesh: '#f1dfb8', crumbs: [M.tan, M.sage, M.brown, M.yellow], snd: 'bread',
+  food: true, r: 38, hit: 35, label: 'bánh burger', flesh: '#f1dfb8', crumbs: [M.tan, M.sage, M.brown, M.yellow], snd: 'bread',
   paths: [P2((p) => { p.moveTo(-34, -7); p.bezierCurveTo(-34, -36, 34, -36, 34, -7); p.closePath(); }), rrP(-36, -10, 72, 31, 7)],
   paint(g) {
     fs(g, rrP(-32, 8, 64, 13, 6), M.tan);
@@ -486,7 +486,7 @@ const PRETZEL = P2((p) => {
   p.quadraticCurveTo(4, 8, -14, -9);
 });
 def('pretzel', {
-  food: true, r: 38, hit: 34, label: 'pretzel', flesh: '#f0d8aa', crumbs: [M.crust, M.tan, '#ffffff'], snd: 'bread', sw: 10.5,
+  food: true, r: 38, hit: 34, label: 'bánh quy xoắn', flesh: '#f0d8aa', crumbs: [M.crust, M.tan, '#ffffff'], snd: 'bread', sw: 10.5,
   paths: [PRETZEL],
   paint(g) {
     g.lineCap = 'round';
@@ -508,7 +508,7 @@ def('pretzel', {
 });
 
 def('melon', {
-  food: true, r: 40, hit: 35, label: 'watermelon', flesh: M.melon, crumbs: [M.melon, M.sage, INK], snd: 'soft',
+  food: true, r: 40, hit: 35, label: 'dưa hấu', flesh: M.melon, crumbs: [M.melon, M.sage, INK], snd: 'soft',
   paths: [P2((p) => { p.moveTo(-37, -12); p.lineTo(37, -12); p.arc(0, -12, 37, 0, Math.PI); p.closePath(); })],
   paint(g) {
     const all = P2((p) => { p.moveTo(-37, -12); p.lineTo(37, -12); p.arc(0, -12, 37, 0, Math.PI); p.closePath(); });
@@ -539,7 +539,7 @@ def('melon', {
 });
 
 def('corn', {
-  food: true, r: 42, hit: 34, label: 'corn cob', flesh: '#f5e3a2', crumbs: [M.mustard, M.yellow, M.sage], snd: 'crisp',
+  food: true, r: 42, hit: 34, label: 'bắp ngô', flesh: '#f5e3a2', crumbs: [M.mustard, M.yellow, M.sage], snd: 'crisp',
   paths: [ellP(6, 0, 32, 13.5), P2((p) => { p.moveTo(-22, -4); p.quadraticCurveTo(-38, -20, -44, -14); p.quadraticCurveTo(-36, -4, -22, 6); p.quadraticCurveTo(-36, 6, -42, 16); p.quadraticCurveTo(-30, 18, -18, 8); p.closePath(); })],
   paint(g) {
     const leafB = P2((p) => { p.moveTo(-20, -2); p.quadraticCurveTo(-38, -20, -44, -14); p.quadraticCurveTo(-34, -4, -20, 4); p.closePath(); });
@@ -582,7 +582,7 @@ def('corn', {
 });
 
 def('donut', {
-  food: true, r: 34, hit: 32, label: 'donut', flesh: '#f2dcb0', crumbs: [M.rose, M.tan, M.lav, M.sage], snd: 'bread',
+  food: true, r: 34, hit: 32, label: 'bánh donut', flesh: '#f2dcb0', crumbs: [M.rose, M.tan, M.lav, M.sage], snd: 'bread',
   paths: [P2((p) => { p.arc(0, 0, 30, 0, Math.PI * 2); p.moveTo(9, 0); p.arc(0, 0, 9, 0, Math.PI * 2, true); })],
   paint(g) {
     const ring = P2((p) => { p.arc(0, 0, 30, 0, Math.PI * 2); p.moveTo(9, 0); p.arc(0, 0, 9, 0, Math.PI * 2, true); });
@@ -630,7 +630,7 @@ def('donut', {
 });
 
 def('baguette', {
-  food: true, r: 46, hit: 36, label: 'baguette', flesh: '#f6e7c6', crumbs: [M.tan, M.crust, M.cream], snd: 'bread',
+  food: true, r: 46, hit: 36, label: 'bánh mì', flesh: '#f6e7c6', crumbs: [M.tan, M.crust, M.cream], snd: 'bread',
   paths: [ellP(0, 0, 44, 11.5, -0.18)],
   paint(g) {
     const loaf = ellP(0, 0, 44, 11.5, -0.18);
@@ -651,7 +651,7 @@ def('baguette', {
 });
 
 def('tomato', {
-  food: true, r: 32, hit: 30, label: 'tomato', flesh: '#eaa293', crumbs: [M.tomato, '#eaa293', M.sage], snd: 'soft',
+  food: true, r: 32, hit: 30, label: 'quả cà chua', flesh: '#eaa293', crumbs: [M.tomato, '#eaa293', M.sage], snd: 'soft',
   paths: [blobP(0, 2, 26, 24, 31, 0.08, 18)],
   paint(g) {
     const body = blobP(0, 2, 26, 24, 31, 0.08, 18);
@@ -692,7 +692,7 @@ def('tomato', {
 
 const CHEESE = P2((p) => { p.moveTo(-36, 4); p.lineTo(22, -21); p.lineTo(34, -9); p.lineTo(34, 13); p.lineTo(-36, 21); p.closePath(); });
 def('cheese', {
-  food: true, r: 38, hit: 32, label: 'cheese wedge', flesh: '#f5e5ad', crumbs: [M.yellow, '#f5e5ad', M.mustard], snd: 'crisp',
+  food: true, r: 38, hit: 32, label: 'miếng phô mai', flesh: '#f5e5ad', crumbs: [M.yellow, '#f5e5ad', M.mustard], snd: 'crisp',
   paths: [CHEESE],
   paint(g) {
     g.lineJoin = 'round';
@@ -723,7 +723,7 @@ def('cheese', {
 });
 
 def('apple', {
-  food: true, r: 32, hit: 30, label: 'apple', flesh: '#f6ecd0', crumbs: [M.apple, '#f6ecd0', M.sage], snd: 'crisp',
+  food: true, r: 32, hit: 30, label: 'quả táo', flesh: '#f6ecd0', crumbs: [M.apple, '#f6ecd0', M.sage], snd: 'crisp',
   paths: [P2((p) => { p.moveTo(0, -17); p.bezierCurveTo(10, -26, 28, -20, 27, -2); p.bezierCurveTo(26, 16, 12, 27, 0, 23); p.bezierCurveTo(-12, 27, -26, 16, -27, -2); p.bezierCurveTo(-28, -20, -10, -26, 0, -17); p.closePath(); })],
   paint(g) {
     const body = this.paths[0];
@@ -1813,7 +1813,7 @@ function sliceFood(it, sx, sy, dx, dy, S) {
   if (sk >= 0 && !R.attract) {
     pts += 3 * mult;
     R.jit++;
-    addPopup('+' + pts, 'JUST IN TIME', true, false, it.x, it.y - K.r * 0.6, 1.05);
+    addPopup('+' + pts, 'VỪA KỊP', true, false, it.x, it.y - K.r * 0.6, 1.05);
     SND.jit();
   }
   if (!R.attract) {
@@ -1843,7 +1843,7 @@ function sliceFood(it, sx, sy, dx, dy, S) {
   }
   if (!R.attract && !R.passedBest && R.prevBest > 0 && R.score > R.prevBest) {
     R.passedBest = true;
-    addPopup('Kỷ lục mới!', 'SCORE', true, false, F.w / 2, F.h * 0.32, 1.2);
+    addPopup('Kỷ lục mới!', 'ĐIỂM', true, false, F.w / 2, F.h * 0.32, 1.2);
     burst(F.w / 2, F.h * 0.32, 24, true);
     SND.record();
     buzz([12, 40, 12, 40, 20]);
@@ -1864,7 +1864,7 @@ function spoiledCut(it) {
     return;
   }
   R.spoiledCuts++;
-  addPopup('Yuck!', 'SPOILED', false, false, it.x, it.y - 14, 1.3);
+  addPopup('Eo ôi!', 'HỎNG', false, false, it.x, it.y - 14, 1.3);
   SND.yuck();
   shake = Math.max(shake, 0.7);
   flash = 0.8;
@@ -1877,7 +1877,7 @@ function spoiledCut(it) {
       w.wave.clean = false;
     }
   }
-  loseLife(`Cut a spoiled ${K.label}`, it.kind);
+  loseLife(`Chém phải ${K.label} hỏng`, it.kind);
 }
 
 function resolveFood(it, sliced) {
@@ -1901,7 +1901,7 @@ function streakUp() {
   if (R.streak === 3 || R.streak === 6 || R.streak === 10) {
     const m = multFor(R.streak);
     SND.streak(R.streak);
-    addPopup(`×${m}`, R.streak === 10 ? 'ON FIRE' : 'CLEAN STREAK', true, false, F.w / 2, F.h * 0.42, 1.35);
+    addPopup(`×${m}`, R.streak === 10 ? 'ĐANG BỐC' : 'CHUỖI SẠCH', true, false, F.w / 2, F.h * 0.42, 1.35);
     shake = Math.max(shake, 0.35);
     buzz([10, 30, 10]);
   }
@@ -1929,7 +1929,7 @@ function hitHazard(it, dx, dy) {
     const a = (i / 6) * Math.PI * 2;
     bit(it.x + Math.cos(a) * K.hit, it.y + Math.sin(a) * K.hit, Math.cos(a) * 160, Math.sin(a) * 160, INK, 9, 0.3, 0, 6, false);
   }
-  const word = { wasp: 'Stung!', cutlery: 'Clang!', lunchbox: 'Clonk!', ball: 'Boing!' }[it.kind];
+  const word = { wasp: 'Bị đốt!', cutlery: 'Keng!', lunchbox: 'Cốc!', ball: 'Boong!' }[it.kind];
   addPopup(word, '', false, false, it.x, it.y - 14, 1.3);
   if (it.kind === 'wasp') {
     SND.sting();
@@ -1974,7 +1974,7 @@ function dropFood(it) {
   }
   R.drops++;
   const x = clamp(it.x, 30, F.w - 30);
-  addPopup('dropped!', '', false, true, x, F.gy - 18);
+  addPopup('rơi rồi!', '', false, true, x, F.gy - 18);
   for (let i = 0; i < 2; i++) {
     const b = bit(x, F.gy - 10, 0, 0, INK, 16, 0.9, 0, 0, false);
     if (b) {
@@ -1985,7 +1985,7 @@ function dropFood(it) {
   SND.drop();
   shake = Math.max(shake, 0.45);
   buzz([20, 40, 20]);
-  loseLife(`Dropped a ${K.label}`, it.kind);
+  loseLife(`Làm rơi ${K.label}`, it.kind);
 }
 
 function loseLife(cause, kind) {
@@ -2016,14 +2016,14 @@ function finishStroke(S) {
   if (S.near > 0 && !R.attract) {
     const pts = 2 * S.near * mult;
     R.score += pts;
-    addPopup('+' + pts, 'CLOSE SHAVE', true, false, x, y + 26);
+    addPopup('+' + pts, 'SUÝT NỮA', true, false, x, y + 26);
     SND.shave();
   }
   if (n >= 3 && !R.attract) {
     const bonus = (n * (n - 1)) / 2;
     R.score += bonus;
     R.bestCombo = Math.max(R.bestCombo, n);
-    addPopup(`${n} combo`, `+${bonus}`, true, false, x, y - 10, n >= 4 ? 1.5 : 1.2);
+    addPopup(`combo ${n}`, `+${bonus}`, true, false, x, y - 10, n >= 4 ? 1.5 : 1.2);
     burst(x, y, 10 + n * 4, true);
     SND.combo(n);
     shake = Math.max(shake, 0.25 + 0.1 * n);
@@ -2175,7 +2175,7 @@ function step() {
         }
         if (!R.seenSpoil && life.games < 3) {
           R.seenSpoil = true;
-          note('Food is spoiling: cut it now or let it fall');
+          note('Đồ ăn đang hỏng: chém ngay hoặc để nó rơi');
         }
       }
     }
@@ -2468,7 +2468,7 @@ function lifetimeLine() {
   if (!life.games) {
     return '';
   }
-  return `Best ${life.best} pts · combo ${life.bestCombo}<br>${life.games} ${life.games === 1 ? 'picnic' : 'picnics'} · ${life.sliced.toLocaleString()} sliced · ${life.jit.toLocaleString()} just in time`;
+  return `Kỷ lục ${life.best} điểm · combo ${life.bestCombo}<br>${life.games} buổi dã ngoại · ${life.sliced.toLocaleString()} lần chém · ${life.jit.toLocaleString()} lần vừa kịp`;
 }
 
 const PLATE_SVG = '<svg class="plate" viewBox="0 0 24 24" fill="none" stroke="#1f2329" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" fill="#fff"/><circle cx="12" cy="12" r="6" stroke="#bdbdbd" stroke-width="1.3"/><path class="crack" d="M6 5.5l4 5.5-2.5 2.5 4.5 5"/></svg>';
@@ -2534,7 +2534,7 @@ function updateHud(lost, gained) {
     el.classList.add('pop');
   }
   const zn = ZONES[R.zone].name;
-  const label = life.best > 0 ? `${zn} · best ${Math.max(life.best, R.score)}` : zn;
+  const label = life.best > 0 ? `${zn} · kỷ lục ${Math.max(life.best, R.score)}` : zn;
   const st = $('streak');
   const s = R.streak;
   const m = multFor(s);
@@ -3234,7 +3234,7 @@ function shareCanvas(res) {
   g.fillStyle = INK;
   g.font = FONT(46);
   g.fillText(res.cause, 80, 470);
-  const stats = [[String(res.sliced), 'SLICED'], [String(res.bestCombo), 'BEST COMBO'], [String(res.bestStreak), 'CLEAN RUN'], [String(res.jit), 'JUST IN TIME']];
+  const stats = [[String(res.sliced), 'ĐÃ CHÉM'], [String(res.bestCombo), 'COMBO CAO NHẤT'], [String(res.bestStreak), 'KHÔNG LỖI'], [String(res.jit), 'VỪA KỊP']];
   stats.forEach((st, i) => {
     const x = 82 + i * 240;
     g.fillStyle = INK;
@@ -3348,7 +3348,7 @@ function simGame(kind, seedOff, maxT) {
   while (!R.over && clock - t0 < maxT) {
     step();
   }
-  return { score: R.score, t: clock - t0, zone: R.zone, cause: R.over ? (R.causeKind && !KINDS[R.causeKind].food ? R.causeKind : R.cause.startsWith('Cut a spoiled') ? 'spoiled' : 'drop') : 'alive', unfair: R.unfair, unfairDrops: R.unfairDrops, minSep: R.minSep, maxFoods: R.maxFoods, jit: R.jit, spoiledCuts: R.spoiledCuts, spoiledLet: R.spoiledLet, back: R.platesBack, combo: R.bestCombo, streak: R.bestStreak, hz: R.hazHits, drops: R.drops, zoneT: R.zoneT, viol: R.viol };
+  return { score: R.score, t: clock - t0, zone: R.zone, cause: R.over ? (R.causeKind && !KINDS[R.causeKind].food ? R.causeKind : R.cause.startsWith('Chém phải') ? 'spoiled' : 'drop') : 'alive', unfair: R.unfair, unfairDrops: R.unfairDrops, minSep: R.minSep, maxFoods: R.maxFoods, jit: R.jit, spoiledCuts: R.spoiledCuts, spoiledLet: R.spoiledLet, back: R.platesBack, combo: R.bestCombo, streak: R.bestStreak, hz: R.hazHits, drops: R.drops, zoneT: R.zoneT, viol: R.viol };
 }
 function runSim(n) {
   const kinds = (Q.get('bot') || 'new,mid,pro').split(',');
