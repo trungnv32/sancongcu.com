@@ -5,13 +5,13 @@ import {
   ChevronDown,
   Copy,
   Download,
-  FileCode2,
   Gamepad2,
   Gift,
   LayoutGrid,
   MessageCircle,
   MousePointerClick,
   Play,
+  Send,
   Sparkles,
   Smartphone,
   Wand2,
@@ -27,7 +27,7 @@ import { supabase } from "@/lib/supabase";
 const PAGE_PATH = "/tai-nguyen/game-nguoi-que";
 const PAGE_TITLE = "Tự làm game vui bằng AI — chơi thử 19 game người que miễn phí | sancongcu.com";
 const PAGE_DESCRIPTION =
-  "Chơi thử ngay 19 game người que trên trình duyệt và tải miễn phí Skill Game Người Que: nói một câu tiếng Việt với Claude Code là có game HTML của riêng bạn.";
+  "Chơi thử ngay 19 game người que và tải miễn phí Skill Game Người Que. Bạn kể ý tưởng bằng tiếng Việt, AI sẽ tự làm ra game để bạn chơi và gửi cho bạn bè, không cần biết lập trình.";
 /** Tài nguyên trong bảng free_resources được nhận diện theo tên file zip tải lên trong admin. */
 const FILE_PREFIX = freeResourceDetailPages.find((page) => page.href === PAGE_PATH)!.fileNamePrefix;
 
@@ -46,66 +46,62 @@ export const Route = createFileRoute("/tai-nguyen/game-nguoi-que")({
 const features = [
   {
     icon: Wand2,
-    title: "Nói một câu, ra một game",
-    text: "Gõ ý tưởng bằng tiếng Việt, ví dụ “làm game người que né deadline”. Claude chốt ý tưởng với bạn rồi tự viết game.",
+    title: "Kể ý tưởng, AI làm ra game",
+    text: "Bạn gõ ý tưởng bằng tiếng Việt, ví dụ “làm game người que né deadline”. AI sẽ hỏi lại vài điều để chốt cách chơi, rồi tự làm game cho bạn.",
   },
   {
     icon: Gamepad2,
     title: "Đúng chất người que vui nhộn",
-    text: "Nét mực trên giấy chấm bi, người que chuyển động mượt, âm thanh vui tai. Chỉ một thao tác: chạm, giữ, vuốt hoặc ngắm.",
+    text: "Người que nét mực trên nền giấy chấm bi, chuyển động mượt và có âm thanh vui tai. Chỉ cần một thao tác để chơi: chạm, giữ, vuốt hoặc ngắm.",
   },
   {
     icon: Sparkles,
-    title: "Tự chơi thử, tự sửa lỗi",
-    text: "Skill cho bot chơi thử trên khung điện thoại và laptop, bắt lỗi chuyển động, chỉnh độ khó trước khi giao cho bạn.",
+    title: "AI tự chơi thử và tự sửa lỗi",
+    text: "Trước khi giao game, AI tự chơi thử trên khung điện thoại và máy tính, tìm lỗi và chỉnh độ khó cho vừa tay, nên bạn nhận được game đã chạy ổn.",
   },
   {
-    icon: FileCode2,
-    title: "Một file HTML, bấm đúp là chơi",
-    text: "Game là một file duy nhất. Mở bằng trình duyệt là chơi, gửi bạn bè, gắn lên web đều được.",
+    icon: Send,
+    title: "Gửi bạn bè là chơi được ngay",
+    text: "Mỗi game chỉ là một file. Bạn gửi qua Zalo, Messenger hay email, người nhận bấm vào là chơi, không phải cài thêm gì.",
   },
   {
     icon: Smartphone,
     title: "Chơi tốt trên điện thoại",
-    text: "Game tự co giãn theo màn hình dọc của điện thoại và màn hình ngang của laptop, chạm hay bàn phím đều chơi được.",
+    text: "Game tự vừa với màn hình dọc của điện thoại lẫn màn hình ngang của máy tính. Chơi bằng cách chạm màn hình hay dùng bàn phím đều được.",
   },
   {
     icon: LayoutGrid,
-    title: "Kèm 19 game mẫu",
-    text: "Gói có sẵn 19 game mẫu để chơi và tham khảo, cùng mẫu khung, hướng dẫn phong cách bằng tiếng Việt.",
+    title: "Kèm sẵn 19 game mẫu",
+    text: "Trong gói có sẵn 19 game mẫu bằng tiếng Việt để bạn chơi và lấy ý tưởng, kèm tài liệu hướng dẫn có hình minh hoạ.",
   },
 ];
 
 const steps = [
   {
-    title: "Cài công cụ",
+    title: "Cài Skill Game Người Que",
     text: (
       <>
-        Cài <strong>Node.js 20+</strong> (nodejs.org), rồi mở Terminal chạy{" "}
-        <code>npm i -g pnpm</code>. Cần tài khoản Claude trả phí để dùng{" "}
-        <strong>Claude Code</strong>.
+        Bạn tải gói skill về, giải nén, rồi mở ứng dụng Claude (phần <strong>Claude Code</strong>)
+        và nhắn: <strong>“Cài skill này giúp mình”</strong>. AI sẽ tự cài mọi thứ cần thiết, bạn
+        không phải gõ lệnh hay cài thêm phần mềm nào. Việc này chỉ làm một lần.
       </>
     ),
   },
   {
-    title: "Giải nén gói",
+    title: "Mô tả game bạn muốn bằng lời bình thường",
     text: (
       <>
-        Giải nén vào thư mục tên không dấu (vd <code>D:\game-nguoi-que</code>), mở Terminal ở đó và
-        chạy <code>pnpm install</code>.
+        Bạn kể ý tưởng như đang nói chuyện với bạn bè, ví dụ “làm game người que né deadline”. AI sẽ
+        hỏi lại vài điều để chốt cách chơi, rồi tự làm game và tự chơi thử để sửa lỗi.
       </>
     ),
   },
   {
-    title: "Nói ý tưởng",
-    text: <>Mở Claude Code trong thư mục đó, gõ một câu tiếng Việt mô tả game bạn muốn.</>,
-  },
-  {
-    title: "Chơi game của bạn",
+    title: "Chơi game hoặc gửi cho bạn bè",
     text: (
       <>
-        Mở <code>public/games</code>, bấm đúp file <code>.html</code> vừa tạo. Muốn sửa thì nói tiếp
-        với Claude.
+        Làm xong, AI tự mở game lên để bạn chơi ngay. Muốn chia sẻ, bạn gửi file game qua Zalo,
+        Messenger hay email, người nhận bấm vào là chơi. Muốn sửa gì, bạn cứ nói tiếp với AI.
       </>
     ),
   },
@@ -123,27 +119,27 @@ const samplePrompts = [
 const faqs = [
   {
     q: "Skill này có mất phí không?",
-    a: "Gói skill tặng miễn phí. Bạn chỉ cần tài khoản Claude trả phí (Pro hoặc Max) của riêng mình để chạy Claude Code.",
+    a: "Gói skill được tặng miễn phí. Để AI làm game cho bạn, bạn cần có tài khoản Claude gói trả phí (Pro hoặc Max) của riêng mình. Ngoài ra bạn không phải trả thêm gì để làm game hay chơi game.",
   },
   {
     q: "Không biết lập trình có làm được không?",
-    a: "Được. Bạn chỉ mô tả ý tưởng bằng tiếng Việt, Claude viết code, chơi thử và sửa. Phần cài đặt làm một lần theo 4 bước ở trên.",
+    a: "Được. Bạn chỉ cần kể ý tưởng bằng tiếng Việt, mọi phần kỹ thuật như viết game, chơi thử và sửa lỗi đều do AI làm. Ngay cả bước cài đặt, bạn cũng chỉ cần nhắn “Cài skill này giúp mình” là AI tự lo.",
   },
   {
-    q: "Máy cần cấu hình thế nào?",
-    a: "Máy Windows, Mac hay Linux thông thường đều chạy được, không cần card đồ hoạ. Cần mạng để cài thư viện lần đầu.",
+    q: "Máy tính của tôi có dùng được không?",
+    a: "Máy tính Windows hoặc Mac thông thường đều dùng được, không cần máy cấu hình mạnh. Bạn cần có mạng ở lần cài đầu tiên để AI tải về những công cụ cần thiết.",
   },
   {
-    q: "Ảnh thẻ (thumbnail) của game tạo thế nào?",
-    a: "Bước tạo ảnh thẻ là tuỳ chọn, cần khoá OpenAI và tốn vài xu mỗi ảnh. Không có khoá thì bỏ qua, game vẫn chơi bình thường.",
+    q: "Nếu đang cài hay đang làm game mà bị lỗi thì sao?",
+    a: "Bạn không cần tự sửa. Bạn chỉ cần nhắn cho AI điều bạn đang thấy, ví dụ “cài bị lỗi rồi, sửa giúp mình” hoặc “game bị màn hình trắng, sửa giúp mình”, AI sẽ tự tìm nguyên nhân và xử lý.",
   },
   {
-    q: "Đưa game lên website thế nào?",
-    a: "Game là một file HTML. Gửi file đó cho người quản lý website hoặc tải lên bất kỳ hosting web tĩnh nào là chạy.",
+    q: "Muốn đưa game lên website thì sao?",
+    a: "Mỗi game chỉ là một file, nên bạn gửi file đó cho người quản lý website là đưa lên được ngay. Bạn cũng có thể gửi thẳng file cho khách hoặc bạn bè để họ chơi.",
   },
   {
     q: "Game làm ra có được dùng cho thương hiệu của tôi không?",
-    a: "Được. Bộ gốc dùng giấy phép MIT, bạn giữ file LICENSE đi kèm là có thể dùng, sửa, chia sẻ. Hãy tự nghĩ ý tưởng riêng, không sao chép game thương mại của người khác.",
+    a: "Được. Bộ gốc dùng giấy phép mã nguồn mở MIT, bạn chỉ cần giữ nguyên file LICENSE đi kèm là có thể dùng, sửa và chia sẻ. Hãy dùng ý tưởng của riêng bạn, đừng sao chép game thương mại của người khác.",
   },
 ];
 
@@ -358,7 +354,7 @@ function PromptRow({ text }: { text: string }) {
           });
         }}
         className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-bold transition hover:border-primary hover:text-primary"
-        aria-label={`Chép câu lệnh: ${text}`}
+        aria-label={`Chép câu mẫu: ${text}`}
       >
         {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
         {copied ? "Đã chép" : "Chép"}
@@ -426,8 +422,8 @@ function GameNguoiQuePage() {
           Tự làm game vui bằng AI — <span className="text-primary">chơi thử ngay</span>
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-muted-foreground">
-          Bấm vào một game bên dưới để chơi ngay trên trình duyệt. Thích thì tải skill về, nói một
-          câu tiếng Việt với Claude Code là có game người que của riêng bạn.
+          Bấm vào một game bên dưới để chơi thử ngay. Nếu thích, bạn tải skill về, kể ý tưởng bằng
+          tiếng Việt cho AI, và AI sẽ làm ra game người que của riêng bạn để chơi và gửi cho bạn bè.
         </p>
         <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
           <a
@@ -473,8 +469,12 @@ function GameNguoiQuePage() {
       </Section>
 
       {/* Cài đặt & sử dụng */}
-      <Section id="cach-dung" eyebrow="Cài đặt & sử dụng" title="4 bước, làm một lần là dùng mãi">
-        <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <Section
+        id="cach-dung"
+        eyebrow="Cài đặt & sử dụng"
+        title="Chỉ 3 bước, phần kỹ thuật để AI lo"
+      >
+        <ol className="grid gap-4 lg:grid-cols-3">
           {steps.map((step, index) => (
             <li
               key={step.title}
@@ -483,8 +483,8 @@ function GameNguoiQuePage() {
               <span className="grid size-9 place-items-center rounded-full bg-brand-gradient text-sm font-extrabold text-primary-foreground">
                 {index + 1}
               </span>
-              <h3 className="mt-4 text-lg font-extrabold">{step.title}</h3>
-              <p className="mt-2 text-sm leading-7 text-muted-foreground [&_code]:rounded [&_code]:bg-secondary [&_code]:px-1 [&_code]:text-foreground">
+              <h3 className="mt-4 text-lg font-extrabold leading-snug">{step.title}</h3>
+              <p className="mt-2 text-sm leading-7 text-muted-foreground [&_strong]:text-foreground">
                 {step.text}
               </p>
             </li>
@@ -493,7 +493,10 @@ function GameNguoiQuePage() {
       </Section>
 
       {/* Câu lệnh mẫu */}
-      <Section eyebrow="Câu lệnh mẫu" title="Nhập ý tưởng vào Claude Code, ví dụ:">
+      <Section
+        eyebrow="Câu mẫu để bắt đầu"
+        title="Chưa biết nói gì? Bạn chép một câu dưới đây và gửi cho AI"
+      >
         <ul className="grid gap-3 lg:grid-cols-2">
           {samplePrompts.map((text) => (
             <PromptRow key={text} text={text} />
@@ -538,8 +541,8 @@ function GameNguoiQuePage() {
               </p>
               <h2 className="mt-3 text-3xl font-black leading-tight">Nhận Skill Game Người Que</h2>
               <p className="mt-3 text-sm leading-7 text-background/75">
-                Nhập email, link tải gửi về hộp thư của bạn trong vài phút. Cài xong, nói ý tưởng
-                game đầu tiên để thử.
+                Bạn nhập email, link tải sẽ được gửi về hộp thư của bạn trong vài phút. Tải về xong,
+                bạn nhờ AI cài giúp rồi kể ý tưởng game đầu tiên để thử ngay.
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
