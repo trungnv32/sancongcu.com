@@ -17,6 +17,7 @@ import { Route as TaiNguyenMienPhiRouteImport } from './routes/tai-nguyen-mien-p
 import { Route as AppSkillIdRouteImport } from './routes/app.$skillId'
 import { Route as ComboComboIdRouteImport } from './routes/combo.$comboId'
 import { Route as SkillSkillIdRouteImport } from './routes/skill.$skillId'
+import { Route as TaiNguyenGameNguoiQueRouteImport } from './routes/tai-nguyen.game-nguoi-que'
 import { Route as TaiNguyenTroLyHocTapRouteImport } from './routes/tai-nguyen.tro-ly-hoc-tap'
 
 const IndexRoute = IndexRouteImport.update({
@@ -59,6 +60,11 @@ const SkillSkillIdRoute = SkillSkillIdRouteImport.update({
   path: '/skill/$skillId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TaiNguyenGameNguoiQueRoute = TaiNguyenGameNguoiQueRouteImport.update({
+  id: '/tai-nguyen/game-nguoi-que',
+  path: '/tai-nguyen/game-nguoi-que',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TaiNguyenTroLyHocTapRoute = TaiNguyenTroLyHocTapRouteImport.update({
   id: '/tai-nguyen/tro-ly-hoc-tap',
   path: '/tai-nguyen/tro-ly-hoc-tap',
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/app/$skillId': typeof AppSkillIdRoute
   '/combo/$comboId': typeof ComboComboIdRoute
   '/skill/$skillId': typeof SkillSkillIdRoute
+  '/tai-nguyen/game-nguoi-que': typeof TaiNguyenGameNguoiQueRoute
   '/tai-nguyen/tro-ly-hoc-tap': typeof TaiNguyenTroLyHocTapRoute
 }
 export interface FileRoutesByTo {
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/app/$skillId': typeof AppSkillIdRoute
   '/combo/$comboId': typeof ComboComboIdRoute
   '/skill/$skillId': typeof SkillSkillIdRoute
+  '/tai-nguyen/game-nguoi-que': typeof TaiNguyenGameNguoiQueRoute
   '/tai-nguyen/tro-ly-hoc-tap': typeof TaiNguyenTroLyHocTapRoute
 }
 export interface FileRoutesById {
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/app/$skillId': typeof AppSkillIdRoute
   '/combo/$comboId': typeof ComboComboIdRoute
   '/skill/$skillId': typeof SkillSkillIdRoute
+  '/tai-nguyen/game-nguoi-que': typeof TaiNguyenGameNguoiQueRoute
   '/tai-nguyen/tro-ly-hoc-tap': typeof TaiNguyenTroLyHocTapRoute
 }
 export interface FileRouteTypes {
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/app/$skillId'
     | '/combo/$comboId'
     | '/skill/$skillId'
+    | '/tai-nguyen/game-nguoi-que'
     | '/tai-nguyen/tro-ly-hoc-tap'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
     | '/app/$skillId'
     | '/combo/$comboId'
     | '/skill/$skillId'
+    | '/tai-nguyen/game-nguoi-que'
     | '/tai-nguyen/tro-ly-hoc-tap'
   id:
     | '__root__'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '/app/$skillId'
     | '/combo/$comboId'
     | '/skill/$skillId'
+    | '/tai-nguyen/game-nguoi-que'
     | '/tai-nguyen/tro-ly-hoc-tap'
   fileRoutesById: FileRoutesById
 }
@@ -144,6 +156,7 @@ export interface RootRouteChildren {
   AppSkillIdRoute: typeof AppSkillIdRoute
   ComboComboIdRoute: typeof ComboComboIdRoute
   SkillSkillIdRoute: typeof SkillSkillIdRoute
+  TaiNguyenGameNguoiQueRoute: typeof TaiNguyenGameNguoiQueRoute
   TaiNguyenTroLyHocTapRoute: typeof TaiNguyenTroLyHocTapRoute
 }
 
@@ -205,6 +218,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SkillSkillIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tai-nguyen/game-nguoi-que': {
+      id: '/tai-nguyen/game-nguoi-que'
+      path: '/tai-nguyen/game-nguoi-que'
+      fullPath: '/tai-nguyen/game-nguoi-que'
+      preLoaderRoute: typeof TaiNguyenGameNguoiQueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tai-nguyen/tro-ly-hoc-tap': {
       id: '/tai-nguyen/tro-ly-hoc-tap'
       path: '/tai-nguyen/tro-ly-hoc-tap'
@@ -224,6 +244,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppSkillIdRoute: AppSkillIdRoute,
   ComboComboIdRoute: ComboComboIdRoute,
   SkillSkillIdRoute: SkillSkillIdRoute,
+  TaiNguyenGameNguoiQueRoute: TaiNguyenGameNguoiQueRoute,
   TaiNguyenTroLyHocTapRoute: TaiNguyenTroLyHocTapRoute,
 }
 export const routeTree = rootRouteImport
