@@ -82,8 +82,45 @@ function translateAuthError(message: string) {
 
 /** Trang công cụ gửi khách sang đây kèm ?quay-lai=/cong-cu/... để đăng nhập xong thì quay lại. */
 const RETURN_PATH_KEY = "scc-quay-lai-sau-dang-nhap";
+const RETURN_PATH_TTL_MS = 15 * 60 * 1000;
 const isSafeReturnPath = (value: string | null): value is string =>
   Boolean(value && /^\/cong-cu\/[a-z0-9-]+$/.test(value));
+
+function saveReturnPath(path: string) {
+  sessionStorage.setItem(RETURN_PATH_KEY, JSON.stringify({ path, at: Date.now() }));
+}
+
+/** Đọc đường quay lại còn hạn (15 phút); hết hạn hoặc sai dạng thì xoá. */
+function readReturnPath(): string | null {
+  const raw = sessionStorage.getItem(RETURN_PATH_KEY);
+  if (!raw) return null;
+  try {
+    const { path, at } = JSON.parse(raw) as { path?: string; at?: number };
+    if (
+      isSafeReturnPath(path ?? null) &&
+      typeof at === "number" &&
+      Date.now() - at < RETURN_PATH_TTL_MS
+    ) {
+      return path as string;
+    }
+  } catch {
+    // dữ liệu cũ hoặc hỏng
+  }
+  sessionStorage.removeItem(RETURN_PATH_KEY);
+  return null;
+}
+
+/** Vừa quay về từ trang đăng nhập Google (Supabase gắn mã đăng nhập vào địa chỉ). */
+function isOAuthReturn() {
+  const { hash, search } = window.location;
+  const params = new URLSearchParams(search);
+  return (
+    /access_token=|error_description=/.test(hash) ||
+    params.has("code") ||
+    params.has("error_description") ||
+    /supabase\.co|accounts\.google\./.test(document.referrer)
+  );
+}
 
 const ledgerLabels: Record<WalletLedgerItem["entry_type"], string> = {
   topup: "Nạp tiền",
@@ -124,9 +161,10 @@ function AccountPage() {
     if (params.get("mode") === "signup") setMode("signup");
     const next = params.get("quay-lai");
     try {
-      if (isSafeReturnPath(next)) sessionStorage.setItem(RETURN_PATH_KEY, next);
-      const saved = sessionStorage.getItem(RETURN_PATH_KEY);
-      setReturnPath(isSafeReturnPath(saved) ? saved : null);
+      // Chỉ giữ đường quay lại khi vừa được trang công cụ gửi sang, hoặc khi vừa đăng nhập Google xong.
+      if (isSafeReturnPath(next)) saveReturnPath(next);
+      else if (!isOAuthReturn()) sessionStorage.removeItem(RETURN_PATH_KEY);
+      setReturnPath(readReturnPath());
     } catch {
       setReturnPath(isSafeReturnPath(next) ? next : null);
     }
@@ -138,7 +176,7 @@ function AccountPage() {
       if (id) {
         let saved: string | null = null;
         try {
-          saved = sessionStorage.getItem(RETURN_PATH_KEY);
+          saved = readReturnPath();
           sessionStorage.removeItem(RETURN_PATH_KEY);
         } catch {
           saved = null;

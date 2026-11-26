@@ -25,7 +25,8 @@ const baseDirectives = [
   // Google Fonts chỉ để các trang khác hiển thị đúng khi khách bấm Quay lại; trang công cụ không tải.
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com",
-  "img-src 'self' data: blob: https:",
+  // Ảnh chỉ từ chính web (+ kho ảnh Supabase của web để các trang khác hiện đúng khi khách bấm Quay lại).
+  `img-src 'self' data: blob: ${supabaseOrigin}`,
   `connect-src 'self' ${supabaseOrigin} ${supabaseOrigin.replace(/^https:/, "wss:")} ${AI_ORIGINS}`,
   "frame-src 'self'",
   "object-src 'none'",
