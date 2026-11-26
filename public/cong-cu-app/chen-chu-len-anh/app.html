@@ -23,7 +23,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .dau .phai{margin-left:auto;display:flex;gap:8px;align-items:center}
 .nhan-offline{font-size:12.5px;padding:5px 10px;border-radius:99px;background:#E8F0FF;color:var(--xanh);font-weight:500;white-space:nowrap}
 .khung{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:22px;padding:22px 24px 40px;max-width:1500px;margin:0 auto;align-items:start}
-.san{position:sticky;top:90px}
+.san{position:relative}
 .san-trong{background:#E9EEF8;border-radius:18px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:12px;border:1px solid var(--vien)}
 .vung-anh{position:relative;display:flex;justify-content:center;align-items:center;width:100%}
 #cv{display:block;max-width:100%;max-height:calc(100vh - 230px);width:auto;height:auto;border-radius:6px;box-shadow:0 10px 30px rgba(10,20,50,.18);touch-action:pan-y;background:#1a1f2b}
@@ -157,7 +157,7 @@ details.the summary .tag{font-size:11.5px;font-weight:600;background:#F1F3F8;col
 .canh-bao-khoa{margin:6px 0 0 28px;font-size:12.5px;color:#8A4B00;background:#FFF6E5;border-radius:8px;padding:6px 9px}
 @media (max-width:980px){
   .khung{grid-template-columns:1fr;padding:14px}
-  .san{position:sticky;top:0;z-index:4;margin:0 -14px;padding:6px 14px 8px;background:var(--nen)}
+  .san{position:relative;margin:0 -14px;padding:6px 14px 8px;background:var(--nen)}
   .san-trong{padding:8px;gap:6px;border-radius:14px}
   #cv{max-height:40vh}
   #meoKeo{display:none}
@@ -237,8 +237,8 @@ details.the summary .tag{font-size:11.5px;font-weight:600;background:#F1F3F8;col
       <h2><span class="so so-to">2</span>Chọn mẫu chữ</h2>
       <p class="goi-y" style="margin:0" id="goiYMau">Bấm vào một mẫu để áp kiểu chữ, màu và bố cục lên ảnh. Chọn mẫu xong, bạn vẫn đổi được phông chữ, màu và vị trí như bình thường.</p>
       <div class="hop-khoa an" id="hopKhoa" role="region" aria-label="Mở khoá mẫu">
-        <b><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#276CF3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Đăng ký tài khoản MIỄN PHÍ để dùng 20 mẫu</b>
-        <p id="chuKhoa">Bạn đang dùng được mẫu Mặc định. Chỉ cần tạo tài khoản miễn phí trên sancongcu.com là mở được toàn bộ 20 mẫu còn lại, không mất phí.</p>
+        <b><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#276CF3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Đăng ký tài khoản MIỄN PHÍ để dùng thêm 16 mẫu</b>
+        <p id="chuKhoa">Bạn đang dùng được 5 mẫu miễn phí. Chỉ cần tạo tài khoản miễn phí trên sancongcu.com là mở được 16 mẫu còn lại, không mất phí.</p>
         <div class="hang">
           <a class="nut nut-chinh" id="nutDangKy" href="#" target="_top">Đăng ký miễn phí</a>
           <a class="nut" id="nutDangNhap" href="#" target="_top">Tôi đã có tài khoản, đăng nhập</a>
@@ -1457,7 +1457,7 @@ $("nutGhiChu").onclick=()=>{ const k=$("khuGhiChu"), mo=k.classList.toggle("an")
 
 /* ---------- Kho mẫu ----------
    Mỗi mẫu là một bộ cài đặt kiểu chữ, màu, vị trí và các thành phần trang trí (không gồm ảnh, tiêu đề, chữ nhãn của người dùng).
-   Mẫu "Mặc định" dùng tự do; 20 mẫu còn lại mở khi khách đăng nhập tài khoản sancongcu.com (khoá ở phía trình duyệt). */
+   5 mẫu đầu (gồm "Mặc định") dùng tự do; 16 mẫu còn lại mở khi khách đăng nhập tài khoản sancongcu.com (khoá ở phía trình duyệt). */
 const KHOA_MAU=["font","size","bold","italic","align","lineGap","upper","color","accent","stroke","strokeColor","strokeW","shadow","shadowColor","shadowBlur","pos","tx","ty","grad","gradStrength","badge","badgePos","bx","by","badgeBg","badgeColor","badgeSize",
   "tint","tintColor","tintColor2","tintAlpha","box","boxFull","boxColor","boxAlpha","boxRadius","lineBox","accentBox","accentBoxText",
   "frame","frameColor","frameW","frameInset","sub","subPos","subStyle","subColor","subBg","subSize","subUpper",
@@ -1501,7 +1501,9 @@ function apDungMau(mau){
 /* ---------- Khoá mẫu theo tài khoản (chỉ đọc trạng thái đăng nhập do trang web gửi vào) ---------- */
 let daDangNhap=false, daBietTK=false;
 const DUONG_TK=BAN_WEB?"/tai-khoan":"https://sancongcu.com/tai-khoan", TRANG_NAY="/cong-cu/chen-chu-len-anh";
-const biKhoa=m=>m.id!=="mac-dinh" && !daDangNhap;
+const SO_MAU_MIEN_PHI=5; // 5 mẫu đầu dùng tự do, không cần đăng nhập
+const laMienPhi=m=>MAU.indexOf(m)>-1 && MAU.indexOf(m)<SO_MAU_MIEN_PHI;
+const biKhoa=m=>!laMienPhi(m) && !daDangNhap;
 function baoMau(msg){ const el=$("tbMau"); el.textContent=msg; el.classList.remove("an"); }
 function dungLuoiMau(){
   const luoi=$("luoiMau"); luoi.innerHTML="";
@@ -1512,7 +1514,7 @@ function dungLuoiMau(){
     const khoa=document.createElement("span"); khoa.className="o-khoa";
     khoa.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
     b.append(c,ten,khoa);
-    if(m.id==="mac-dinh"){ const t=document.createElement("span"); t.className="o-mien-phi"; t.textContent="Miễn phí"; b.appendChild(t); }
+    if(laMienPhi(m)){ const t=document.createElement("span"); t.className="o-mien-phi"; t.textContent="Miễn phí"; b.appendChild(t); }
     b.onclick=()=>{
       if(biKhoa(m)){
         const h=$("hopKhoa"); h.classList.remove("nhay"); void h.offsetWidth; h.classList.add("nhay"); h.scrollIntoView({block:"nearest",behavior:"smooth"});
@@ -1533,7 +1535,7 @@ function capNhatKhoa(){
   });
   $("hopKhoa").classList.toggle("an",daDangNhap);
   const n=$("nhanTK"); n.classList.toggle("mo",daDangNhap);
-  n.textContent=daDangNhap?`Đã đăng nhập: dùng được cả ${MAU.length} mẫu`:"Chưa đăng nhập: dùng mẫu Mặc định";
+  n.textContent=daDangNhap?`Đã đăng nhập: dùng được cả ${MAU.length} mẫu`:"Chưa đăng nhập: dùng 5 mẫu miễn phí";
 }
 function datDangNhap(v){
   daDangNhap=v===true; daBietTK=true;

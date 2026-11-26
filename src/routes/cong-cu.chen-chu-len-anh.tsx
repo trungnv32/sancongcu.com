@@ -63,7 +63,7 @@ const steps = [
 const faqs = [
   {
     q: "Công cụ này có mất phí không?",
-    a: "Không. Bạn dùng miễn phí với mẫu Mặc định mà không cần tài khoản. Khi đăng ký tài khoản miễn phí trên sancongcu.com, bạn mở được thêm 20 mẫu đẹp khác.",
+    a: "Không. Bạn dùng miễn phí 5 mẫu mà không cần tài khoản. Khi đăng ký tài khoản miễn phí trên sancongcu.com, bạn mở được thêm 16 mẫu đẹp khác.",
   },
   {
     q: "Ảnh của tôi có bị gửi lên mạng không?",
