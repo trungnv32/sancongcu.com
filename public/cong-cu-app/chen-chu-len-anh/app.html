@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<!-- Tệp sinh tự động từ kho nguồn cong-cu-chen-chu-len-anh (py src/build.py --web ...). Không sửa tay. -->
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://kymaapi.com https://generativelanguage.googleapis.com https://api.anthropic.com https://api.openai.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Chèn Chữ Lên Ảnh</title>
+<style>
+:root{
+  --xanh:#276CF3; --xanh-dam:#1C5FE8; --xanh-sang:#3C83FF; --den:#0A0A0A; --nen:#F5F8FF;
+  --xam:#52525B; --vien:#DDE5F5; --the:#FFFFFF; --bo:14px;
+  --ui:"ccla-bvp", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--nen);color:var(--den);font-family:var(--ui);font-size:15px;line-height:1.5}
+button,input,select,textarea{font:inherit;color:inherit}
+.dau{display:flex;align-items:center;gap:14px;padding:14px 24px;background:var(--the);border-bottom:1px solid var(--vien);position:sticky;top:0;z-index:5}
+.dau .logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--xanh-dam),var(--xanh-sang));display:grid;place-items:center;color:#fff;font-weight:800;font-size:19px;flex:none}
+.dau h1{margin:0;font-size:19px;font-weight:800;letter-spacing:-.01em}
+.dau p{margin:0;color:var(--xam);font-size:13px}
+.dau .phai{margin-left:auto;display:flex;gap:8px;align-items:center}
+.nhan-offline{font-size:12.5px;padding:5px 10px;border-radius:99px;background:#E8F0FF;color:var(--xanh);font-weight:500;white-space:nowrap}
+.khung{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:22px;padding:22px 24px 40px;max-width:1500px;margin:0 auto;align-items:start}
+.san{position:sticky;top:90px}
+.san-trong{background:#E9EEF8;border-radius:18px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:12px;border:1px solid var(--vien)}
+.vung-anh{position:relative;display:flex;justify-content:center;align-items:center;width:100%}
+#cv{display:block;max-width:100%;max-height:calc(100vh - 230px);width:auto;height:auto;border-radius:6px;box-shadow:0 10px 30px rgba(10,20,50,.18);touch-action:pan-y;background:#1a1f2b}
+.che-do-cat #cv{touch-action:none}
+.tha-anh{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.tha-anh .hop{pointer-events:auto;background:rgba(255,255,255,.95);border:2px dashed var(--xanh);border-radius:16px;padding:22px 26px;text-align:center;max-width:340px;box-shadow:0 8px 24px rgba(0,0,0,.15)}
+.tha-anh .hop b{display:block;font-size:17px;margin-bottom:6px}
+.tha-anh .hop span{color:var(--xam);font-size:13.5px}
+.dang-keo .vung-anh::after{content:"Thả ảnh vào đây";position:absolute;inset:0;display:grid;place-items:center;background:rgba(39,108,243,.18);border:3px dashed var(--xanh);border-radius:12px;font-weight:800;font-size:20px;color:var(--xanh)}
+.thanh-duoi{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:center;color:var(--xam);font-size:13px;text-align:center}
+.thanh-duoi b{color:var(--den)}
+.thanh-cat{display:none;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
+.che-do-cat .thanh-cat{display:flex}
+.che-do-cat .thanh-thuong{display:none}
+.bang{display:flex;flex-direction:column;gap:14px}
+.the{background:var(--the);border:1px solid var(--vien);border-radius:16px;padding:16px 18px}
+.the h2{margin:0 0 12px;font-size:15.5px;font-weight:800;display:flex;align-items:center;gap:8px}
+.the h2 .so{width:24px;height:24px;border-radius:8px;background:var(--xanh);color:#fff;display:grid;place-items:center;font-size:13px;flex:none}
+.goi-y{font-size:13px;color:var(--xam);margin:6px 0 0}
+.goi-y code{background:#FFF6D6;color:#5a4300;padding:1px 5px;border-radius:5px;font-family:inherit;font-weight:600}
+label.dong{display:flex;align-items:center;gap:10px;margin:10px 0 0}
+.nhom{margin-top:12px}
+.nhom > .ten{font-size:13.5px;font-weight:500;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px}
+.nhom > .ten em{font-style:normal;color:var(--xanh);font-weight:600}
+textarea,input[type=text],input[type=password],select{width:100%;border:1px solid #CBD5EA;border-radius:10px;padding:9px 11px;background:#fff;outline:none;transition:border-color .15s, box-shadow .15s}
+textarea{resize:vertical;min-height:74px}
+textarea:focus,input[type=text]:focus,input[type=password]:focus,select:focus{border-color:var(--xanh);box-shadow:0 0 0 3px rgba(39,108,243,.15)}
+input[type=range]{width:100%;accent-color:var(--xanh)}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--xanh);flex:none}
+input[type=color]{width:40px;height:34px;border:1px solid #CBD5EA;border-radius:9px;padding:2px;background:#fff;cursor:pointer;flex:none}
+.hang{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.hang-mau{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.o-mau{display:flex;align-items:center;gap:8px;font-size:13.5px}
+.mau-nhanh{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
+.mau-nhanh button{width:22px;height:22px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #CBD5EA;cursor:pointer;padding:0}
+.chon{display:flex;flex-wrap:wrap;gap:6px}
+.chon button{border:1px solid #CBD5EA;background:#fff;border-radius:10px;padding:7px 11px;cursor:pointer;font-size:13.5px;line-height:1.25;transition:all .12s}
+.chon button small{display:block;color:var(--xam);font-size:11.5px}
+.chon button:hover{border-color:var(--xanh)}
+.chon button.on{background:var(--xanh);border-color:var(--xanh);color:#fff}
+.chon button.on small{color:#DCE7FF}
+.nut{border:1px solid #CBD5EA;background:#fff;border-radius:10px;padding:8px 13px;cursor:pointer;font-weight:500;font-size:13.5px;transition:all .12s;display:inline-flex;align-items:center;gap:6px}
+.nut:hover{border-color:var(--xanh);color:var(--xanh)}
+.nut:disabled{opacity:.45;cursor:not-allowed;color:inherit;border-color:#CBD5EA}
+.nut-chinh{background:linear-gradient(135deg,var(--xanh-dam),var(--xanh-sang));color:#fff;border:0;font-weight:800;padding:12px 18px;font-size:15px;border-radius:12px;box-shadow:0 6px 16px rgba(39,108,243,.3)}
+.nut-chinh:hover{color:#fff;filter:brightness(1.06)}
+.nut-chinh:disabled{background:#9DB5E6;box-shadow:none}
+.rong{width:100%;justify-content:center}
+.phu-thuoc{padding-left:28px}
+.an{display:none!important}
+.goc{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.thong-bao{margin-top:10px;font-size:13.5px;padding:9px 12px;border-radius:10px;background:#E8F0FF;color:#173F8F}
+.thong-bao.loi{background:#FFECEC;color:#9B1C1C}
+details.the summary{cursor:pointer;font-weight:800;font-size:15.5px;list-style:none;display:flex;align-items:center;gap:8px}
+details.the summary::-webkit-details-marker{display:none}
+details.the summary::after{content:"▾";margin-left:auto;color:var(--xam);transition:transform .15s}
+details.the[open] summary::after{transform:rotate(180deg)}
+details.the summary .tag{font-size:11.5px;font-weight:600;background:#F1F3F8;color:var(--xam);padding:2px 8px;border-radius:99px}
+.ds-goi-y{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.ds-goi-y li{display:flex;gap:8px;align-items:center;border:1px solid var(--vien);border-radius:10px;padding:8px 10px;font-size:14px}
+.ds-goi-y li span{flex:1}
+.ds-goi-y li b{color:#B7791F}
+.chan{max-width:1500px;margin:0 auto;padding:0 24px 40px;color:var(--xam);font-size:13px}
+.chan details{background:#fff;border:1px solid var(--vien);border-radius:14px;padding:12px 16px;margin-top:10px}
+.chan summary{cursor:pointer;font-weight:600;color:var(--den)}
+.chan pre{white-space:pre-wrap;font-size:11.5px;background:#F7F8FB;padding:10px;border-radius:8px;max-height:260px;overflow:auto}
+.ds-font{display:flex;flex-direction:column;gap:4px;margin:8px 0}
+.the-ai{border:1.5px solid #BFD3FB;background:linear-gradient(180deg,#F3F7FF,#fff 120px)}
+.the-ai h2 .tag{font-size:11.5px;font-weight:600;background:#fff;border:1px solid var(--vien);color:var(--xam);padding:1px 8px;border-radius:99px;margin-left:auto}
+.the h2 .so.so-ai{background:linear-gradient(135deg,var(--xanh-dam),var(--xanh-sang));width:auto;padding:0 6px}
+.lay-khoa,.nang-cao{margin-top:10px;font-size:13.5px}
+.lay-khoa summary,.nang-cao summary{cursor:pointer;color:var(--xanh);font-weight:600}
+.lay-khoa ol{margin:8px 0 0;padding-left:20px;color:#333}
+.lay-khoa li{margin-bottom:4px}
+.lay-khoa a{color:var(--xanh);font-weight:600}
+.cham-mau{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:6px;border:1px solid #ccc}
+.buoc{padding:18px 20px}
+.the h2 .so.so-to{width:34px;height:34px;border-radius:11px;font-size:17px;background:linear-gradient(135deg,var(--xanh-dam),var(--xanh-sang))}
+.buoc h2{font-size:17px;margin-bottom:14px}
+.mo-rong{margin-top:12px;border-top:1px dashed var(--vien);padding-top:10px}
+.mo-rong>summary{cursor:pointer;color:var(--xanh);font-weight:600;font-size:14px;list-style:none;display:flex;align-items:center;gap:6px}
+.mo-rong>summary::-webkit-details-marker{display:none}
+.mo-rong>summary::before{content:"▸";transition:transform .15s}
+.mo-rong[open]>summary::before{transform:rotate(90deg)}
+.hang-ai{margin-top:10px;gap:12px}
+.nut-ai{background:linear-gradient(135deg,#7C3AED,#276CF3);color:#fff;border:0;font-weight:800;padding:10px 16px;border-radius:12px;box-shadow:0 6px 16px rgba(91,76,240,.28)}
+.nut-ai:hover{color:#fff;filter:brightness(1.07)}
+.nut-ai:disabled{background:#A9B6E8;color:#fff}
+.nut-chu{background:none;border:0;padding:0;color:var(--xanh);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px;font-size:13.5px}
+.cai-nhanh{margin-top:14px;padding:12px 14px;background:#F7F9FE;border:1px solid var(--vien);border-radius:12px}
+.cai-nhanh .nhom:first-child{margin-top:0}
+.cai-nhanh .chon button{padding:6px 14px}
+.goi-y-nhan{margin-top:12px}
+.nut-luu{font-size:17px;padding:14px 18px}
+.ngan-keo{position:fixed;inset:0;z-index:50;display:flex;justify-content:flex-end}
+.ngan-keo[hidden]{display:none}
+.ngan-nen{position:absolute;inset:0;background:rgba(10,14,30,.45)}
+.ngan-than{position:relative;width:min(440px,100%);height:100%;overflow:auto;background:var(--nen);padding:16px 18px 30px;box-shadow:-10px 0 30px rgba(0,0,0,.2)}
+.ngan-dau{display:flex;align-items:center;justify-content:space-between;position:sticky;top:-16px;background:var(--nen);padding:6px 0 8px;z-index:1}
+.ngan-dau h2{margin:0;font-size:19px;font-weight:800}
+.muc{background:#fff;border:1px solid var(--vien);border-radius:14px;padding:14px 16px;margin-top:12px}
+.muc h3{margin:0 0 10px;font-size:15.5px;font-weight:800;display:flex;align-items:center;gap:8px}
+.muc h3 .tag{font-size:11.5px;font-weight:600;background:#F1F3F8;color:var(--xam);padding:1px 8px;border-radius:99px;margin-left:auto}
+.nhan-mo{box-shadow:0 0 0 3px rgba(39,108,243,.35)}
+/* Kho mẫu */
+.luoi-mau{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
+.o-mau-chon{position:relative;border:1.5px solid #CBD5EA;border-radius:12px;background:#fff;padding:4px 4px 6px;cursor:pointer;display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;line-height:1.25;text-align:center;color:var(--den);transition:border-color .12s, box-shadow .12s}
+.o-mau-chon:hover{border-color:var(--xanh)}
+.o-mau-chon canvas{width:100%;height:auto;border-radius:8px;display:block;background:#E9EEF8}
+.o-mau-chon.on{border-color:var(--xanh);box-shadow:0 0 0 3px rgba(39,108,243,.22)}
+.o-mau-chon.khoa canvas{filter:saturate(.6) brightness(.9)}
+.o-mau-chon .o-khoa{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;background:rgba(10,10,10,.75);color:#fff;display:none;place-items:center}
+.o-mau-chon.khoa .o-khoa{display:grid}
+.o-mau-chon .o-mien-phi{position:absolute;top:8px;left:8px;font-size:10.5px;font-weight:700;background:var(--xanh);color:#fff;padding:1px 7px;border-radius:99px}
+.luoi-mau.thu-gon .o-mau-chon:nth-child(n+9){display:none}
+.hop-khoa{margin-top:12px;border:1.5px solid #BFD3FB;background:linear-gradient(135deg,#EEF4FF,#F8FBFF);border-radius:14px;padding:12px 14px}
+.hop-khoa b{display:flex;align-items:center;gap:8px;font-size:14.5px}
+.hop-khoa p{margin:6px 0 10px;font-size:13px;color:#33415C}
+.hop-khoa .hang a{text-decoration:none}
+.hop-khoa.nhay{animation:nhay .9s ease 2}
+@keyframes nhay{0%,100%{box-shadow:none}50%{box-shadow:0 0 0 4px rgba(39,108,243,.35)}}
+.nhan-tk{font-size:12.5px;padding:5px 10px;border-radius:99px;background:#E8F0FF;color:var(--xanh);font-weight:600;white-space:nowrap}
+.nhan-tk.mo{background:#E7F8EE;color:#166534}
+.ban-web .dau{padding:8px 16px}
+.ban-web .dau .logo,.ban-web .dau h1,.ban-web .dau p{display:none}
+.ban-web .dau .phai{margin-left:0;width:100%;justify-content:space-between}
+.ban-web .san{top:64px}
+.dau .nut{white-space:nowrap}
+@media (max-width:520px){ .nhan-tk{font-size:11.5px;white-space:normal;line-height:1.3} }
+.canh-bao-khoa{margin:6px 0 0 28px;font-size:12.5px;color:#8A4B00;background:#FFF6E5;border-radius:8px;padding:6px 9px}
+@media (max-width:980px){
+  .khung{grid-template-columns:1fr;padding:14px}
+  .san{position:sticky;top:0;z-index:4;margin:0 -14px;padding:6px 14px 8px;background:var(--nen)}
+  .san-trong{padding:8px;gap:6px;border-radius:14px}
+  #cv{max-height:40vh}
+  #meoKeo{display:none}
+  .dau{padding:10px 14px;position:relative}
+  .dau p{display:none}
+}
+@media (max-width:520px){ .nhan-offline{display:none} .buoc{padding:14px} .dau .logo{width:32px;height:32px;font-size:16px} .hang-mau{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<header class="dau">
+  <div class="logo" aria-hidden="true">Aa</div>
+  <div>
+    <h1>Chèn Chữ Lên Ảnh</h1>
+    <p>Thêm tiêu đề và nhãn thương hiệu lên ảnh của bạn chỉ trong vài phút.</p>
+  </div>
+  <div class="phai"><span class="nhan-tk" id="nhanTK">Đang dùng mẫu Mặc định</span><span class="nhan-offline" id="nhanOffline" title="Ảnh của bạn được xử lý ngay trên trình duyệt, không gửi lên máy chủ">Ảnh được xử lý ngay trên máy của bạn</span><button class="nut" id="nutCaiDat" type="button">⚙ Cài đặt</button></div>
+</header>
+
+<main class="khung" id="khung">
+  <section class="san" id="san">
+    <div class="san-trong">
+      <div class="vung-anh" id="vungAnh">
+        <canvas id="cv" width="1080" height="1350" aria-label="Khung xem trước ảnh"></canvas>
+        <div class="tha-anh" id="thaAnh">
+          <div class="hop">
+            <b>Bắt đầu bằng một tấm ảnh</b>
+            <span>Bạn kéo ảnh từ máy thả vào khung này, hoặc bấm nút bên dưới để chọn ảnh (JPG, PNG hoặc WEBP).</span>
+            <div style="margin-top:12px"><button class="nut nut-chinh" id="nutChonAnh2" type="button">Chọn ảnh từ máy</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="thong-bao an" id="tbAnhSan" role="alert" style="margin:0;width:100%;text-align:center"></div>
+      <div class="thanh-duoi thanh-thuong">
+        <span>Kích thước ảnh xuất: <b id="kichThuoc">1080 × 1350</b></span>
+        <span id="meoKeo">Mẹo: bạn có thể bấm giữ và kéo dòng chữ hoặc nhãn để đặt vào chỗ bạn muốn.</span>
+      </div>
+      <div class="thanh-cat">
+        <span style="color:var(--xam);font-size:13px">Bạn kéo khung sáng để chọn phần ảnh muốn giữ, kéo các góc để phóng to hoặc thu nhỏ khung.</span>
+        <button class="nut" id="nutKhungLai" type="button">Lấy lại khung lớn nhất</button>
+        <button class="nut nut-chinh" id="nutXongCat" type="button">Xong, quay lại chỉnh chữ</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="bang">
+    <!-- Bước 1: Tải ảnh -->
+    <div class="the buoc">
+      <h2><span class="so so-to">1</span>Tải ảnh lên</h2>
+      <input type="file" id="tepAnh" accept="image/jpeg,image/png,image/webp" hidden>
+      <button class="nut nut-chinh rong" id="nutChonAnh" type="button">Chọn ảnh từ máy</button>
+      <p class="goi-y" id="tenAnh">Bạn cũng có thể kéo-thả ảnh vào khung xem trước, hoặc dán ảnh vừa sao chép bằng tổ hợp phím Ctrl + V. Ảnh chụp từ iPhone dạng HEIC thì bạn chuyển sang JPG trước rồi mới chọn nhé.</p>
+      <div class="thong-bao an" id="tbAnh" role="status"></div>
+      <details class="mo-rong" id="khuSuaAnh">
+        <summary>Sửa ảnh: đổi khung, cắt, xoay, lật</summary>
+        <div class="nhom">
+          <div class="ten">Khung ảnh (tỷ lệ)</div>
+          <div class="chon" id="chonTyLe">
+            <button type="button" data-v="1:1">Vuông 1:1<small>Bài đăng vuông</small></button>
+            <button type="button" data-v="4:5">Dọc 4:5<small>Facebook, Instagram</small></button>
+            <button type="button" data-v="9:16">Dọc 9:16<small>Story, Reels, TikTok</small></button>
+            <button type="button" data-v="16:9">Ngang 16:9<small>YouTube, bìa trang</small></button>
+            <button type="button" data-v="tu-do">Tự do<small>Giữ theo khung cắt</small></button>
+          </div>
+        </div>
+        <div class="nhom hang">
+          <button class="nut" id="nutCat" type="button">Cắt ảnh</button>
+          <button class="nut" id="nutXoay" type="button">Xoay 90°</button>
+          <button class="nut" id="nutLatNgang" type="button">Lật ngang</button>
+          <button class="nut" id="nutLatDoc" type="button">Lật dọc</button>
+        </div>
+      </details>
+    </div>
+
+    <!-- Bước 2: Chọn mẫu -->
+    <div class="the buoc" id="theMau">
+      <h2><span class="so so-to">2</span>Chọn mẫu chữ</h2>
+      <p class="goi-y" style="margin:0" id="goiYMau">Bấm vào một mẫu để áp kiểu chữ, màu và bố cục lên ảnh. Chọn mẫu xong, bạn vẫn đổi được phông chữ, màu và vị trí như bình thường.</p>
+      <div class="hop-khoa an" id="hopKhoa" role="region" aria-label="Mở khoá mẫu">
+        <b><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#276CF3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Đăng ký tài khoản MIỄN PHÍ để dùng 20 mẫu</b>
+        <p id="chuKhoa">Bạn đang dùng được mẫu Mặc định. Chỉ cần tạo tài khoản miễn phí trên sancongcu.com là mở được toàn bộ 20 mẫu còn lại, không mất phí.</p>
+        <div class="hang">
+          <a class="nut nut-chinh" id="nutDangKy" href="#" target="_top">Đăng ký miễn phí</a>
+          <a class="nut" id="nutDangNhap" href="#" target="_top">Tôi đã có tài khoản, đăng nhập</a>
+        </div>
+      </div>
+      <div class="luoi-mau thu-gon" id="luoiMau" role="list"></div>
+      <button class="nut-chu" id="nutXemThemMau" type="button" style="margin-top:10px">Xem thêm mẫu</button>
+      <div class="thong-bao an" id="tbMau" role="status"></div>
+    </div>
+
+    <!-- Bước 3: Nhập chữ -->
+    <div class="the buoc">
+      <h2><span class="so so-to">3</span>Nhập chữ</h2>
+      <textarea id="tieuDe" rows="2" placeholder="Ví dụ: Cứ mỉm cười, **mùa hoa** sẽ tự đến" aria-label="Tiêu đề trên ảnh"></textarea>
+      <p class="goi-y">Đặt cụm chữ muốn tô màu giữa hai cặp dấu sao, ví dụ <code>**mùa hoa**</code>. Bấm Enter nếu muốn tự xuống dòng.</p>
+      <div class="hang hang-ai">
+        <button class="nut nut-ai" id="nutAI" type="button">✨ Tạo bằng AI</button>
+        <button class="nut-chu" id="nutGhiChu" type="button" aria-expanded="false">Thêm ghi chú cho AI</button>
+      </div>
+      <div class="nhom an" id="khuGhiChu">
+        <textarea id="moTaAI" rows="2" placeholder="Ví dụ: bài đăng cho tiệm hoa, giọng nhẹ nhàng, khách là chị em văn phòng. Thương hiệu: hoaxinh.vn" aria-label="Ghi chú cho AI"></textarea>
+        <p class="goi-y">Bạn có thể nói chủ đề, giọng văn, khách hàng hoặc tên thương hiệu để AI viết sát ý hơn.</p>
+      </div>
+      <div class="nhom an" id="khuChuThem">
+        <div class="nhom an" id="hangChuPhu"><div class="ten">Dòng chữ phụ của mẫu</div><input type="text" id="chuPhu" placeholder="Ví dụ: Chỉ từ 199.000đ"></div>
+        <div class="nhom an" id="hangRuyBang"><div class="ten">Chữ trên nhãn góc</div><input type="text" id="chuRuyBang" placeholder="Ví dụ: MỚI" maxlength="24"></div>
+        <div class="nhom an" id="hangChuDoc"><div class="ten">Chữ dọc bên cạnh ảnh</div><input type="text" id="chuDoc" placeholder="Ví dụ: BỘ SƯU TẬP 2026" maxlength="40"></div>
+        <p class="goi-y">Mẫu bạn chọn có thêm những dòng chữ này. Bạn sửa chữ tuỳ ý, để trống thì dòng đó sẽ không hiện.</p>
+      </div>
+      <div class="thong-bao an" id="tbAI" role="status"></div>
+      <div id="ketQuaAI" class="an">
+        <div id="goiYChung"></div>
+        <ul class="ds-goi-y" id="dsAI"></ul>
+        <button class="nut rong" id="nutApNhanh" type="button" style="margin-top:8px">Tự động áp phương án 1</button>
+      </div>
+
+      <div class="cai-nhanh">
+        <div class="nhom">
+          <div class="ten">Vị trí chữ</div>
+          <div class="chon" id="chonViTri">
+            <button type="button" data-v="tren">Trên</button>
+            <button type="button" data-v="giua">Giữa</button>
+            <button type="button" data-v="duoi">Dưới</button>
+          </div>
+        </div>
+        <div class="nhom hang-mau">
+          <div>
+            <div class="o-mau"><input type="color" id="mauChu"> Màu chữ</div>
+            <div class="mau-nhanh" data-cho="mauChu"></div>
+          </div>
+          <div>
+            <div class="o-mau"><input type="color" id="mauNhan"> Màu cụm nhấn</div>
+            <div class="mau-nhanh" data-cho="mauNhan"></div>
+          </div>
+        </div>
+        <div class="nhom">
+          <div class="ten">Cỡ chữ <em id="gtCo">86</em></div>
+          <input type="range" id="coChu" min="36" max="180" step="1">
+        </div>
+      </div>
+
+      <details class="mo-rong" id="khuTuyChinh">
+        <summary>Tuỳ chỉnh thêm</summary>
+        <div class="nhom">
+          <div class="ten">Phông chữ</div>
+          <select id="phong"></select>
+        </div>
+        <div class="hang" style="margin-top:10px;gap:18px">
+          <label class="dong" style="margin:0"><input type="checkbox" id="dam"> Chữ đậm</label>
+          <label class="dong" style="margin:0"><input type="checkbox" id="nghieng"> Chữ nghiêng</label>
+        </div>
+        <p class="goi-y an" id="ghiChuDam">Phông này chỉ có một độ đậm, nên ô "Chữ đậm" không làm thay đổi chữ.</p>
+        <div class="nhom">
+          <div class="ten">Căn chữ</div>
+          <div class="chon" id="chonCan">
+            <button type="button" data-v="left">Căn trái</button>
+            <button type="button" data-v="center">Căn giữa</button>
+            <button type="button" data-v="right">Căn phải</button>
+          </div>
+        </div>
+        <div class="nhom">
+          <div class="ten">Khoảng cách giữa các dòng <em id="gtDong">14</em></div>
+          <input type="range" id="gianDong" min="-10" max="70" step="1">
+        </div>
+        <label class="dong"><input type="checkbox" id="vien"> Thêm viền quanh chữ</label>
+        <div class="phu-thuoc" id="khuVien">
+          <div class="hang" style="margin-top:8px">
+            <input type="color" id="mauVien">
+            <div style="flex:1"><div class="ten" style="font-size:13px">Độ dày viền <em id="gtVien" style="font-style:normal;color:var(--xanh)">6</em></div><input type="range" id="doDayVien" min="1" max="24" step="1"></div>
+          </div>
+        </div>
+        <label class="dong"><input type="checkbox" id="bong"> Thêm bóng đổ phía sau chữ</label>
+        <div class="phu-thuoc" id="khuBong">
+          <div class="hang" style="margin-top:8px">
+            <input type="color" id="mauBong">
+            <div style="flex:1"><div class="ten" style="font-size:13px">Độ nhoè của bóng <em id="gtBong" style="font-style:normal;color:var(--xanh)">18</em></div><input type="range" id="doNhoe" min="0" max="60" step="1"></div>
+          </div>
+        </div>
+        <label class="dong"><input type="checkbox" id="lopToi"> Phủ một lớp tối mờ phía sau chữ để chữ dễ đọc hơn</label>
+        <div class="phu-thuoc nhom" id="khuLopToi">
+          <div class="ten">Độ tối <em id="gtToi">82</em></div>
+          <input type="range" id="doToi" min="10" max="100" step="1">
+        </div>
+        <div class="nhom">
+          <div class="ten">Dịch chữ sang trái / phải <em id="gtX">50</em></div>
+          <input type="range" id="viTriX" min="0" max="100" step="0.5">
+        </div>
+        <div class="nhom">
+          <div class="ten">Dịch chữ lên / xuống <em id="gtY">85</em></div>
+          <input type="range" id="viTriY" min="0" max="100" step="0.5">
+          <p class="goi-y">Trên máy tính, bạn cũng có thể bấm giữ và kéo chữ hoặc nhãn ngay trên ảnh.</p>
+        </div>
+        <div class="nhom">
+          <div class="ten">Cụm chữ muốn tô màu (không cần gõ dấu sao)</div>
+          <input type="text" id="cumNhan" placeholder="Ví dụ: mùa hoa">
+        </div>
+        <label class="dong"><input type="checkbox" id="vietHoa"> Viết hoa toàn bộ tiêu đề</label>
+        <div class="nhom an" id="khuMauThanhPhan">
+          <div class="ten">Màu các thành phần của mẫu</div>
+          <div class="hang-mau">
+            <div class="o-mau an" id="oMauHop"><input type="color" id="mauHop"> Màu hộp sau chữ</div>
+            <div class="o-mau an" id="oMauPhu"><input type="color" id="mauPhu"> Màu dòng phụ</div>
+            <div class="o-mau an" id="oNenPhu"><input type="color" id="nenPhu"> Màu nền dòng phụ</div>
+            <div class="o-mau an" id="oMauRuyBang"><input type="color" id="nenRuyBang"> Màu nhãn góc</div>
+            <div class="o-mau an" id="oMauKhung"><input type="color" id="mauKhung"> Màu khung viền</div>
+            <div class="o-mau an" id="oMauDoc"><input type="color" id="mauDoc"> Màu chữ dọc</div>
+          </div>
+          <div class="nhom an" id="oDoDucHop"><div class="ten">Độ đậm của hộp sau chữ <em id="gtHop">55</em></div><input type="range" id="doDucHop" min="10" max="100" step="1"></div>
+        </div>
+      </details>
+      <p class="goi-y goi-y-nhan">Nhãn thương hiệu ở góc ảnh đang là chữ mẫu. <button class="nut-chu" id="nutMoNhan" type="button">Đổi nhãn thương hiệu trong Cài đặt</button></p>
+    </div>
+
+    <!-- Bước 4: Lưu ảnh -->
+    <div class="the buoc">
+      <h2><span class="so so-to">4</span>Lưu ảnh về máy</h2>
+      <button class="nut nut-chinh nut-luu rong" id="nutTai" type="button">Lưu ảnh</button>
+      <div class="thong-bao an" id="tbTai"></div>
+      <p class="goi-y">Mặc định ảnh được lưu dạng JPG nét đẹp, cạnh ngắn 1080 điểm ảnh, hợp để đăng mạng xã hội. Lựa chọn hiện tại: <b id="kichThuocLuu">1080 × 1350, JPG</b>.</p>
+      <details class="mo-rong" id="khuTuyChonLuu">
+        <summary>Tuỳ chọn lưu</summary>
+        <div class="nhom">
+          <div class="chon" id="chonDinhDang">
+            <button type="button" data-v="jpg">JPG<small>Nhẹ, hợp đăng mạng xã hội</small></button>
+            <button type="button" data-v="png">PNG<small>Nét nhất, dung lượng lớn hơn</small></button>
+          </div>
+        </div>
+        <div class="nhom" id="khuChatLuong">
+          <div class="ten">Chất lượng ảnh JPG <em id="gtCL">92</em></div>
+          <input type="range" id="chatLuong" min="60" max="100" step="1">
+          <p class="goi-y">Số càng cao ảnh càng nét nhưng tệp càng nặng. Mức 85 đến 95 là vừa đẹp để đăng mạng xã hội.</p>
+        </div>
+        <div class="nhom">
+          <div class="ten">Độ lớn ảnh</div>
+          <select id="doLon">
+            <option value="1080">Chuẩn mạng xã hội (cạnh ngắn 1080 điểm ảnh)</option>
+            <option value="1440">Nét hơn (cạnh ngắn 1440 điểm ảnh)</option>
+            <option value="2160">Rất nét, để in hoặc làm bìa (cạnh ngắn 2160 điểm ảnh)</option>
+          </select>
+        </div>
+        <div class="nhom">
+          <div class="ten">Tên tệp sẽ lưu</div>
+          <input type="text" id="tenTep">
+          <p class="goi-y">Tên được đặt tự động theo tiêu đề. Bạn có thể sửa lại nếu muốn.</p>
+        </div>
+      </details>
+    </div>
+
+    <button class="nut-chu" id="nutDatLai" type="button" style="align-self:center">Đặt lại mọi lựa chọn như ban đầu</button>
+  </section>
+</main>
+
+<!-- Ngăn kéo Cài đặt -->
+<div class="ngan-keo" id="nganCaiDat" hidden>
+  <div class="ngan-nen" id="nganNen"></div>
+  <aside class="ngan-than" role="dialog" aria-modal="true" aria-labelledby="tieuDeCaiDat">
+    <div class="ngan-dau">
+      <h2 id="tieuDeCaiDat">Cài đặt</h2>
+      <button class="nut" id="nutDongCaiDat" type="button">Đóng</button>
+    </div>
+    <p class="goi-y" style="margin:0 0 6px">Nhãn thương hiệu được nhớ trên máy của bạn cho những lần sau. Khoá AI chỉ được nhớ khi bạn tích ô “Nhớ khoá”.</p>
+
+    <section class="muc" id="mucNhan">
+      <h3>Nhãn thương hiệu</h3>
+      <label class="dong" style="margin-top:0"><input type="checkbox" id="coNhan"> Hiện nhãn thương hiệu trên ảnh</label>
+      <div id="khuNhan">
+        <div class="nhom">
+          <div class="ten">Chữ trên nhãn</div>
+          <input type="text" id="chuNhan" placeholder="Ví dụ: tencuaban.com">
+          <p class="goi-y">Thường là tên miền, tên trang hoặc tên thương hiệu của bạn.</p>
+        </div>
+        <div class="nhom">
+          <div class="ten">Vị trí nhãn</div>
+          <div class="chon goc" id="chonGoc">
+            <button type="button" data-v="tl">Góc trên bên trái</button>
+            <button type="button" data-v="tr">Góc trên bên phải</button>
+            <button type="button" data-v="bl">Góc dưới bên trái</button>
+            <button type="button" data-v="br">Góc dưới bên phải</button>
+          </div>
+        </div>
+        <div class="nhom hang-mau">
+          <div class="o-mau"><input type="color" id="nenNhan"> Màu nền nhãn</div>
+          <div class="o-mau"><input type="color" id="mauChuNhan"> Màu chữ nhãn</div>
+        </div>
+        <div class="nhom">
+          <div class="ten">Cỡ chữ của nhãn <em id="gtCoNhan">34</em></div>
+          <input type="range" id="coNhanChu" min="18" max="72" step="1">
+        </div>
+      </div>
+    </section>
+
+    <section class="muc" id="mucAI">
+      <h3>Cài đặt AI <span class="tag">Không bắt buộc</span></h3>
+      <p class="goi-y" style="margin-top:0">Khi có khoá sử dụng (API key) của một hãng AI, nút “✨ Tạo bằng AI” sẽ xem ảnh của bạn rồi gợi ý 5 tiêu đề tiếng Việt, chỗ đặt chữ không che mặt và màu nhấn hợp với ảnh. Không có khoá thì bạn vẫn dùng mọi chức năng khác bình thường, không cần mạng.</p>
+      <div class="nhom">
+        <div class="ten">Bạn dùng AI của hãng nào?</div>
+        <select id="nhaCC">
+          <option value="kyma">Kyma API (có tặng lượt dùng thử)</option>
+          <option value="gemini">Google Gemini (có gói miễn phí)</option>
+          <option value="claude">Claude (Anthropic)</option>
+          <option value="openai">OpenAI (ChatGPT)</option>
+        </select>
+      </div>
+      <div class="nhom">
+        <div class="ten">Khoá sử dụng (API key)</div>
+        <div class="hang" style="flex-wrap:nowrap">
+          <input type="password" id="khoaAI" autocomplete="off" placeholder="Dán khoá của bạn vào đây">
+          <button class="nut" id="nutThuKhoa" type="button" style="flex:none">Thử khoá</button>
+        </div>
+        <label class="dong"><input type="checkbox" id="luuKhoa"> Nhớ khoá trên máy này cho lần sau</label>
+        <p class="canh-bao-khoa">Chỉ tích ô này trên máy riêng của bạn. Ai dùng chung máy hoặc chung trình duyệt này có thể xem được khoá. Không tích thì khoá chỉ nằm tạm trong trang và tự mất khi bạn đóng trang.</p>
+        <div class="hang" style="margin-top:8px"><button class="nut" id="nutXoaKhoa" type="button">Xoá khoá khỏi máy này</button></div>
+        <div class="thong-bao an" id="tbKhoa" role="status" style="margin-top:8px"></div>
+        <div class="nhom an" id="khuMoHinhKyma">
+          <div class="ten">Mô hình AI xem ảnh</div>
+          <div class="hang" style="flex-wrap:nowrap">
+            <select id="chonMoHinh"><option value="gpt-6-luna">gpt-6-luna (miễn phí)</option></select>
+            <button class="nut" id="nutTaiDs" type="button" style="flex:none">Tải danh sách</button>
+          </div>
+          <p class="goi-y">Bạn nên chọn mô hình có chữ "miễn phí" để dùng lượt được tặng. Muốn dùng mô hình khác, bạn gõ tên vào ô "Tên mô hình AI" trong phần Tuỳ chỉnh nâng cao.</p>
+        </div>
+        <details class="lay-khoa" id="huongDanKhoa">
+          <summary>Lấy khoá ở đâu?</summary>
+          <ol id="buocLayKhoa"></ol>
+        </details>
+      </div>
+      <details class="nang-cao">
+        <summary>Tuỳ chỉnh nâng cao</summary>
+        <div class="nhom">
+          <div class="ten">Tên mô hình AI <span style="color:var(--xam);font-weight:400">(thường không cần sửa)</span></div>
+          <input type="text" id="moHinh">
+        </div>
+      </details>
+      <div class="thong-bao" style="margin-top:12px"><b>Về sự riêng tư:</b> ảnh của bạn chỉ rời khỏi máy khi bạn bấm nút “✨ Tạo bằng AI”. Lúc đó, một bản thu nhỏ của ảnh cùng ghi chú của bạn được gửi thẳng tới hãng AI bạn đã chọn (Kyma, Google, Anthropic hoặc OpenAI), không gửi tới bất kỳ nơi nào khác. Không bấm nút thì ảnh không rời máy. Khoá của bạn không bao giờ được gửi về máy chủ của sancongcu.com; khoá chỉ được lưu trong trình duyệt trên máy này nếu bạn tích ô “Nhớ khoá”.</div>
+    </section>
+    <button class="nut nut-chinh rong" id="nutXongCaiDat" type="button" style="margin-top:14px">Xong</button>
+  </aside>
+</div>
+
+<footer class="chan">
+  <details>
+    <summary>Phông chữ đi kèm và giấy phép</summary>
+    <p>Ứng dụng có sẵn các phông chữ miễn phí dưới đây, tất cả đều hỗ trợ đầy đủ tiếng Việt và được phát hành theo giấy phép SIL Open Font License 1.1, cho phép dùng cả cho mục đích thương mại. Ảnh bạn tạo ra là của bạn.</p>
+    <div class="ds-font" id="dsFont"></div>
+    <div id="giayPhep"></div>
+  </details>
+</footer>
+
+<script>
+"use strict";
+const FONT_DATA = {"lato-900": "fonts/lato-900.ttf", "playfair-vf": "fonts/playfair-vf.ttf", "bvp-400": "fonts/bvp-400.woff2", "bvp-500": "fonts/bvp-500.woff2", "bvp-800": "fonts/bvp-800.woff2", "mont-600": "fonts/mont-600.woff2", "mont-900": "fonts/mont-900.woff2", "roboto-500": "fonts/roboto-500.woff2", "roboto-900": "fonts/roboto-900.woff2", "inter-600": "fonts/inter-600.woff2", "inter-900": "fonts/inter-900.woff2"};
+const BAN_WEB = true; // bản đặt trên sancongcu.com (trong khung của trang công cụ)
+document.body.classList.toggle("ban-web",BAN_WEB);
+const LICENSES = {"Lato": "Copyright (c) 2010-2014 by tyPoland Lukasz Dziedzic (team@latofonts.com) with Reserved Font Name \"Lato\"\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license is copied below, and is also available with a FAQ at:\nhttp://scripts.sil.org/OFL\n\n\n-----------------------------------------------------------\nSIL OPEN FONT LICENSE Version 1.1 - 26 February 2007\n-----------------------------------------------------------\n\nPREAMBLE\nThe goals of the Open Font License (OFL) are to stimulate worldwide\ndevelopment of collaborative font projects, to support the font creation\nefforts of academic and linguistic communities, and to provide a free and\nopen framework in which fonts may be shared and improved in partnership\nwith others.\n\nThe OFL allows the licensed fonts to be used, studied, modified and\nredistributed freely as long as they are not sold by themselves. The\nfonts, including any derivative works, can be bundled, embedded, \nredistributed and/or sold with any software provided that any reserved\nnames are not used by derivative works. The fonts and derivatives,\nhowever, cannot be released under any other type of license. The\nrequirement for fonts to remain under this license does not apply\nto any document created using the fonts or their derivatives.\n\nDEFINITIONS\n\"Font Software\" refers to the set of files released by the Copyright\nHolder(s) under this license and clearly marked as such. This may\ninclude source files, build scripts and documentation.\n\n\"Reserved Font Name\" refers to any names specified as such after the\ncopyright statement(s).\n\n\"Original Version\" refers to the collection of Font Software components as\ndistributed by the Copyright Holder(s).\n\n\"Modified Version\" refers to any derivative made by adding to, deleting,\nor substituting -- in part or in whole -- any of the components of the\nOriginal Version, by changing formats or by porting the Font Software to a\nnew environment.\n\n\"Author\" refers to any designer, engineer, programmer, technical\nwriter or other person who contributed to the Font Software.\n\nPERMISSION & CONDITIONS\nPermission is hereby granted, free of charge, to any person obtaining\na copy of the Font Software, to use, study, copy, merge, embed, modify,\nredistribute, and sell modified and unmodified copies of the Font\nSoftware, subject to the following conditions:\n\n1) Neither the Font Software nor any of its individual components,\nin Original or Modified Versions, may be sold by itself.\n\n2) Original or Modified Versions of the Font Software may be bundled,\nredistributed and/or sold with any software, provided that each copy\ncontains the above copyright notice and this license. These can be\nincluded either as stand-alone text files, human-readable headers or\nin the appropriate machine-readable metadata fields within text or\nbinary files as long as those fields can be easily viewed by the user.\n\n3) No Modified Version of the Font Software may use the Reserved Font\nName(s) unless explicit written permission is granted by the corresponding\nCopyright Holder. This restriction only applies to the primary font name as\npresented to the users.\n\n4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font\nSoftware shall not be used to promote, endorse or advertise any\nModified Version, except to acknowledge the contribution(s) of the\nCopyright Holder(s) and the Author(s) or with their explicit written\npermission.\n\n5) The Font Software, modified or unmodified, in part or in whole,\nmust be distributed entirely under this license, and must not be\ndistributed under any other license. The requirement for fonts to\nremain under this license does not apply to any document created\nusing the Font Software.\n\nTERMINATION\nThis license becomes null and void if any of the above conditions are\nnot met.\n\nDISCLAIMER\nTHE FONT SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT\nOF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE\nCOPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\nINCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL\nDAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\nFROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\nOTHER DEALINGS IN THE FONT SOFTWARE.\n", "Be Vietnam Pro": "Copyright 2021 The Be Vietnam Pro Project Authors (https://github.com/bettergui/BeVietnamPro),\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license is copied below, and is also available with a FAQ at:\nhttp://scripts.sil.org/OFL\n\n\n-----------------------------------------------------------\nSIL OPEN FONT LICENSE Version 1.1 - 26 February 2007\n-----------------------------------------------------------\n\nPREAMBLE\nThe goals of the Open Font License (OFL) are to stimulate worldwide\ndevelopment of collaborative font projects, to support the font creation\nefforts of academic and linguistic communities, and to provide a free and\nopen framework in which fonts may be shared and improved in partnership\nwith others.\n\nThe OFL allows the licensed fonts to be used, studied, modified and\nredistributed freely as long as they are not sold by themselves. The\nfonts, including any derivative works, can be bundled, embedded,\nredistributed and/or sold with any software provided that any reserved\nnames are not used by derivative works. The fonts and derivatives,\nhowever, cannot be released under any other type of license. The\nrequirement for fonts to remain under this license does not apply\nto any document created using the fonts or their derivatives.\n\nDEFINITIONS\n\"Font Software\" refers to the set of files released by the Copyright\nHolder(s) under this license and clearly marked as such. This may\ninclude source files, build scripts and documentation.\n\n\"Reserved Font Name\" refers to any names specified as such after the\ncopyright statement(s).\n\n\"Original Version\" refers to the collection of Font Software components as\ndistributed by the Copyright Holder(s).\n\n\"Modified Version\" refers to any derivative made by adding to, deleting,\nor substituting -- in part or in whole -- any of the components of the\nOriginal Version, by changing formats or by porting the Font Software to a\nnew environment.\n\n\"Author\" refers to any designer, engineer, programmer, technical\nwriter or other person who contributed to the Font Software.\n\nPERMISSION & CONDITIONS\nPermission is hereby granted, free of charge, to any person obtaining\na copy of the Font Software, to use, study, copy, merge, embed, modify,\nredistribute, and sell modified and unmodified copies of the Font\nSoftware, subject to the following conditions:\n\n1) Neither the Font Software nor any of its individual components,\nin Original or Modified Versions, may be sold by itself.\n\n2) Original or Modified Versions of the Font Software may be bundled,\nredistributed and/or sold with any software, provided that each copy\ncontains the above copyright notice and this license. These can be\nincluded either as stand-alone text files, human-readable headers or\nin the appropriate machine-readable metadata fields within text or\nbinary files as long as those fields can be easily viewed by the user.\n\n3) No Modified Version of the Font Software may use the Reserved Font\nName(s) unless explicit written permission is granted by the corresponding\nCopyright Holder. This restriction only applies to the primary font name as\npresented to the users.\n\n4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font\nSoftware shall not be used to promote, endorse or advertise any\nModified Version, except to acknowledge the contribution(s) of the\nCopyright Holder(s) and the Author(s) or with their explicit written\npermission.\n\n5) The Font Software, modified or unmodified, in part or in whole,\nmust be distributed entirely under this license, and must not be\ndistributed under any other license. The requirement for fonts to\nremain under this license does not apply to any document created\nusing the Font Software.\n\nTERMINATION\nThis license becomes null and void if any of the above conditions are\nnot met.\n\nDISCLAIMER\nTHE FONT SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT\nOF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE\nCOPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\nINCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL\nDAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\nFROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\nOTHER DEALINGS IN THE FONT SOFTWARE.\n", "Montserrat": "Copyright 2024 The Montserrat.Git Project Authors (https://github.com/JulietaUla/Montserrat.git)\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license is copied below, and is also available with a FAQ at:\nhttps://openfontlicense.org\n\n\n-----------------------------------------------------------\nSIL OPEN FONT LICENSE Version 1.1 - 26 February 2007\n-----------------------------------------------------------\n\nPREAMBLE\nThe goals of the Open Font License (OFL) are to stimulate worldwide\ndevelopment of collaborative font projects, to support the font creation\nefforts of academic and linguistic communities, and to provide a free and\nopen framework in which fonts may be shared and improved in partnership\nwith others.\n\nThe OFL allows the licensed fonts to be used, studied, modified and\nredistributed freely as long as they are not sold by themselves. The\nfonts, including any derivative works, can be bundled, embedded, \nredistributed and/or sold with any software provided that any reserved\nnames are not used by derivative works. The fonts and derivatives,\nhowever, cannot be released under any other type of license. The\nrequirement for fonts to remain under this license does not apply\nto any document created using the fonts or their derivatives.\n\nDEFINITIONS\n\"Font Software\" refers to the set of files released by the Copyright\nHolder(s) under this license and clearly marked as such. This may\ninclude source files, build scripts and documentation.\n\n\"Reserved Font Name\" refers to any names specified as such after the\ncopyright statement(s).\n\n\"Original Version\" refers to the collection of Font Software components as\ndistributed by the Copyright Holder(s).\n\n\"Modified Version\" refers to any derivative made by adding to, deleting,\nor substituting -- in part or in whole -- any of the components of the\nOriginal Version, by changing formats or by porting the Font Software to a\nnew environment.\n\n\"Author\" refers to any designer, engineer, programmer, technical\nwriter or other person who contributed to the Font Software.\n\nPERMISSION & CONDITIONS\nPermission is hereby granted, free of charge, to any person obtaining\na copy of the Font Software, to use, study, copy, merge, embed, modify,\nredistribute, and sell modified and unmodified copies of the Font\nSoftware, subject to the following conditions:\n\n1) Neither the Font Software nor any of its individual components,\nin Original or Modified Versions, may be sold by itself.\n\n2) Original or Modified Versions of the Font Software may be bundled,\nredistributed and/or sold with any software, provided that each copy\ncontains the above copyright notice and this license. These can be\nincluded either as stand-alone text files, human-readable headers or\nin the appropriate machine-readable metadata fields within text or\nbinary files as long as those fields can be easily viewed by the user.\n\n3) No Modified Version of the Font Software may use the Reserved Font\nName(s) unless explicit written permission is granted by the corresponding\nCopyright Holder. This restriction only applies to the primary font name as\npresented to the users.\n\n4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font\nSoftware shall not be used to promote, endorse or advertise any\nModified Version, except to acknowledge the contribution(s) of the\nCopyright Holder(s) and the Author(s) or with their explicit written\npermission.\n\n5) The Font Software, modified or unmodified, in part or in whole,\nmust be distributed entirely under this license, and must not be\ndistributed under any other license. The requirement for fonts to\nremain under this license does not apply to any document created\nusing the Font Software.\n\nTERMINATION\nThis license becomes null and void if any of the above conditions are\nnot met.\n\nDISCLAIMER\nTHE FONT SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT\nOF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE\nCOPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\nINCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL\nDAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\nFROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\nOTHER DEALINGS IN THE FONT SOFTWARE.", "Roboto": "Copyright 2011 The Roboto Project Authors (https://github.com/googlefonts/roboto-classic)\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license is copied below, and is also available with a FAQ at:\nhttps://openfontlicense.org\n\n\n-----------------------------------------------------------\nSIL OPEN FONT LICENSE Version 1.1 - 26 February 2007\n-----------------------------------------------------------\n\nPREAMBLE\nThe goals of the Open Font License (OFL) are to stimulate worldwide\ndevelopment of collaborative font projects, to support the font creation\nefforts of academic and linguistic communities, and to provide a free and\nopen framework in which fonts may be shared and improved in partnership\nwith others.\n\nThe OFL allows the licensed fonts to be used, studied, modified and\nredistributed freely as long as they are not sold by themselves. The\nfonts, including any derivative works, can be bundled, embedded, \nredistributed and/or sold with any software provided that any reserved\nnames are not used by derivative works. The fonts and derivatives,\nhowever, cannot be released under any other type of license. The\nrequirement for fonts to remain under this license does not apply\nto any document created using the fonts or their derivatives.\n\nDEFINITIONS\n\"Font Software\" refers to the set of files released by the Copyright\nHolder(s) under this license and clearly marked as such. This may\ninclude source files, build scripts and documentation.\n\n\"Reserved Font Name\" refers to any names specified as such after the\ncopyright statement(s).\n\n\"Original Version\" refers to the collection of Font Software components as\ndistributed by the Copyright Holder(s).\n\n\"Modified Version\" refers to any derivative made by adding to, deleting,\nor substituting -- in part or in whole -- any of the components of the\nOriginal Version, by changing formats or by porting the Font Software to a\nnew environment.\n\n\"Author\" refers to any designer, engineer, programmer, technical\nwriter or other person who contributed to the Font Software.\n\nPERMISSION & CONDITIONS\nPermission is hereby granted, free of charge, to any person obtaining\na copy of the Font Software, to use, study, copy, merge, embed, modify,\nredistribute, and sell modified and unmodified copies of the Font\nSoftware, subject to the following conditions:\n\n1) Neither the Font Software nor any of its individual components,\nin Original or Modified Versions, may be sold by itself.\n\n2) Original or Modified Versions of the Font Software may be bundled,\nredistributed and/or sold with any software, provided that each copy\ncontains the above copyright notice and this license. These can be\nincluded either as stand-alone text files, human-readable headers or\nin the appropriate machine-readable metadata fields within text or\nbinary files as long as those fields can be easily viewed by the user.\n\n3) No Modified Version of the Font Software may use the Reserved Font\nName(s) unless explicit written permission is granted by the corresponding\nCopyright Holder. This restriction only applies to the primary font name as\npresented to the users.\n\n4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font\nSoftware shall not be used to promote, endorse or advertise any\nModified Version, except to acknowledge the contribution(s) of the\nCopyright Holder(s) and the Author(s) or with their explicit written\npermission.\n\n5) The Font Software, modified or unmodified, in part or in whole,\nmust be distributed entirely under this license, and must not be\ndistributed under any other license. The requirement for fonts to\nremain under this license does not apply to any document created\nusing the Font Software.\n\nTERMINATION\nThis license becomes null and void if any of the above conditions are\nnot met.\n\nDISCLAIMER\nTHE FONT SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT\nOF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE\nCOPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\nINCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL\nDAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\nFROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\nOTHER DEALINGS IN THE FONT SOFTWARE.\n", "Inter": "Copyright 2020 The Inter Project Authors (https://github.com/rsms/inter)\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license is copied below, and is also available with a FAQ at:\nhttps://scripts.sil.org/OFL\n\n\n-----------------------------------------------------------\nSIL OPEN FONT LICENSE Version 1.1 - 26 February 2007\n-----------------------------------------------------------\n\nPREAMBLE\nThe goals of the Open Font License (OFL) are to stimulate worldwide\ndevelopment of collaborative font projects, to support the font creation\nefforts of academic and linguistic communities, and to provide a free and\nopen framework in which fonts may be shared and improved in partnership\nwith others.\n\nThe OFL allows the licensed fonts to be used, studied, modified and\nredistributed freely as long as they are not sold by themselves. The\nfonts, including any derivative works, can be bundled, embedded, \nredistributed and/or sold with any software provided that any reserved\nnames are not used by derivative works. The fonts and derivatives,\nhowever, cannot be released under any other type of license. The\nrequirement for fonts to remain under this license does not apply\nto any document created using the fonts or their derivatives.\n\nDEFINITIONS\n\"Font Software\" refers to the set of files released by the Copyright\nHolder(s) under this license and clearly marked as such. This may\ninclude source files, build scripts and documentation.\n\n\"Reserved Font Name\" refers to any names specified as such after the\ncopyright statement(s).\n\n\"Original Version\" refers to the collection of Font Software components as\ndistributed by the Copyright Holder(s).\n\n\"Modified Version\" refers to any derivative made by adding to, deleting,\nor substituting -- in part or in whole -- any of the components of the\nOriginal Version, by changing formats or by porting the Font Software to a\nnew environment.\n\n\"Author\" refers to any designer, engineer, programmer, technical\nwriter or other person who contributed to the Font Software.\n\nPERMISSION & CONDITIONS\nPermission is hereby granted, free of charge, to any person obtaining\na copy of the Font Software, to use, study, copy, merge, embed, modify,\nredistribute, and sell modified and unmodified copies of the Font\nSoftware, subject to the following conditions:\n\n1) Neither the Font Software nor any of its individual components,\nin Original or Modified Versions, may be sold by itself.\n\n2) Original or Modified Versions of the Font Software may be bundled,\nredistributed and/or sold with any software, provided that each copy\ncontains the above copyright notice and this license. These can be\nincluded either as stand-alone text files, human-readable headers or\nin the appropriate machine-readable metadata fields within text or\nbinary files as long as those fields can be easily viewed by the user.\n\n3) No Modified Version of the Font Software may use the Reserved Font\nName(s) unless explicit written permission is granted by the corresponding\nCopyright Holder. This restriction only applies to the primary font name as\npresented to the users.\n\n4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font\nSoftware shall not be used to promote, endorse or advertise any\nModified Version, except to acknowledge the contribution(s) of the\nCopyright Holder(s) and the Author(s) or with their explicit written\npermission.\n\n5) The Font Software, modified or unmodified, in part or in whole,\nmust be distributed entirely under this license, and must not be\ndistributed under any other license. The requirement for fonts to\nremain under this license does not apply to any document created\nusing the Font Software.\n\nTERMINATION\nThis license becomes null and void if any of the above conditions are\nnot met.\n\nDISCLAIMER\nTHE FONT SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT\nOF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE\nCOPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\nINCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL\nDAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\nFROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\nOTHER DEALINGS IN THE FONT SOFTWARE.\n", "Playfair Display": "Copyright 2017 The Playfair Display Project Authors (https://github.com/clauseggers/Playfair-Display), with Reserved Font Name \"Playfair Display\"\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license is copied below, and is also available with a FAQ at:\nhttp://scripts.sil.org/OFL\n\n\n-----------------------------------------------------------\nSIL OPEN FONT LICENSE Version 1.1 - 26 February 2007\n-----------------------------------------------------------\n\nPREAMBLE\nThe goals of the Open Font License (OFL) are to stimulate worldwide\ndevelopment of collaborative font projects, to support the font creation\nefforts of academic and linguistic communities, and to provide a free and\nopen framework in which fonts may be shared and improved in partnership\nwith others.\n\nThe OFL allows the licensed fonts to be used, studied, modified and\nredistributed freely as long as they are not sold by themselves. The\nfonts, including any derivative works, can be bundled, embedded, \nredistributed and/or sold with any software provided that any reserved\nnames are not used by derivative works. The fonts and derivatives,\nhowever, cannot be released under any other type of license. The\nrequirement for fonts to remain under this license does not apply\nto any document created using the fonts or their derivatives.\n\nDEFINITIONS\n\"Font Software\" refers to the set of files released by the Copyright\nHolder(s) under this license and clearly marked as such. This may\ninclude source files, build scripts and documentation.\n\n\"Reserved Font Name\" refers to any names specified as such after the\ncopyright statement(s).\n\n\"Original Version\" refers to the collection of Font Software components as\ndistributed by the Copyright Holder(s).\n\n\"Modified Version\" refers to any derivative made by adding to, deleting,\nor substituting -- in part or in whole -- any of the components of the\nOriginal Version, by changing formats or by porting the Font Software to a\nnew environment.\n\n\"Author\" refers to any designer, engineer, programmer, technical\nwriter or other person who contributed to the Font Software.\n\nPERMISSION & CONDITIONS\nPermission is hereby granted, free of charge, to any person obtaining\na copy of the Font Software, to use, study, copy, merge, embed, modify,\nredistribute, and sell modified and unmodified copies of the Font\nSoftware, subject to the following conditions:\n\n1) Neither the Font Software nor any of its individual components,\nin Original or Modified Versions, may be sold by itself.\n\n2) Original or Modified Versions of the Font Software may be bundled,\nredistributed and/or sold with any software, provided that each copy\ncontains the above copyright notice and this license. These can be\nincluded either as stand-alone text files, human-readable headers or\nin the appropriate machine-readable metadata fields within text or\nbinary files as long as those fields can be easily viewed by the user.\n\n3) No Modified Version of the Font Software may use the Reserved Font\nName(s) unless explicit written permission is granted by the corresponding\nCopyright Holder. This restriction only applies to the primary font name as\npresented to the users.\n\n4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font\nSoftware shall not be used to promote, endorse or advertise any\nModified Version, except to acknowledge the contribution(s) of the\nCopyright Holder(s) and the Author(s) or with their explicit written\npermission.\n\n5) The Font Software, modified or unmodified, in part or in whole,\nmust be distributed entirely under this license, and must not be\ndistributed under any other license. The requirement for fonts to\nremain under this license does not apply to any document created\nusing the Font Software.\n\nTERMINATION\nThis license becomes null and void if any of the above conditions are\nnot met.\n\nDISCLAIMER\nTHE FONT SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT\nOF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE\nCOPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\nINCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL\nDAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\nFROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\nOTHER DEALINGS IN THE FONT SOFTWARE.\n"};
+
+/* ---------- Phông chữ ---------- */
+const FONTS = [
+  {id:"lato", label:"Lato — đậm khoẻ, gọn gàng", fam:"ccla-lato", on:900, off:900, one:true, faces:[["lato-900","100 900"]], lic:"Lato", credit:"Łukasz Dziedzic"},
+  {id:"bvp", label:"Be Vietnam Pro — hiện đại, rất hợp tiếng Việt", fam:"ccla-bvp", on:800, off:500, faces:[["bvp-400","400"],["bvp-500","500"],["bvp-800","800"]], lic:"Be Vietnam Pro", credit:"The Be Vietnam Pro Project Authors"},
+  {id:"mont", label:"Montserrat — mạnh mẽ, nổi bật", fam:"ccla-mont", on:900, off:600, faces:[["mont-600","600"],["mont-900","900"]], lic:"Montserrat", credit:"The Montserrat.Git Project Authors (Julieta Ulanovsky và cộng sự)"},
+  {id:"roboto", label:"Roboto — rõ ràng, dễ đọc", fam:"ccla-roboto", on:900, off:500, faces:[["roboto-500","500"],["roboto-900","900"]], lic:"Roboto", credit:"The Roboto Project Authors"},
+  {id:"inter", label:"Inter — tối giản, hiện đại", fam:"ccla-inter", on:900, off:600, faces:[["inter-600","600"],["inter-900","900"]], lic:"Inter", credit:"The Inter Project Authors"},
+  {id:"playfair", label:"Playfair Display — có chân, sang trọng", fam:"ccla-playfair", on:900, off:600, faces:[["playfair-vf","400 900"]], lic:"Playfair Display", credit:"The Playfair Display Project Authors"},
+];
+function b64ToBuf(b64){const s=atob(b64);const u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u.buffer;}
+async function napPhong(){
+  const ps=[];
+  for(const f of FONTS){
+    for(const [key,w] of f.faces){
+      if(!FONT_DATA[key]) continue;
+      const v=FONT_DATA[key], nguon=v.startsWith("fonts/")?`url("${v}")`:b64ToBuf(v);
+      const face=new FontFace(f.fam,nguon,{weight:w,style:"normal"});
+      ps.push(face.load().then(ff=>document.fonts.add(ff)).catch(e=>console.warn("Không nạp được phông",key,e)));
+    }
+  }
+  await Promise.all(ps);
+}
+const fontById=id=>FONTS.find(f=>f.id===id)||FONTS[0];
+
+/* ---------- Trạng thái ---------- */
+const MAC_DINH = {
+  ratio:"4:5", title:"Cứ mỉm cười, **mùa hoa** sẽ tự đến", accentWord:"", upper:false,
+  font:"lato", size:86, bold:true, italic:false, align:"center", lineGap:14,
+  color:"#FFFFFF", accent:"#FFD23F",
+  stroke:false, strokeColor:"#000000", strokeW:6,
+  shadow:false, shadowColor:"#000000", shadowBlur:18,
+  pos:"duoi", tx:0.5, ty:0.85,
+  grad:true, gradStrength:82,
+  badge:true, badgeText:"tencuaban.com", badgeBg:"#FFFFFF", badgeColor:"#111111", badgeSize:34, badgePos:"br", bx:0.8, by:0.92,
+  fmt:"jpg", quality:92, outShort:1080,
+  // các thành phần thêm của kho mẫu (mặc định tắt)
+  mauId:"mac-dinh",
+  tint:false, tintColor:"#000000", tintColor2:"", tintAlpha:35,
+  box:false, boxFull:false, boxColor:"#000000", boxAlpha:55, boxRadius:24, lineBox:false,
+  accentBox:false, accentBoxText:"#0A0A0A",
+  frame:false, frameColor:"#FFFFFF", frameW:8, frameInset:36,
+  sub:false, subText:"", subPos:"duoi", subStyle:"chu", subColor:"#FFFFFF", subBg:"#276CF3", subSize:36, subUpper:false,
+  ribbon:false, ribbonText:"", ribbonPos:"tr", ribbonStyle:"cheo", ribbonBg:"#E11D48", ribbonColor:"#FFFFFF",
+  side:false, sideText:"", sidePos:"l", sideColor:"#FFFFFF", sideSize:28,
+  quote:false,
+};
+const KHOA_CAI_DAT="ccla-cai-dat-v1";
+let S = Object.assign({}, MAC_DINH);
+try{ const luu=JSON.parse(localStorage.getItem(KHOA_CAI_DAT)||"null"); if(luu&&typeof luu==="object") for(const k in MAC_DINH) if(k in luu && typeof luu[k]===typeof MAC_DINH[k]) S[k]=luu[k]; }catch(e){}
+let khoSan=false; // kho mẫu đã dựng xong chưa
+const A = { img:null, imgName:"", rot:0, flipH:false, flipV:false, crop:null, oriented:null, cropMode:false, fileNameEdited:false };
+let luuHen=null;
+function luuCaiDat(){ clearTimeout(luuHen); luuHen=setTimeout(()=>{ try{localStorage.setItem(KHOA_CAI_DAT,JSON.stringify(S));}catch(e){} },300); }
+
+const $=id=>document.getElementById(id);
+const cv=$("cv"), ctx=cv.getContext("2d");
+
+/* ---------- Ảnh gốc: xoay / lật / khung cắt ---------- */
+function anhDaXoay(){
+  if(!A.img) return null;
+  if(A.oriented) return A.oriented;
+  const w=A.img.naturalWidth, h=A.img.naturalHeight, r=A.rot%360, sw=(r===90||r===270);
+  const c=document.createElement("canvas"); c.width=sw?h:w; c.height=sw?w:h;
+  const g=c.getContext("2d");
+  // lật theo trục màn hình (lật áp dụng sau khi xoay)
+  g.translate(c.width/2,c.height/2); g.scale(A.flipH?-1:1, A.flipV?-1:1); g.rotate(r*Math.PI/180);
+  g.drawImage(A.img,-w/2,-h/2);
+  A.oriented=c; return c;
+}
+function tyLeSo(){ if(S.ratio==="tu-do") return null; const [a,b]=S.ratio.split(":").map(Number); return a/b; }
+function khungLonNhat(){
+  const o=anhDaXoay(); if(!o) return null;
+  const r=tyLeSo(); let w=o.width, h=o.height;
+  if(r){ if(w/h>r){ w=h*r; } else { h=w/r; } }
+  return {x:(o.width-w)/2, y:(o.height-h)*0.25, w, h}; // giữ phần trên ảnh (thường có mặt người)
+}
+function kichThuocXuat(short){
+  let rw,rh;
+  if(S.ratio==="tu-do"){ if(A.crop){rw=A.crop.w;rh=A.crop.h;} else {rw=4;rh=5;} }
+  else [rw,rh]=S.ratio.split(":").map(Number);
+  if(rw<=rh) return [short, Math.round(short*rh/rw)];
+  return [Math.round(short*rw/rh), short];
+}
+
+/* ---------- Tách tiêu đề ---------- */
+function tachTieuDe(text, cum, upper){
+  let segs=[]; const re=/\*\*(.+?)\*\*/gs; let pos=0, m;
+  while((m=re.exec(text))){ if(m.index>pos) segs.push({t:text.slice(pos,m.index),a:false}); segs.push({t:m[1],a:true}); pos=m.index+m[0].length; }
+  if(pos<text.length) segs.push({t:text.slice(pos),a:false});
+  cum=(cum||"").trim();
+  if(cum){
+    const out=[]; const low=cum.toLocaleLowerCase("vi");
+    for(const s of segs){
+      if(s.a){out.push(s);continue;}
+      let t=s.t, tl=t.toLocaleLowerCase("vi"), i, p=0;
+      while((i=tl.indexOf(low,p))!==-1){ if(i>p) out.push({t:t.slice(p,i),a:false}); out.push({t:t.slice(i,i+cum.length),a:true}); p=i+cum.length; }
+      if(p<t.length) out.push({t:t.slice(p),a:false});
+    }
+    segs=out;
+  }
+  segs=segs.map(s=>({t:s.t.replace(/\*\*/g,""),a:s.a})).filter(s=>s.t);
+  if(upper) segs=segs.map(s=>({t:s.t.toLocaleUpperCase("vi"),a:s.a}));
+  return segs;
+}
+function chiaDong(g, segs, maxW){
+  const toks=[];
+  for(const s of segs) for(const t of s.t.split(/(\r?\n|[ \t]+)/)) if(t) toks.push({t:/\n/.test(t)?"\n":t, a:s.a, sp:/^[ \t]+$/.test(t), nl:/\n/.test(t)});
+  const lines=[]; let cur=[]; const forced=[];
+  const rong=parts=>{ const p=catKhoang(parts); return p.reduce((w,x)=>w+g.measureText(x.t).width,0); };
+  for(const tk of toks){
+    if(tk.nl){ lines.push(catKhoang(cur)); forced.push(true); cur=[]; continue; }
+    if(tk.sp && !cur.length) continue;
+    const cand=cur.concat([tk]);
+    if(!tk.sp && cur.some(x=>!x.sp) && rong(cand)>maxW){ lines.push(catKhoang(cur)); forced.push(false); cur=[tk]; }
+    else cur=cand;
+  }
+  lines.push(catKhoang(cur)); forced.push(true);
+  // chống mồ côi: dòng cuối chỉ 1 chữ thì kéo bớt 1 chữ từ dòng trên xuống
+  const n=lines.length;
+  if(n>=2 && !forced[n-2]){
+    const last=lines[n-1].filter(x=>!x.sp), prev=lines[n-2], prevWords=prev.filter(x=>!x.sp);
+    if(last.length===1 && prevWords.length>=3){
+      const idx=prev.map(x=>!x.sp).lastIndexOf(true);
+      const moved=prev.slice(idx); const keep=catKhoang(prev.slice(0,idx));
+      const newLast=moved.concat([{t:" ",a:false,sp:true}]).concat(lines[n-1]);
+      if(rong(newLast)<=maxW){ lines[n-2]=keep; lines[n-1]=catKhoang(newLast); }
+    }
+  }
+  return lines.map(gopDoan).filter((l,i,arr)=>l.length||arr.length===1);
+}
+function catKhoang(parts){ let a=0,b=parts.length; while(a<b&&parts[a].sp)a++; while(b>a&&parts[b-1].sp)b--; return parts.slice(a,b); }
+function gopDoan(parts){ const out=[]; for(const p of parts){ const l=out[out.length-1]; if(l&&l.a===p.a) l.t+=p.t; else out.push({t:p.t,a:p.a}); } return out; }
+
+/* ---------- Bố cục ---------- */
+function chuoiPhong(f,px,bold,italic){ return `${italic?"italic ":""}${bold?f.on:f.off} ${px}px "${f.fam}", "Segoe UI", sans-serif`; }
+function datGianChu(g,px){ if("letterSpacing" in g) g.letterSpacing=(px||0)+"px"; }
+function duongBo(g,x,y,w,h,r){ // khung bo tròn góc (r có thể là mảng 4 góc)
+  g.beginPath();
+  if(g.roundRect){ g.roundRect(x,y,w,h,r); return; }
+  const k=Array.isArray(r)?Math.max(...r):r, q=Math.min(k,w/2,h/2);
+  g.moveTo(x+q,y); g.arcTo(x+w,y,x+w,y+h,q); g.arcTo(x+w,y+h,x,y+h,q); g.arcTo(x,y+h,x,y,q); g.arcTo(x,y,x+w,y,q); g.closePath();
+}
+function coChuDoc(){ return S.side && S.sideText.trim(); }
+function viTriChuDoc(W,s){ // tâm của dòng chữ dọc theo chiều ngang
+  const fs=S.sideSize*s, bien=S.frame?(S.frameInset+S.frameW)*s:0, d=bien+Math.max(46*s,fs*1.3);
+  return S.sidePos==="l"?d:W-d;
+}
+function doChuPhu(g,f,s,maxW){ // đo dòng chữ phụ của mẫu
+  if(!(S.sub && S.subText.trim())) return null;
+  const hop=S.subStyle==="hop", t=S.subUpper?S.subText.trim().toLocaleUpperCase("vi"):S.subText.trim();
+  let fs=S.subSize*s, w;
+  for(let lan=0;lan<2;lan++){
+    g.font=chuoiPhong(f,fs,hop||S.subUpper,false); datGianChu(g,S.subUpper?fs*0.08:0);
+    w=g.measureText(t).width; const px=hop?fs*0.6:0;
+    if(w+px*2<=maxW) break; fs=fs*(maxW-px*2)/w*0.97;
+  }
+  const m=g.measureText("ĐHgyÁ"), ls=S.subUpper?fs*0.08:0; datGianChu(g,0);
+  const asc=m.actualBoundingBoxAscent, desc=m.actualBoundingBoxDescent, px=hop?fs*0.6:0, py=hop?fs*0.34:0;
+  return {t,fs,font:chuoiPhong(f,fs,hop||S.subUpper,false),ls,w:w+px*2,h:asc+desc+py*2,asc,px,py,hop};
+}
+function boCuc(g,W,H){
+  const s=Math.min(W,H)/1080, M=72*s, f=fontById(S.font);
+  const L={s};
+  // nhãn
+  if(S.badge && S.badgeText.trim()){
+    const bs=S.badgeSize*s; g.font=chuoiPhong(f,bs,true,false);
+    const t=S.badgeText.trim(), m=g.measureText(t), mr=g.measureText("Hg");
+    const asc=mr.actualBoundingBoxAscent, desc=Math.max(m.actualBoundingBoxDescent, mr.actualBoundingBoxDescent*0.6);
+    const px=28*s*(S.badgeSize/34), py=18*s*(S.badgeSize/34);
+    const w=m.width+px*2, h=asc+desc+py*2;
+    let x,y;
+    if(S.badgePos==="tl"){x=M;y=M;} else if(S.badgePos==="tr"){x=W-M-w;y=M;}
+    else if(S.badgePos==="bl"){x=M;y=H-M-h;} else if(S.badgePos==="br"){x=W-M-w;y=H-M-h;}
+    else { x=S.bx*W-w/2; y=S.by*H-h/2; }
+    if(S.frame && S.badgePos!=="tuy-chinh"){ const bi=(S.frameInset+S.frameW)*s+22*s; x=Math.max(bi,Math.min(W-bi-w,x)); y=Math.max(bi,Math.min(H-bi-h,y)); }
+    x=Math.max(0,Math.min(W-w,x)); y=Math.max(0,Math.min(H-h,y));
+    L.badge={x,y,w,h,text:t,font:g.font,tx:x+px,ty:y+py+asc};
+  }
+  // lề hai bên (chừa chỗ cho khung viền và chữ dọc)
+  let Ml=M, Mr=M;
+  if(S.frame){ const fi=(S.frameInset+S.frameW)*s+30*s; Ml=Math.max(Ml,fi); Mr=Math.max(Mr,fi); }
+  if(coChuDoc()){ const cx=viTriChuDoc(W,s), r=S.sideSize*s*0.7+30*s; if(S.sidePos==="l") Ml=Math.max(Ml,cx+r); else Mr=Math.max(Mr,W-cx+r); }
+  const coHop=S.box||S.boxFull;
+  // tiêu đề
+  const segs=tachTieuDe(S.title,S.accentWord,S.upper);
+  let fs=S.size*s;
+  const padHop=()=>(S.box&&!S.boxFull)?Math.max(26*s,fs*0.36):0;
+  const padDong=()=>(S.lineBox||S.accentBox)?fs*0.24:0;
+  const maxWOf=()=>Math.max(60*s, W-Ml-Mr-2*padHop()-2*padDong());
+  let maxW=maxWOf();
+  g.font=chuoiPhong(f,fs,S.bold,S.italic);
+  let widest=0; for(const sg of segs) for(const w of sg.t.split(/\s+/)) widest=Math.max(widest,g.measureText(w).width);
+  if(widest>maxW){ fs=fs*maxW/widest*0.98; g.font=chuoiPhong(f,fs,S.bold,S.italic); maxW=maxWOf(); }
+  let lines, asc, desc, gap, lh, bh, n;
+  for(let lan=0; lan<6; lan++){ // khối chữ cao quá 45% ảnh thì tự thu nhỏ rồi chia dòng lại
+    lines=segs.length?chiaDong(g,segs,maxW):[];
+    const mAy=g.measureText("Ay"); asc=mAy.actualBoundingBoxAscent; desc=mAy.actualBoundingBoxDescent;
+    gap=S.lineGap*s*(fs/(86*s)) + (S.lineBox||S.accentBox?fs*0.2:0); lh=asc+desc+gap; n=lines.length; bh=n?n*lh-gap:0;
+    if(bh<=H*0.45 || fs<12*s) break;
+    fs=Math.max(12*s, fs*Math.max(0.6,Math.sqrt(H*0.45/bh))*0.98); g.font=chuoiPhong(f,fs,S.bold,S.italic); maxW=maxWOf();
+  }
+  const fontTieuDe=g.font;
+  const lws=lines.map(l=>l.reduce((w,p)=>w+g.measureText(p.t).width,0));
+  const bwT=Math.max(0,...lws);
+  // dòng phụ + ngoặc kép
+  const sub=doChuPhu(g,f,s,W-Ml-Mr);
+  const subGap=sub?Math.max(16*s,fs*0.32):0, qH=S.quote?fs*1.0:0;
+  let exTren=qH, exDuoi=0;
+  if(sub){ if(S.subPos==="tren") exTren+=sub.h+subGap; else exDuoi+=subGap+sub.h; }
+  const bw=Math.max(bwT, sub?sub.w:0, S.quote?fs*0.8:0);
+  const BH=exTren+bh+exDuoi;
+  const ph=padHop()||(S.boxFull?Math.max(26*s,fs*0.36):0)||(padDong()?fs*0.14:0);
+  const bTop=L.badge&&L.badge.y<H/2, bBot=L.badge&&L.badge.y>=H/2;
+  let T;
+  if(S.pos==="duoi"){
+    let ref=H-116*s; if(bBot) ref=Math.min(ref,L.badge.y-48*s); if(S.frame) ref=Math.min(ref,H-(S.frameInset+S.frameW)*s-70*s);
+    T=ref+0.07*fs+desc-BH-ph*0.6;
+  } else if(S.pos==="tren"){
+    let ref=116*s; if(bTop) ref=Math.max(ref,L.badge.y+L.badge.h+48*s); if(S.frame) ref=Math.max(ref,(S.frameInset+S.frameW)*s+70*s);
+    T=ref+0.12*fs+ph*0.6;
+  } else if(S.pos==="giua"){ T=H/2-BH/2; }
+  else { T=S.ty*H-BH/2; }
+  const lechTrong=padHop()+padDong();
+  let left;
+  if(S.pos==="tuy-chinh") left=S.tx*W-bw/2;
+  else if(S.align==="left") left=Ml+lechTrong; else if(S.align==="right") left=W-Mr-lechTrong-bw; else left=Ml+(W-Ml-Mr-bw)/2;
+  // không bao giờ tràn mép ảnh (chừa chỗ cho dấu tiếng Việt phía trên)
+  const tMin=(exTren>0?8*s:0.3*fs)+ph, tMax=H-BH-(exDuoi>0?0:desc)-4*s-ph;
+  T=Math.min(Math.max(T,tMin),Math.max(tMin,tMax)); left=Math.min(Math.max(left,lechTrong),Math.max(0,W-bw-lechTrong));
+  const top=T+exTren;
+  L.text={x:left,y:top,w:bw,h:bh,lines,lws,lh,asc,desc,fs,font:fontTieuDe};
+  L.block={x:left,y:T,w:bw,h:BH};
+  const canX=w=>S.align==="left"?left:S.align==="right"?left+bw-w:left+(bw-w)/2;
+  if(S.quote) L.quote={x:S.align==="left"?left:S.align==="right"?left+bw:left+bw/2, y:T, size:fs*2.1};
+  if(sub) L.sub=Object.assign(sub,{x:canX(sub.w), y:S.subPos==="tren"?T+qH:top+bh+subGap});
+  if(coHop){ const p=S.boxFull?Math.max(26*s,fs*0.36):padHop(); L.box=S.boxFull?{x:0,y:T-p,w:W,h:BH+2*p}:{x:left-p,y:T-p,w:bw+2*p,h:BH+2*p}; }
+  return L;
+}
+
+/* ---------- Vẽ ---------- */
+function veNenTam(g,W,H){
+  const gr=g.createLinearGradient(0,0,W,H); gr.addColorStop(0,"#2B3A5C"); gr.addColorStop(1,"#0E1424");
+  g.fillStyle=gr; g.fillRect(0,0,W,H);
+  g.strokeStyle="rgba(255,255,255,.05)"; g.lineWidth=2;
+  for(let i=-H;i<W;i+=60){ g.beginPath(); g.moveTo(i,0); g.lineTo(i+H,H); g.stroke(); }
+}
+function veNenMau(g,W,H){ // nền minh hoạ trung tính cho ảnh xem trước mẫu (tự vẽ, không dùng ảnh ngoài)
+  const s=Math.min(W,H)/1080;
+  let gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,"#6F9BEF"); gr.addColorStop(.5,"#B9CDF3"); gr.addColorStop(1,"#F0D3BE");
+  g.fillStyle=gr; g.fillRect(0,0,W,H);
+  g.fillStyle="rgba(255,238,196,.95)"; g.beginPath(); g.arc(W*0.7,H*0.34,120*s,0,Math.PI*2); g.fill();
+  g.fillStyle="rgba(255,255,255,.55)";
+  for(const [x,y,r] of [[.2,.18,60],[.28,.16,80],[.36,.19,55],[.78,.12,50],[.86,.14,66]]){ g.beginPath(); g.arc(W*x,H*y,r*s,0,Math.PI*2); g.fill(); }
+  const doi=(y0,mau,a)=>{ g.fillStyle=mau; g.beginPath(); g.moveTo(0,H*y0); g.bezierCurveTo(W*0.3,H*(y0-a),W*0.6,H*(y0+a*0.6),W,H*(y0-a*0.4)); g.lineTo(W,H); g.lineTo(0,H); g.closePath(); g.fill(); };
+  doi(0.6,"#5B7DC2",0.09); doi(0.72,"#34539A",0.07);
+  gr=g.createLinearGradient(0,H*0.75,0,H); gr.addColorStop(0,"#22396F"); gr.addColorStop(1,"#121F3F");
+  g.fillStyle=gr; g.beginPath(); g.moveTo(0,H*0.82); g.bezierCurveTo(W*0.35,H*0.76,W*0.65,H*0.9,W,H*0.8); g.lineTo(W,H); g.lineTo(0,H); g.closePath(); g.fill();
+}
+function rgba(hex,a){ const h=hex.replace("#",""); const n=parseInt(h.length===3?h.split("").map(c=>c+c).join(""):h,16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
+function veToMau(g,W,H){
+  if(!S.tint) return; const a=S.tintAlpha/100;
+  if(S.tintColor2){ const gr=g.createLinearGradient(0,0,W,H); gr.addColorStop(0,rgba(S.tintColor,a)); gr.addColorStop(1,rgba(S.tintColor2,a)); g.fillStyle=gr; }
+  else g.fillStyle=rgba(S.tintColor,a);
+  g.fillRect(0,0,W,H);
+}
+function veLopToi(g,W,H,L){
+  const a=S.gradStrength/100, t=L.block; if(!L.text.lines.length) return;
+  const cy=t.y+t.h/2; let gr;
+  const duoi = S.pos==="duoi" || (S.pos==="tuy-chinh" && cy>H*0.62);
+  const tren = S.pos==="tren" || (S.pos==="tuy-chinh" && cy<H*0.38);
+  if(duoi){
+    const st=Math.max(0,Math.min(H*0.48, t.y-H*0.18));
+    gr=g.createLinearGradient(0,st,0,H); gr.addColorStop(0,"rgba(0,0,0,0)"); gr.addColorStop(1,`rgba(0,0,0,${a})`);
+    g.fillStyle=gr; g.fillRect(0,st,W,H-st);
+  } else if(tren){
+    const en=Math.min(H,Math.max(H*0.52, t.y+t.h+H*0.18));
+    gr=g.createLinearGradient(0,0,0,en); gr.addColorStop(0,`rgba(0,0,0,${a})`); gr.addColorStop(1,"rgba(0,0,0,0)");
+    g.fillStyle=gr; g.fillRect(0,0,W,en);
+  } else {
+    const pad=H*0.2, y0=Math.max(0,t.y-pad), y1=Math.min(H,t.y+t.h+pad), span=Math.max(1,y1-y0);
+    gr=g.createLinearGradient(0,y0,0,y1);
+    gr.addColorStop(0,"rgba(0,0,0,0)");
+    gr.addColorStop(Math.min(.49,Math.max(0,(t.y-y0)/span)),`rgba(0,0,0,${a*0.8})`);
+    gr.addColorStop(Math.max(.51,Math.min(1,(t.y+t.h-y0)/span)),`rgba(0,0,0,${a*0.8})`);
+    gr.addColorStop(1,"rgba(0,0,0,0)");
+    g.fillStyle=gr; g.fillRect(0,y0,W,span);
+  }
+}
+function veKhung(g,W,H,s){
+  if(!S.frame) return; const i=S.frameInset*s, w=Math.max(1,S.frameW*s);
+  g.save(); g.strokeStyle=S.frameColor; g.lineWidth=w; g.strokeRect(i+w/2,i+w/2,W-2*i-w,H-2*i-w); g.restore();
+}
+function veHop(g,L){
+  const b=L.box; if(!b||!L.text.lines.length) return;
+  g.save(); g.fillStyle=rgba(S.boxColor,S.boxAlpha/100);
+  if(S.boxFull) g.fillRect(b.x,b.y,b.w,b.h); else { duongBo(g,b.x,b.y,b.w,b.h,S.boxRadius*L.s); g.fill(); }
+  g.restore();
+}
+function datBongChu(g,fs,s){ if(S.shadow){ g.shadowColor=rgba(S.shadowColor,0.75); g.shadowBlur=S.shadowBlur*s; g.shadowOffsetX=0; g.shadowOffsetY=Math.max(2,fs*0.05); } }
+function boBongChu(g){ g.shadowColor="transparent"; g.shadowBlur=0; g.shadowOffsetX=0; g.shadowOffsetY=0; }
+function veChu(g,L){
+  const t=L.text, s=L.s; if(!t.lines.length) return;
+  g.font=t.font; g.textBaseline="alphabetic"; g.textAlign="left";
+  const pos=[], dong=[]; // pos: [x, y, chữ, nhấn, rộng]
+  t.lines.forEach((line,i)=>{
+    const lw=t.lws[i]; let x = S.align==="left"? t.x : S.align==="right"? t.x+t.w-lw : t.x+(t.w-lw)/2;
+    const y=t.y+t.asc+i*t.lh; dong.push([x,y,lw]);
+    for(const p of line){ const w=g.measureText(p.t).width; pos.push([x,y,p.t,p.a,w]); x+=w; }
+  });
+  const px=t.fs*0.24, cao=t.asc+t.desc+t.fs*0.26, tren=t.asc+t.fs*0.13, r=t.fs*0.14;
+  if(S.lineBox){ // mỗi dòng nằm trong một hộp màu
+    g.save(); g.fillStyle=rgba(S.boxColor,S.boxAlpha/100);
+    for(const [x,y,lw] of dong){ if(lw>0){ duongBo(g,x-px,y-tren,lw+2*px,cao,r); g.fill(); } }
+    g.restore();
+  }
+  if(S.accentBox){ // cụm nhấn nằm trong hộp màu nhấn
+    g.save(); g.fillStyle=S.accent;
+    for(const [x,y,tx,a] of pos){ if(!a) continue;
+      const dau=tx.length-tx.trimStart().length, x0=x+(dau?g.measureText(tx.slice(0,dau)).width:0), w0=g.measureText(tx.trim()).width;
+      if(w0>0){ duongBo(g,x0-px,y-tren,w0+2*px,cao,r); g.fill(); } }
+    g.restore();
+  }
+  g.save();
+  if(S.stroke && S.strokeW>0){
+    datBongChu(g,t.fs,s); g.lineJoin="round"; g.miterLimit=2; g.lineWidth=S.strokeW*s*2*(t.fs/(86*s)); g.strokeStyle=S.strokeColor;
+    for(const [x,y,tx] of pos) g.strokeText(tx,x,y);
+    boBongChu(g);
+  } else datBongChu(g,t.fs,s);
+  for(const [x,y,tx,a] of pos){ g.fillStyle=a?(S.accentBox?S.accentBoxText:S.accent):S.color; g.fillText(tx,x,y); }
+  boBongChu(g); g.restore();
+}
+function veChuPhu(g,L){
+  const p=L.sub; if(!p||!L.text.lines.length) return;
+  g.save();
+  if(p.hop){ g.fillStyle=S.subBg; duongBo(g,p.x,p.y,p.w,p.h,p.h*0.24); g.fill(); }
+  else datBongChu(g,p.fs,L.s);
+  g.font=p.font; datGianChu(g,p.ls); g.fillStyle=S.subColor; g.textBaseline="alphabetic"; g.textAlign="left";
+  g.fillText(p.t,p.x+p.px,p.y+p.py+p.asc); datGianChu(g,0); boBongChu(g); g.restore();
+}
+function veNgoac(g,L){
+  const q=L.quote; if(!q||!L.text.lines.length) return;
+  g.save(); g.font=`900 ${q.size}px "ccla-playfair", Georgia, serif`; g.fillStyle=S.accent; g.textBaseline="alphabetic";
+  g.textAlign=S.align==="left"?"left":S.align==="right"?"right":"center";
+  const m=g.measureText("“");
+  g.fillText("“",q.x,q.y+(m.actualBoundingBoxAscent||q.size*0.7)); g.restore();
+}
+function veRuyBang(g,W,H,s){
+  const t=(S.ribbonText||"").trim(); if(!S.ribbon||!t) return;
+  const f=fontById("mont"); let fs=30*s;
+  g.save(); g.font=chuoiPhong(f,fs,true,false); datGianChu(g,fs*0.06);
+  if(S.ribbonStyle==="cheo"){ // dải ruy băng chéo qua góc ảnh
+    const d=104*s, h=fs*1.9, maxT=2*d*0.9; const w=g.measureText(t).width;
+    if(w>maxT){ fs*=maxT/w; g.font=chuoiPhong(f,fs,true,false); datGianChu(g,fs*0.06); }
+    const trai=S.ribbonPos==="tl";
+    g.translate(trai?0:W,0); g.rotate(trai?-Math.PI/4:Math.PI/4);
+    g.shadowColor="rgba(0,0,0,.28)"; g.shadowBlur=12*s; g.shadowOffsetY=3*s;
+    g.fillStyle=S.ribbonBg; g.fillRect(-W*1.5,d,W*3,h); boBongChu(g);
+    g.fillStyle="rgba(255,255,255,.35)"; g.fillRect(-W*1.5,d+3*s,W*3,Math.max(1,2*s)); g.fillRect(-W*1.5,d+h-5*s,W*3,Math.max(1,2*s));
+    g.fillStyle=S.ribbonColor; g.textAlign="center"; g.textBaseline="middle"; g.fillText(t,0,d+h/2+fs*0.05);
+  } else { // thẻ dính sát mép ảnh
+    const px=fs*0.75, h=fs*2.1, w=g.measureText(t).width+px*2, y=(S.frame?(S.frameInset+S.frameW)*s:0)+64*s, x=S.ribbonPos==="tl"?0:W-w;
+    g.shadowColor="rgba(0,0,0,.25)"; g.shadowBlur=10*s; g.shadowOffsetY=3*s;
+    g.fillStyle=S.ribbonBg; duongBo(g,x,y,w,h,S.ribbonPos==="tl"?[0,h/2,h/2,0]:[h/2,0,0,h/2]); g.fill(); boBongChu(g);
+    g.fillStyle=S.ribbonColor; g.textAlign="left"; g.textBaseline="middle"; g.fillText(t,x+px,y+h/2+fs*0.05);
+  }
+  datGianChu(g,0); g.restore();
+}
+function veChuDoc(g,W,H,s){
+  if(!coChuDoc()) return; const t=S.sideText.trim(), f=fontById(S.font);
+  let fs=S.sideSize*s; g.save(); g.font=chuoiPhong(f,fs,true,false); datGianChu(g,fs*0.2);
+  let w=g.measureText(t).width; const maxL=H*0.56;
+  if(w>maxL){ fs*=maxL/w; g.font=chuoiPhong(f,fs,true,false); datGianChu(g,fs*0.2); w=g.measureText(t).width; }
+  g.translate(viTriChuDoc(W,s),H/2); g.rotate(S.sidePos==="l"?-Math.PI/2:Math.PI/2);
+  datBongChu(g,fs,s); g.fillStyle=S.sideColor; g.textAlign="center"; g.textBaseline="middle"; g.fillText(t,0,0);
+  boBongChu(g); g.strokeStyle=S.sideColor; g.lineWidth=Math.max(1.5,3*s); const e=w/2+fs*0.7, dai=fs*2.4;
+  g.beginPath(); g.moveTo(-e-dai,0); g.lineTo(-e,0); g.moveTo(e,0); g.lineTo(e+dai,0); g.stroke();
+  datGianChu(g,0); g.restore();
+}
+function veNhan(g,L){
+  const b=L.badge; if(!b) return;
+  g.save(); g.fillStyle=S.badgeBg; duongBo(g,b.x,b.y,b.w,b.h,b.h/2);
+  g.fill(); g.font=b.font; g.fillStyle=S.badgeColor; g.textBaseline="alphabetic"; g.textAlign="left"; g.fillText(b.text,b.tx,b.ty); g.restore();
+}
+function veAnh(g,W,H,opt){
+  g.clearRect(0,0,W,H);
+  const o=anhDaXoay();
+  if(o && A.crop){ g.imageSmoothingEnabled=true; g.imageSmoothingQuality="high"; g.drawImage(o,A.crop.x,A.crop.y,A.crop.w,A.crop.h,0,0,W,H); }
+  else if(opt && opt.nenMau) veNenMau(g,W,H);
+  else veNenTam(g,W,H);
+  veToMau(g,W,H);
+  const L=boCuc(g,W,H);
+  if(S.grad) veLopToi(g,W,H,L);
+  veKhung(g,W,H,L.s);
+  veHop(g,L);
+  veChuDoc(g,W,H,L.s);
+  veNhan(g,L);
+  veRuyBang(g,W,H,L.s);
+  veNgoac(g,L);
+  veChu(g,L);
+  veChuPhu(g,L);
+  if(opt && opt.huongDan){
+    g.save(); g.setLineDash([10,8]); g.lineWidth=2.5; g.strokeStyle="rgba(39,108,243,.95)";
+    const pad=12;
+    if(keo.hover==="text"||keo.loai==="text"){ const t=L.block; g.strokeRect(t.x-pad,t.y-pad,t.w+pad*2,t.h+pad*2); }
+    if((keo.hover==="badge"||keo.loai==="badge") && L.badge){ const b=L.badge; g.strokeRect(b.x-pad/2,b.y-pad/2,b.w+pad,b.h+pad); }
+    if(keo.loai==="text" && keo.snapX){ g.setLineDash([]); g.strokeStyle="rgba(255,60,140,.9)"; g.beginPath(); g.moveTo(W/2,0); g.lineTo(W/2,H); g.stroke(); }
+    g.restore();
+  }
+  return L;
+}
+
+/* ---------- Xem trước ---------- */
+let L_hien=null, henVe=0;
+function ve(){ if(henVe) return; henVe=requestAnimationFrame(()=>{ henVe=0; veNgay(); }); }
+function veNgay(){
+  if(A.cropMode){ veCat(); return; }
+  const [W,H]=kichThuocXuat(1080);
+  if(cv.width!==W||cv.height!==H){ cv.width=W; cv.height=H; }
+  L_hien=veAnh(ctx,W,H,{huongDan:true});
+  const [ew,eh]=kichThuocXuat(S.outShort);
+  $("kichThuoc").textContent=`${ew} × ${eh}`;
+  $("kichThuocLuu").textContent=`${ew} × ${eh}, ${S.fmt.toUpperCase()}`+(S.fmt==="jpg"?`, chất lượng ${S.quality}`:"");
+  dongBoThanhTruot();
+  if(!A.fileNameEdited) $("tenTep").value=tenTepTuDong();
+  if(khoSan) henVeXemTruoc();
+}
+function dongBoThanhTruot(){
+  if(!L_hien) return; const t=L_hien.block, W=cv.width, H=cv.height;
+  const x=t.w?((t.x+t.w/2)/W*100):50, y=t.h?((t.y+t.h/2)/H*100):50;
+  if(document.activeElement!==$("viTriX")) $("viTriX").value=x.toFixed(1);
+  if(document.activeElement!==$("viTriY")) $("viTriY").value=y.toFixed(1);
+  $("gtX").textContent=Math.round(x); $("gtY").textContent=Math.round(y);
+}
+
+/* ---------- Chế độ cắt ---------- */
+const cat={scale:1, keo:null};
+function veCat(){
+  const o=anhDaXoay(); if(!o) return;
+  const maxL=1400, sc=Math.min(1,maxL/Math.max(o.width,o.height));
+  const W=Math.round(o.width*sc), H=Math.round(o.height*sc);
+  if(cv.width!==W||cv.height!==H){ cv.width=W; cv.height=H; }
+  cat.scale=sc;
+  ctx.clearRect(0,0,W,H); ctx.drawImage(o,0,0,W,H);
+  const c=A.crop, x=c.x*sc, y=c.y*sc, w=c.w*sc, h=c.h*sc;
+  ctx.save(); ctx.fillStyle="rgba(10,10,10,.6)";
+  ctx.beginPath(); ctx.rect(0,0,W,H); ctx.rect(x,y,w,h); ctx.fill("evenodd");
+  ctx.strokeStyle="#fff"; ctx.lineWidth=2; ctx.strokeRect(x,y,w,h);
+  ctx.strokeStyle="rgba(255,255,255,.45)"; ctx.lineWidth=1;
+  for(let i=1;i<3;i++){ ctx.beginPath(); ctx.moveTo(x+w*i/3,y); ctx.lineTo(x+w*i/3,y+h); ctx.moveTo(x,y+h*i/3); ctx.lineTo(x+w,y+h*i/3); ctx.stroke(); }
+  const hs=Math.max(14,W/60); ctx.fillStyle="#fff";
+  for(const [hx,hy] of [[x,y],[x+w,y],[x,y+h],[x+w,y+h]]) ctx.fillRect(hx-hs/2,hy-hs/2,hs,hs);
+  ctx.restore();
+  $("kichThuoc").textContent=`${Math.round(c.w)} × ${Math.round(c.h)}`;
+}
+function batCat(on){
+  if(on && !A.img) return;
+  A.cropMode=on; $("khung").classList.toggle("che-do-cat",on); document.body.classList.toggle("che-do-cat",on);
+  document.querySelector(".san-trong").classList.toggle("che-do-cat",on);
+  $("nutCat").classList.toggle("on",on); ve();
+}
+
+/* ---------- Kéo thả trên khung ---------- */
+const keo={loai:null,hover:null,snapX:false};
+function toaDo(e){ const r=cv.getBoundingClientRect(); return [(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height, cv.width/r.width]; }
+function trong(px,py,b,pad){ return b && px>=b.x-pad && px<=b.x+b.w+pad && py>=b.y-pad && py<=b.y+b.h+pad; }
+function trungVao(px,py,k){
+  if(!L_hien) return null;
+  if(L_hien.badge && trong(px,py,L_hien.badge,6*k)) return "badge";
+  if(L_hien.text.lines.length && trong(px,py,L_hien.block,14*k)) return "text";
+  return null;
+}
+cv.addEventListener("pointerdown",e=>{
+  const [px,py,k]=toaDo(e);
+  if(A.cropMode){
+    const sc=cat.scale, c=A.crop, x=c.x*sc,y=c.y*sc,w=c.w*sc,h=c.h*sc, tol=22*k;
+    const goc=[[x,y,"tl"],[x+w,y,"tr"],[x,y+h,"bl"],[x+w,y+h,"br"]].find(([hx,hy])=>Math.abs(px-hx)<tol&&Math.abs(py-hy)<tol);
+    if(goc) cat.keo={loai:"goc",goc:goc[2],c0:{...c}};
+    else if(px>x&&px<x+w&&py>y&&py<y+h) cat.keo={loai:"di",p0:[px,py],c0:{...c}};
+    else return;
+    cv.setPointerCapture(e.pointerId); e.preventDefault(); return;
+  }
+  const hit=trungVao(px,py,k); if(!hit) return;
+  const W=cv.width,H=cv.height;
+  if(hit==="text"){ const t=L_hien.block; S.tx=(t.x+t.w/2)/W; S.ty=(t.y+t.h/2)/H; S.pos="tuy-chinh"; capNhatNut(); }
+  else { const b=L_hien.badge; S.bx=(b.x+b.w/2)/W; S.by=(b.y+b.h/2)/H; S.badgePos="tuy-chinh"; capNhatNut(); }
+  keo.loai=hit; keo.p0=[px,py]; keo.v0=hit==="text"?[S.tx,S.ty]:[S.bx,S.by];
+  cv.setPointerCapture(e.pointerId); e.preventDefault(); ve();
+});
+cv.addEventListener("pointermove",e=>{
+  const [px,py,k]=toaDo(e);
+  if(A.cropMode){
+    if(!cat.keo){ cv.style.cursor="crosshair"; return; }
+    const o=anhDaXoay(), sc=cat.scale, ox=px/sc, oy=py/sc, r=tyLeSo(), c0=cat.keo.c0;
+    if(cat.keo.loai==="di"){
+      const dx=(px-cat.keo.p0[0])/sc, dy=(py-cat.keo.p0[1])/sc;
+      A.crop={...c0, x:Math.max(0,Math.min(o.width-c0.w,c0.x+dx)), y:Math.max(0,Math.min(o.height-c0.h,c0.y+dy))};
+    } else {
+      const g=cat.keo.goc, ax=g.includes("l")?c0.x+c0.w:c0.x, ay=g.startsWith("t")?c0.y+c0.h:c0.y;
+      const dirX=g.includes("l")?-1:1, dirY=g.startsWith("t")?-1:1;
+      let w=Math.max(40,(ox-ax)*dirX), h=Math.max(40,(oy-ay)*dirY);
+      const maxW=dirX>0?o.width-ax:ax, maxH=dirY>0?o.height-ay:ay;
+      if(r){ if(w/h>r) w=h*r; else h=w/r; w=Math.min(w,maxW,maxH*r); h=w/r; }
+      else { w=Math.min(w,maxW); h=Math.min(h,maxH); }
+      A.crop={x:dirX>0?ax:ax-w, y:dirY>0?ay:ay-h, w, h};
+    }
+    ve(); return;
+  }
+  if(!keo.loai){ const h=trungVao(px,py,k); if(h!==keo.hover){ keo.hover=h; cv.style.cursor=h?"move":"default"; ve(); } return; }
+  const W=cv.width,H=cv.height; let nx=keo.v0[0]+(px-keo.p0[0])/W, ny=keo.v0[1]+(py-keo.p0[1])/H;
+  nx=Math.max(0,Math.min(1,nx)); ny=Math.max(0,Math.min(1,ny));
+  if(keo.loai==="text"){ keo.snapX=Math.abs(nx-0.5)<0.012; if(keo.snapX) nx=0.5; S.tx=nx; S.ty=ny; }
+  else { S.bx=nx; S.by=ny; }
+  ve();
+});
+const thaKeo=()=>{ if(cat.keo){cat.keo=null; ve(); return;} if(keo.loai){ keo.loai=null; keo.snapX=false; luuCaiDat(); ve(); } };
+cv.addEventListener("pointerup",thaKeo); cv.addEventListener("pointercancel",thaKeo);
+cv.addEventListener("pointerleave",()=>{ if(!keo.loai&&keo.hover){keo.hover=null;ve();} });
+
+/* ---------- Nạp ảnh ---------- */
+let henAnTb=null;
+function baoAnh(msg,loi){
+  for(const id of ["tbAnh","tbAnhSan"]){ const el=$(id); el.textContent=msg; el.classList.remove("an"); el.classList.toggle("loi",!!loi); }
+  clearTimeout(henAnTb); henAnTb=setTimeout(()=>{ $("tbAnhSan").classList.add("an"); }, loi?9000:6000);
+}
+function anBaoAnh(){ $("tbAnh").classList.add("an"); $("tbAnhSan").classList.add("an"); }
+function napAnh(file){
+  if(!file) return;
+  if(/\.(heic|heif)$/i.test(file.name||"") || /hei[cf]/i.test(file.type)){ baoAnh("Ảnh này ở dạng HEIC của iPhone, trình duyệt chưa mở được. Bạn chuyển ảnh sang JPG trước nhé (trên iPhone: vào Cài đặt > Camera > Định dạng > chọn Tương thích nhất, hoặc gửi ảnh qua Zalo/Messenger rồi tải lại).",true); return; }
+  if(!/^image\/(jpeg|png|webp)$/.test(file.type) && !/\.(jpe?g|png|webp)$/i.test(file.name||"")){ baoAnh("Tệp này không phải ảnh JPG, PNG hoặc WEBP. Bạn vui lòng chọn ảnh khác nhé. Ảnh iPhone dạng HEIC thì bạn chuyển sang JPG trước.",true); return; }
+  const url=URL.createObjectURL(file); const img=new Image();
+  img.onload=()=>{
+    A.img=img; A.imgName=(file.name||"anh").replace(/\.[^.]+$/,""); A.rot=0; A.flipH=false; A.flipV=false; A.oriented=null;
+    A.crop=khungLonNhat(); $("thaAnh").classList.add("an");
+    $("tenAnh").textContent=`Đang dùng ảnh: ${file.name||"ảnh vừa dán"} (${img.naturalWidth} × ${img.naturalHeight}). Muốn đổi ảnh khác, bạn bấm lại nút trên hoặc kéo ảnh mới vào khung.`;
+    anBaoAnh(); capNhatNut(); ve();
+  };
+  img.onerror=()=>baoAnh("Không mở được ảnh này. Bạn thử lưu ảnh lại dưới dạng JPG hoặc PNG rồi chọn lại nhé.",true);
+  img.src=url;
+}
+$("tepAnh").addEventListener("change",e=>{ napAnh(e.target.files[0]); e.target.value=""; });
+$("nutChonAnh").onclick=()=>$("tepAnh").click();
+$("nutChonAnh2").onclick=()=>$("tepAnh").click();
+let demKeo=0;
+window.addEventListener("dragenter",e=>{ e.preventDefault(); demKeo++; document.querySelector(".san-trong").classList.add("dang-keo"); });
+window.addEventListener("dragleave",e=>{ demKeo=Math.max(0,demKeo-1); if(!demKeo) document.querySelector(".san-trong").classList.remove("dang-keo"); });
+window.addEventListener("dragover",e=>e.preventDefault());
+window.addEventListener("drop",e=>{ e.preventDefault(); demKeo=0; document.querySelector(".san-trong").classList.remove("dang-keo"); const f=e.dataTransfer&&e.dataTransfer.files[0]; if(f) napAnh(f); });
+window.addEventListener("paste",e=>{ const it=[...(e.clipboardData?.items||[])].find(i=>i.type.startsWith("image/")); if(it) napAnh(it.getAsFile()); });
+
+/* ---------- Xoay / lật / cắt ---------- */
+function doiHuong(fn){ if(!A.img) return; fn(); A.oriented=null; A.crop=khungLonNhat(); ve(); }
+$("nutXoay").onclick=()=>doiHuong(()=>{A.rot=(A.rot+90)%360;});
+function lat(truc){ // lật ảnh nhưng giữ nguyên khung cắt (lật theo)
+  if(!A.img) return; const o=anhDaXoay(), c=A.crop;
+  if(truc==="ngang"){ A.flipH=!A.flipH; if(c) c.x=o.width-c.x-c.w; } else { A.flipV=!A.flipV; if(c) c.y=o.height-c.y-c.h; }
+  A.oriented=null; ve();
+}
+$("nutLatNgang").onclick=()=>lat("ngang");
+$("nutLatDoc").onclick=()=>lat("doc");
+$("nutCat").onclick=()=>batCat(!A.cropMode);
+$("nutXongCat").onclick=()=>batCat(false);
+$("nutKhungLai").onclick=()=>{ A.crop=khungLonNhat(); ve(); };
+
+/* ---------- Tên tệp & xuất ---------- */
+function boDau(s){ return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d").replace(/Đ/g,"D"); }
+function tenTepTuDong(){
+  const [W,H]=kichThuocXuat(S.outShort);
+  let base=boDau(S.title.replace(/\*\*/g,"")).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+  if(base.length>48){ base=base.slice(0,49); base=base.slice(0,Math.max(base.lastIndexOf("-"),20)).replace(/-+$/,""); }
+  if(!base) base=boDau(A.imgName||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")||"anh-chen-chu";
+  return `${base}-${W}x${H}.${S.fmt}`;
+}
+function baoTai(msg,loi){ const el=$("tbTai"); el.textContent=msg; el.classList.remove("an"); el.classList.toggle("loi",!!loi); }
+$("tenTep").addEventListener("input",()=>{ A.fileNameEdited=$("tenTep").value.trim()!==""; });
+$("nutTai").onclick=async()=>{
+  if(!A.img){ baoTai("Bạn chưa chọn ảnh. Hãy chọn hoặc kéo một tấm ảnh vào khung xem trước trước khi tải về.",true); return; }
+  if(A.cropMode) batCat(false);
+  await document.fonts.ready;
+  const [W,H]=kichThuocXuat(S.outShort);
+  const c=document.createElement("canvas"); c.width=W; c.height=H;
+  const g=c.getContext("2d");
+  veAnh(g,W,H,{huongDan:false});
+  const type=S.fmt==="png"?"image/png":"image/jpeg";
+  if(type==="image/jpeg"){ // nền trắng phòng ảnh trong suốt
+    const t=document.createElement("canvas"); t.width=W; t.height=H; const tg=t.getContext("2d"); tg.fillStyle="#fff"; tg.fillRect(0,0,W,H); tg.drawImage(c,0,0); c.width=0; return xuat(t,type,W,H);
+  }
+  xuat(c,type,W,H);
+};
+function xuat(c,type,W,H){
+  c.toBlob(blob=>{
+    if(!blob){ baoTai("Không tạo được ảnh. Bạn thử chọn độ lớn ảnh nhỏ hơn rồi bấm lại nhé.",true); return; }
+    let ten=($("tenTep").value.trim()||tenTepTuDong()).replace(/[\\/:*?"<>|]+/g,"-");
+    const duoi="."+S.fmt; if(!ten.toLowerCase().endsWith(duoi)) ten=ten.replace(/\.(png|jpe?g)$/i,"")+duoi;
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=ten; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    baoTai(`Đã lưu ảnh "${ten}" (${W} × ${H}, khoảng ${Math.max(1,Math.round(blob.size/1024))} KB). Bạn xem trong thư mục Tải về (Downloads) của máy nhé.`);
+  }, type, S.quality/100);
+}
+
+/* ---------- Trợ lý AI (tuỳ chọn) ---------- */
+const AI_CC={
+  kyma:{ten:"Kyma API", model:"gpt-6-luna", links:[["Mở trang đăng ký Kyma","https://kymaapi.com/signup"],["Mở trang tạo khoá Kyma","https://kymaapi.com/keys"]],
+    buoc:["Bạn đăng ký tài khoản tại trang Kyma (đường dẫn bên dưới). Đăng nhập bằng Google thì được tặng ngay 0,5 USD để dùng thử; nếu đăng ký bằng email thì bạn cần mở thư để xác minh email trước.","Vào trang tạo khoá (đường dẫn bên dưới), bấm tạo khoá mới. Khoá bắt đầu bằng kyma- và chỉ hiện đúng một lần, nên bạn sao chép ngay.","Dán khoá vào ô bên trên, bấm “Thử khoá”, rồi chọn mô hình có chữ “miễn phí”."]},
+  gemini:{ten:"Google Gemini", model:"gemini-2.5-flash", link:"https://aistudio.google.com/apikey",
+    buoc:["Bạn mở trang Google AI Studio (bấm vào đường dẫn bên dưới) và đăng nhập bằng tài khoản Google.","Bấm nút “Create API key” (Tạo khoá), để dự án mặc định là được.","Sao chép khoá vừa tạo, dán vào ô bên trên rồi bấm “Thử khoá”."]},
+  claude:{ten:"Claude (Anthropic)", model:"claude-opus-5-5", link:"https://console.anthropic.com/settings/keys",
+    buoc:["Bạn mở trang quản lý khoá của Anthropic (bấm vào đường dẫn bên dưới) và đăng nhập. Tài khoản cần nạp sẵn một ít tiền thì mới dùng được.","Bấm “Create Key” (Tạo khoá) và đặt tên tuỳ ý.","Sao chép khoá (bắt đầu bằng sk-ant-), dán vào ô bên trên rồi bấm “Thử khoá”."]},
+  openai:{ten:"OpenAI", model:"gpt-5-mini", link:"https://platform.openai.com/api-keys",
+    buoc:["Bạn mở trang khoá của OpenAI (bấm vào đường dẫn bên dưới) và đăng nhập. Tài khoản cần nạp sẵn một ít tiền thì mới dùng được.","Bấm “Create new secret key” (Tạo khoá mới).","Sao chép khoá (bắt đầu bằng sk-), dán vào ô bên trên rồi bấm “Thử khoá”."]},
+};
+const KHOA_AI="ccla-khoa-ai-v1";
+const khoaPhien={}; // khoá chỉ nằm trong bộ nhớ của trang, mất khi đóng trang
+function docKhoaLuu(){ try{ return JSON.parse(localStorage.getItem(KHOA_AI)||"{}"); }catch(e){ return {}; } }
+function ghiKhoaLuu(nc,key,model){
+  if(!$("luuKhoa").checked) return;
+  try{ const l=docKhoaLuu(); l[nc]=key; l.model=Object.assign({},l.model,{[nc]:model}); localStorage.setItem(KHOA_AI,JSON.stringify(l)); }catch(e){}
+}
+function hienAI(){
+  const nc=$("nhaCC").value, luu=docKhoaLuu(), cc=AI_CC[nc];
+  $("khoaAI").value=khoaPhien[nc]||luu[nc]||""; $("luuKhoa").checked=!!luu[nc];
+  $("moHinh").value=(luu.model&&luu.model[nc])||cc.model;
+  const ol=$("buocLayKhoa"); ol.innerHTML="";
+  cc.buoc.forEach(b=>{ const li=document.createElement("li"); li.textContent=b; ol.appendChild(li); });
+  for(const [chu,url] of (cc.links||[["Mở trang lấy khoá của "+cc.ten, cc.link]])){
+    const li=document.createElement("li"); li.style.listStyle="none"; const a=document.createElement("a");
+    a.href=url; a.target="_blank"; a.rel="noopener noreferrer"; a.textContent=chu; li.appendChild(a); ol.appendChild(li);
+  }
+  $("khuMoHinhKyma").classList.toggle("an",nc!=="kyma");
+  if(nc==="kyma") dongBoChonMoHinh();
+}
+function dongBoChonMoHinh(){
+  const sel=$("chonMoHinh"), v=$("moHinh").value.trim()||AI_CC.kyma.model;
+  if(![...sel.options].some(o=>o.value===v)){ const o=document.createElement("option"); o.value=v; o.textContent=v; sel.appendChild(o); }
+  sel.value=v;
+}
+$("chonMoHinh").onchange=()=>{ $("moHinh").value=$("chonMoHinh").value; ghiKhoaLuu("kyma",$("khoaAI").value.trim(),$("chonMoHinh").value); };
+$("moHinh").addEventListener("change",()=>{ if($("nhaCC").value==="kyma") dongBoChonMoHinh(); });
+$("nutTaiDs").onclick=async()=>{
+  const nut=$("nutTaiDs"); nut.disabled=true; nut.textContent="Đang tải…";
+  try{
+    const res=await fetch("https://kymaapi.com/v1/models?input_modalities=image");
+    const data=await res.json().catch(()=>null);
+    if(!res.ok||!data) throw new Error("Không tải được danh sách mô hình (mã "+res.status+").");
+    const ds=(Array.isArray(data)?data:(data.data||[])).filter(m=>m&&m.id&&(!m.type||m.type==="language"));
+    if(!ds.length) throw new Error("Danh sách mô hình trống.");
+    ds.sort((a,b)=>(b.free_tier?1:0)-(a.free_tier?1:0)||String(a.id).localeCompare(String(b.id)));
+    const sel=$("chonMoHinh"), cu=$("moHinh").value.trim()||AI_CC.kyma.model; sel.innerHTML="";
+    for(const m of ds){ const o=document.createElement("option"); o.value=m.id; o.textContent=m.id+(m.free_tier?" (miễn phí)":" (trả phí)"); sel.appendChild(o); }
+    dongBoChonMoHinh(); if(!sel.value) sel.value=cu;
+    const mp=ds.filter(m=>m.free_tier).length;
+    baoKhoa(`Đã tải ${ds.length} mô hình xem được ảnh, trong đó ${mp} mô hình miễn phí (xếp ở đầu danh sách).`);
+  }catch(e){ baoKhoa((/Failed to fetch|NetworkError/i.test(e.message)?"Không tải được danh sách vì chưa có mạng.":e.message)+" Bạn vẫn có thể gõ tên mô hình trong phần Tuỳ chỉnh nâng cao.",true); }
+  finally{ nut.disabled=false; nut.textContent="Tải danh sách"; }
+};
+$("nhaCC").onchange=()=>{ hienAI(); $("tbAI").classList.add("an"); };
+$("nutXoaKhoa").onclick=()=>{ try{localStorage.removeItem(KHOA_AI);}catch(e){} for(const k in khoaPhien) delete khoaPhien[k]; $("khoaAI").value=""; $("luuKhoa").checked=false; baoKhoa("Đã xoá khoá khỏi trang này và khỏi máy này.");};
+$("luuKhoa").onchange=()=>{
+  const nc=$("nhaCC").value, key=lamSachKhoa($("khoaAI").value);
+  if($("luuKhoa").checked){ if(key){ ghiKhoaLuu(nc,key,$("moHinh").value.trim()||AI_CC[nc].model); baoKhoa("Đã nhớ khoá trên máy này. Khi không dùng nữa, bạn bấm “Xoá khoá khỏi máy này”."); } }
+  else { try{ const l=docKhoaLuu(); delete l[nc]; localStorage.setItem(KHOA_AI,JSON.stringify(l)); }catch(e){} baoKhoa("Khoá không còn được nhớ trên máy này. Khoá chỉ dùng tạm đến khi bạn đóng trang."); }
+};
+function baoKhoa(msg,loi){ const el=$("tbKhoa"); el.textContent=msg; el.classList.remove("an"); el.classList.toggle("loi",!!loi); }
+function lamSachKhoa(raw){ return String(raw||"").replace(/[\u200B-\u200D\uFEFF\u00A0]/g,"").replace(/^\s*(Authorization:\s*)?(Bearer\s+)?/i,"").replace(/["'`\s]/g,""); }
+function moTaKhoa(k){ return k.length>12?`${k.slice(0,7)}…${k.slice(-4)} (${k.length} ký tự)`:`(${k.length} ký tự)`; }
+function doanNhaCC(k){ if(/^kyma-/i.test(k)) return "kyma"; if(/^sk-ant-/i.test(k)) return "claude"; if(/^AIza/.test(k)) return "gemini"; if(/^sk-/i.test(k)) return "openai"; return ""; }
+function loiKhoaKyma(key){
+  let m="Kyma báo khoá không hợp lệ. Khoá bạn dán: "+moTaKhoa(key)+".";
+  if(!/^kyma-/i.test(key)) m+=" Khoá Kyma phải bắt đầu bằng “kyma-”.";
+  m+=" Lưu ý: trang danh sách khoá của Kyma chỉ hiện khoá đã che bớt một phần; khoá đầy đủ chỉ hiện một lần lúc vừa tạo. Nếu bạn không còn bản đầy đủ, hãy tạo khoá mới, bấm nút sao chép ngay rồi dán lại vào đây.";
+  return m;
+}
+$("khoaAI").addEventListener("input",()=>{
+  const k=lamSachKhoa($("khoaAI").value), nc=doanNhaCC(k);
+  $("tbKhoa").classList.add("an");
+  if(nc && nc!==$("nhaCC").value){ $("nhaCC").value=nc; hienAI(); $("khoaAI").value=k; baoKhoa("Ứng dụng nhận ra đây là khoá của "+AI_CC[nc].ten+" nên đã tự chọn hãng này cho bạn."); }
+  khoaPhien[$("nhaCC").value]=lamSachKhoa($("khoaAI").value);
+});
+function baoAI(msg,loi){ const el=$("tbAI"); el.textContent=msg; el.classList.remove("an"); el.classList.toggle("loi",!!loi); }
+function loiHTTP(st,msg){
+  if(st===402 && $("nhaCC").value==="kyma") return "Tài khoản Kyma chưa xác minh email, đã hết lượt miễn phí, hoặc mô hình này cần nạp tiền. Bạn hãy xác minh email (nếu đăng ký bằng email) và chọn mô hình có chữ “miễn phí” nhé.";
+  if(st===400) return "Yêu cầu chưa hợp lệ. Bạn kiểm tra lại khoá hoặc tên mô hình AI trong phần Tuỳ chỉnh nâng cao nhé."+(msg?` (Chi tiết: ${String(msg).slice(0,200)})`:"");
+  if(st===401||st===403) return "Khoá sử dụng không đúng, đã bị thu hồi hoặc chưa được cấp quyền. Bạn kiểm tra lại khoá nhé.";
+  if(st===402) return "Tài khoản AI của bạn đã hết tiền hoặc chưa nạp tiền. Bạn nạp thêm rồi thử lại nhé.";
+  if(st===404) return "Không tìm thấy mô hình AI này. Bạn xoá ô tên mô hình trong phần Tuỳ chỉnh nâng cao để dùng mặc định nhé.";
+  if(st===429) return "Bạn đã gọi quá nhiều lần hoặc hết hạn mức. Bạn thử lại sau ít phút nhé.";
+  if(st>=500) return "Máy chủ AI đang bận. Bạn thử lại sau ít phút nhé.";
+  return `Có lỗi xảy ra (mã ${st}).`+(msg?` ${String(msg).slice(0,200)}`:"");
+}
+function loiMang(e){
+  const msg=(e&&e.message)||"";
+  return /Failed to fetch|NetworkError|Load failed|ERR_/i.test(msg)?"Không kết nối được tới máy chủ AI. Phần AI cần có mạng Internet; các chức năng khác vẫn dùng bình thường.":msg;
+}
+async function goiAPI(url,opt){
+  const res=await fetch(url,opt); const data=await res.json().catch(()=>({}));
+  if(!res.ok){ const er=(data&&data.error)||{}; const e=new Error(loiHTTP(res.status,er.message||er.type)); e.status=res.status; e.code=er.code||er.type||""; e.chiTiet=String(er.message||"").slice(0,200); e.goiY=Array.isArray(er.suggested_models)?er.suggested_models:(Array.isArray(data&&data.suggested_models)?data.suggested_models:[]); throw e; }
+  return data;
+}
+function headersClaude(key){ return {"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"}; }
+$("nutThuKhoa").onclick=async()=>{
+  const nc=$("nhaCC").value, key=lamSachKhoa($("khoaAI").value), nut=$("nutThuKhoa"); $("khoaAI").value=key;
+  if(!key){ baoKhoa("Bạn dán khoá vào ô trước rồi bấm “Thử khoá” nhé.",true); return; }
+  nut.disabled=true; nut.textContent="Đang thử…";
+  try{
+    if(nc==="gemini") await goiAPI("https://generativelanguage.googleapis.com/v1beta/models?pageSize=1",{headers:{"x-goog-api-key":key}});
+    else if(nc==="claude") await goiAPI("https://api.anthropic.com/v1/models?limit=1",{headers:headersClaude(key)});
+    else if(nc==="kyma"){
+      try{ await goiAPI("https://kymaapi.com/v1/auth/limits",{headers:{"Authorization":"Bearer "+key}}); }
+      catch(e){
+        if(e.status!==404) throw e;
+        await goiAPI("https://kymaapi.com/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
+          body:JSON.stringify({model:$("moHinh").value.trim()||AI_CC.kyma.model,messages:[{role:"user",content:"hi"}],max_tokens:1})});
+      }
+    }
+    else await goiAPI("https://api.openai.com/v1/models",{headers:{"Authorization":"Bearer "+key}});
+    ghiKhoaLuu(nc,key,$("moHinh").value.trim()||AI_CC[nc].model);
+    baoKhoa("✓ Khoá dùng được. Bạn đóng Cài đặt rồi bấm “✨ Tạo bằng AI” ở bước 2 nhé."+($("luuKhoa").checked?" Khoá đã được nhớ trên máy này.":""));
+  }catch(e){ baoKhoa((nc==="kyma"&&(e.status===401||e.status===403))?loiKhoaKyma(key):loiMang(e),true); }
+  finally{ nut.disabled=false; nut.textContent="Thử khoá"; }
+};
+function anhChoAI(){ // bản thu nhỏ ~1024px cạnh dài, JPG, chỉ có ảnh (chưa có chữ)
+  const o=anhDaXoay(); if(!o||!A.crop) return null;
+  const sc=Math.min(1,1024/Math.max(A.crop.w,A.crop.h));
+  const c=document.createElement("canvas"); c.width=Math.max(1,Math.round(A.crop.w*sc)); c.height=Math.max(1,Math.round(A.crop.h*sc));
+  const g=c.getContext("2d"); g.fillStyle="#fff"; g.fillRect(0,0,c.width,c.height);
+  g.imageSmoothingQuality="high"; g.drawImage(o,A.crop.x,A.crop.y,A.crop.w,A.crop.h,0,0,c.width,c.height);
+  return c.toDataURL("image/jpeg",0.85).split(",")[1];
+}
+function loiNhacAI(coAnh,ghiChu){
+  return `Bạn là người thiết kế ảnh đăng mạng xã hội cho người Việt.${coAnh?" Hãy xem kỹ tấm ảnh đính kèm (khung tỷ lệ "+S.ratio+").":""}
+Nhiệm vụ: viết chữ để chèn lên ảnh.
+Yêu cầu:
+- "tieu_de": đúng 5 phương án tiêu đề tiếng Việt có dấu đầy đủ, mỗi tiêu đề tối đa 9 từ, tự nhiên, hấp dẫn, không phóng đại sai sự thật, không hứa hẹn kết quả. Trong mỗi tiêu đề, đặt đúng MỘT cụm chữ quan trọng nhất giữa hai cặp dấu ** để tô màu nổi bật.
+- "nhan": chữ trên nhãn thương hiệu. CHỈ điền nếu ghi chú của người dùng nêu rõ tên thương hiệu hoặc tên miền; nếu không có thì để chuỗi rỗng "". Tuyệt đối không tự bịa tên miền.
+- "vi_tri": chỗ đặt chữ để không che mặt người hay chủ thể chính của ảnh, chọn một trong "tren", "giua", "duoi".
+- "mau_nhan": mã màu dạng #RRGGBB cho cụm chữ nhấn, nổi bật trên nền ảnh và hợp tông màu ảnh.
+- "ly_do": một câu ngắn tiếng Việt giải thích vì sao chọn vị trí và màu đó.
+Ghi chú của người dùng: ${ghiChu||"(không có)"}
+Chỉ trả về đúng một đối tượng JSON, không thêm chữ nào khác, theo mẫu:
+{"tieu_de":["...","...","...","...","..."],"nhan":"","vi_tri":"duoi","mau_nhan":"#FFD23F","ly_do":"..."}`;
+}
+function docJSONAI(text){
+  const t=String(text||"").replace(/```(?:json)?/gi,"").trim();
+  const a=t.indexOf("{"), b=t.lastIndexOf("}");
+  let obj=null;
+  if(a!==-1&&b>a){ try{ obj=JSON.parse(t.slice(a,b+1)); }catch(e){} }
+  if(!obj||typeof obj!=="object"){ const m=t.match(/\[[\s\S]*\]/); if(m){ try{ const arr=JSON.parse(m[0]); if(Array.isArray(arr)) obj={tieu_de:arr}; }catch(e){} } }
+  if(!obj||typeof obj!=="object") return null;
+  const ds=(Array.isArray(obj.tieu_de)?obj.tieu_de:[]).map(x=>String(x).replace(/\s+/g," ").trim()).filter(x=>x&&x.length<=140).slice(0,5);
+  if(!ds.length) return null;
+  const vt=["tren","giua","duoi"].includes(obj.vi_tri)?obj.vi_tri:null;
+  const mau=/^#[0-9a-f]{6}$/i.test(String(obj.mau_nhan||"").trim())?String(obj.mau_nhan).trim().toUpperCase():null;
+  const nhan=typeof obj.nhan==="string"?obj.nhan.trim().slice(0,40):"";
+  return {ds,vt,mau,nhan,lyDo:typeof obj.ly_do==="string"?obj.ly_do.slice(0,240):""};
+}
+let KQ_AI=null, ghiChuChuyen="";
+const TEN_VT={tren:"phía trên",giua:"ở giữa",duoi:"phía dưới"};
+function apGoiY(tieuDe){
+  const k=KQ_AI; if(!k) return;
+  S.title=tieuDe; $("tieuDe").value=tieuDe; S.accentWord=""; $("cumNhan").value="";
+  if(k.vt) S.pos=k.vt;
+  if(k.mau){ S.accent=k.mau; $("mauNhan").value=k.mau; }
+  if(k.nhan && (!S.badgeText.trim() || S.badgeText===MAC_DINH.badgeText)){ S.badgeText=k.nhan; $("chuNhan").value=k.nhan; S.badge=true; $("coNhan").checked=true; }
+  A.fileNameEdited=false; capNhatNut(); luuCaiDat(); ve();
+  baoAI("Đã áp gợi ý vào ảnh. Bạn vẫn có thể sửa chữ, màu và vị trí tuỳ ý.");
+}
+function hienKetQua(k){
+  KQ_AI=k; const ul=$("dsAI"); ul.innerHTML="";
+  const chung=$("goiYChung"); chung.innerHTML="";
+  const p=document.createElement("p"); p.className="goi-y"; p.style.margin="10px 0 0";
+  const phan=[]; if(k.vt) phan.push("đặt chữ "+TEN_VT[k.vt]); if(k.mau) phan.push("màu nhấn "+k.mau); if(k.nhan) phan.push("nhãn “"+k.nhan+"”");
+  p.textContent="AI gợi ý: "+(phan.join(", ")||"chỉ có tiêu đề")+"."+(k.lyDo?" "+k.lyDo:"");
+  if(k.mau){ const o=document.createElement("span"); o.className="cham-mau"; o.style.background=k.mau; p.prepend(o); }
+  chung.appendChild(p);
+  k.ds.forEach((t,i)=>{
+    const li=document.createElement("li"); const sp=document.createElement("span");
+    sp.appendChild(document.createTextNode((i+1)+". "));
+    t.split(/(\*\*.+?\*\*)/).forEach(x=>{ if(/^\*\*.+\*\*$/.test(x)){ const b=document.createElement("b"); b.textContent=x.slice(2,-2); sp.appendChild(b);} else if(x) sp.appendChild(document.createTextNode(x)); });
+    const bt=document.createElement("button"); bt.type="button"; bt.className="nut"; bt.textContent="Dùng";
+    bt.onclick=()=>apGoiY(t); li.append(sp,bt); ul.appendChild(li);
+  });
+  $("ketQuaAI").classList.remove("an");
+}
+$("nutApNhanh").onclick=()=>{ if(KQ_AI) apGoiY(KQ_AI.ds[0]); };
+$("nutAI").onclick=async()=>{
+  const nc=$("nhaCC").value, key=lamSachKhoa($("khoaAI").value), model=$("moHinh").value.trim()||AI_CC[nc].model, ghiChu=$("moTaAI").value.trim();
+  if(!key){ // chưa có khoá: mở thẳng phần Cài đặt AI
+    moCaiDat("mucAI"); $("huongDanKhoa").open=true;
+    baoKhoa("Để dùng nút “✨ Tạo bằng AI”, bạn dán khoá AI vào ô trên rồi bấm “Thử khoá”. Chưa có khoá thì bấm “Lấy khoá ở đâu?” ngay bên dưới để xem cách lấy.");
+    setTimeout(()=>$("khoaAI").focus(),50); return; }
+  const b64=anhChoAI();
+  if(!b64 && !ghiChu){ baoAI("Bạn chọn một tấm ảnh trước (hoặc viết vài câu ghi chú) để AI có cái mà xem và viết nhé.",true); return; }
+  ghiKhoaLuu(nc,key,model);
+  const prompt=loiNhacAI(!!b64,ghiChu);
+  ghiChuChuyen="";
+  const nut=$("nutAI"); nut.disabled=true; nut.textContent="AI đang xem ảnh…";
+  baoAI("Đang gửi "+(b64?"ảnh thu nhỏ và ghi chú":"ghi chú")+" tới "+AI_CC[nc].ten+"…");
+  try{
+    let text="";
+    if(nc==="gemini"){
+      const parts=[]; if(b64) parts.push({inline_data:{mime_type:"image/jpeg",data:b64}}); parts.push({text:prompt});
+      const data=await goiAPI(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{
+        method:"POST", headers:{"Content-Type":"application/json","x-goog-api-key":key},
+        body:JSON.stringify({contents:[{role:"user",parts}],generationConfig:{temperature:0.8,responseMimeType:"application/json"}})});
+      const cand=data.candidates&&data.candidates[0];
+      if(!cand||!cand.content) throw new Error("AI không trả về kết quả (có thể ảnh hoặc ghi chú bị bộ lọc an toàn chặn). Bạn thử ảnh hoặc ghi chú khác nhé.");
+      text=(cand.content.parts||[]).map(p=>p.text||"").join("");
+    } else if(nc==="claude"){
+      const content=[]; if(b64) content.push({type:"image",source:{type:"base64",media_type:"image/jpeg",data:b64}}); content.push({type:"text",text:prompt});
+      const headers=headersClaude(key), body={model,max_tokens:4000,messages:[{role:"user",content}]};
+      if(/^claude-(opus-5|fable|sonnet-5-5)/.test(model)){ headers["anthropic-beta"]="server-side-fallback-2026-07-01"; body.fallbacks="default"; body.output_config={effort:"low"}; }
+      const data=await goiAPI("https://api.anthropic.com/v1/messages",{method:"POST",headers,body:JSON.stringify(body)});
+      if(data.stop_reason==="refusal") throw new Error("AI từ chối xử lý yêu cầu này. Bạn thử ảnh hoặc ghi chú khác nhé.");
+      text=(data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("");
+    } else { // OpenAI và Kyma (cùng chuẩn OpenAI)
+      const content=[{type:"text",text:prompt}]; if(b64) content.push({type:"image_url",image_url:{url:"data:image/jpeg;base64,"+b64}});
+      const url=nc==="kyma"?"https://kymaapi.com/v1/chat/completions":"https://api.openai.com/v1/chat/completions";
+      const goi=(jsonMode,m)=>goiAPI(url,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
+        body:JSON.stringify(Object.assign({model:m,messages:[{role:"user",content}]}, jsonMode?{response_format:{type:"json_object"}}:{}))});
+      const goiMot=async m=>{ try{ return await goi(true,m); } catch(e){ if(e.status===400) return await goi(false,m); throw e; } }; // không hỗ trợ ép JSON -> gọi lại, tự đọc JSON trong chữ
+      let data, loiDau=null;
+      // Kyma: mô hình bị từ chối/không phục vụ được -> tự thử mô hình miễn phí khác
+      const dsThu=nc==="kyma"?[model]:[model];
+      for(let i=0;i<dsThu.length;i++){
+        try{ data=await goiMot(dsThu[i]); if(i>0) ghiChuChuyen=" Mô hình "+model+" không xử lý được nên ứng dụng đã tự chuyển sang "+dsThu[i]+"."; break; }
+        catch(e){
+          loiDau=loiDau||e;
+          if(nc!=="kyma"||e.status===401||e.status===402||e.status===429) throw e;
+          if(i===0){ for(const m of [...(e.goiY||[]),"qwen3.8-flash","gemma-4-31b","gpt-5.6-luna"]) if(m&&!dsThu.includes(m)&&dsThu.length<4) dsThu.push(m); }
+          if(i===dsThu.length-1) throw loiDau;
+        }
+      }
+      const ch=data.choices&&data.choices[0];
+      if(ch&&ch.message&&ch.message.refusal) throw new Error("AI từ chối xử lý yêu cầu này. Bạn thử ảnh hoặc ghi chú khác nhé.");
+      text=(ch&&ch.message&&ch.message.content)||"";
+    }
+    const k=docJSONAI(text);
+    if(!k) throw new Error("AI trả về nội dung không đọc được. Bạn bấm thử lại nhé.");
+    hienKetQua(k);
+    baoAI("Xong. Bạn bấm “Dùng” ở phương án mình thích, hoặc bấm “Tự động áp phương án 1”."+ghiChuChuyen);
+  }catch(e){
+    let m;
+    if(nc==="kyma"&&e.status===401) m=loiKhoaKyma(key);
+    else if(nc==="kyma"&&e.status===403) m="Khoá dùng được, nhưng Kyma không cho mô hình này xử lý yêu cầu (có thể mô hình từ chối nội dung ảnh hoặc tài khoản chưa được dùng mô hình đó). Ứng dụng đã thử thêm vài mô hình miễn phí khác nhưng chưa được. Bạn bấm “Tải danh sách” và chọn một mô hình “miễn phí” khác rồi thử lại nhé.";
+    else m=loiMang(e);
+    if(e.status) m+=" (Mã lỗi "+e.status+(e.code?" – "+e.code:"")+(e.chiTiet?": "+e.chiTiet:"")+")";
+    baoAI(m,true);
+  }
+  finally{ nut.disabled=false; nut.textContent="✨ Tạo bằng AI"; }
+};
+
+/* ---------- Gắn điều khiển ---------- */
+function ganChon(id,key,after){
+  $(id).addEventListener("click",e=>{ const b=e.target.closest("button[data-v]"); if(!b) return; S[key]=b.dataset.v; if(after) after(b.dataset.v); capNhatNut(); luuCaiDat(); ve(); });
+}
+function capNhatNut(){
+  const map={chonTyLe:"ratio",chonCan:"align",chonViTri:"pos",chonGoc:"badgePos",chonDinhDang:"fmt"};
+  for(const id in map) $(id).querySelectorAll("button[data-v]").forEach(b=>b.classList.toggle("on",b.dataset.v===S[map[id]]));
+  const f=fontById(S.font); $("ghiChuDam").classList.toggle("an",!f.one);
+  $("khuVien").style.opacity=S.stroke?1:.45; $("khuBong").style.opacity=S.shadow?1:.45; $("khuLopToi").style.opacity=S.grad?1:.45;
+  $("khuNhan").style.opacity=S.badge?1:.45; $("khuChatLuong").classList.toggle("an",S.fmt!=="jpg");
+  ["nutCat","nutXoay","nutLatNgang","nutLatDoc"].forEach(id=>$(id).disabled=!A.img);
+  document.querySelector(".goi-y-nhan").classList.toggle("an", !(S.badge && S.badgeText===MAC_DINH.badgeText));
+  // các ô chữ và màu của thành phần mẫu: chỉ hiện khi mẫu đang dùng có thành phần đó
+  const coHop=S.box||S.boxFull||S.lineBox, an=(id,dk)=>$(id).classList.toggle("an",!dk);
+  an("hangChuPhu",S.sub); an("hangRuyBang",S.ribbon); an("hangChuDoc",S.side); an("khuChuThem",S.sub||S.ribbon||S.side);
+  an("oMauHop",coHop); an("oDoDucHop",coHop); an("oMauPhu",S.sub); an("oNenPhu",S.sub&&S.subStyle==="hop");
+  an("oMauRuyBang",S.ribbon); an("oMauKhung",S.frame); an("oMauDoc",S.side);
+  an("khuMauThanhPhan",coHop||S.sub||S.ribbon||S.frame||S.side);
+  if(khoSan) capNhatKhoa();
+}
+ganChon("chonTyLe","ratio",()=>{ A.crop=khungLonNhat(); if(A.img) baoAnh("Ứng dụng đã tự chọn phần phía trên của ảnh cho khung mới. Nếu muốn giữ phần khác, bạn bấm nút “Cắt ảnh” để chọn lại."); });
+ganChon("chonCan","align",()=>{ if(S.pos==="tuy-chinh"){} });
+ganChon("chonViTri","pos");
+ganChon("chonGoc","badgePos");
+ganChon("chonDinhDang","fmt");
+const DIEU_KHIEN=[ // [id, khoá, kiểu, nhãn hiển thị]
+  ["tieuDe","title","text"],["cumNhan","accentWord","text"],["vietHoa","upper","check"],["phong","font","text"],
+  ["coChu","size","num","gtCo"],["dam","bold","check"],["nghieng","italic","check"],["mauChu","color","text"],["mauNhan","accent","text"],
+  ["gianDong","lineGap","num","gtDong"],["vien","stroke","check"],["mauVien","strokeColor","text"],["doDayVien","strokeW","num","gtVien"],
+  ["bong","shadow","check"],["mauBong","shadowColor","text"],["doNhoe","shadowBlur","num","gtBong"],
+  ["lopToi","grad","check"],["doToi","gradStrength","num","gtToi"],
+  ["coNhan","badge","check"],["chuNhan","badgeText","text"],["nenNhan","badgeBg","text"],["mauChuNhan","badgeColor","text"],["coNhanChu","badgeSize","num","gtCoNhan"],
+  ["chatLuong","quality","num","gtCL"],["doLon","outShort","num"],
+  ["chuPhu","subText","text"],["chuRuyBang","ribbonText","text"],["chuDoc","sideText","text"],
+  ["mauHop","boxColor","text"],["doDucHop","boxAlpha","num","gtHop"],["mauPhu","subColor","text"],["nenPhu","subBg","text"],
+  ["nenRuyBang","ribbonBg","text"],["mauKhung","frameColor","text"],["mauDoc","sideColor","text"],
+];
+function dienGiaTri(){
+  for(const [id,k,kieu,nh] of DIEU_KHIEN){ const el=$(id); if(kieu==="check") el.checked=!!S[k]; else el.value=S[k]; if(nh) $(nh).textContent=S[k]; }
+  capNhatNut();
+}
+for(const [id,k,kieu,nh] of DIEU_KHIEN){
+  const el=$(id);
+  el.addEventListener(kieu==="check"||el.tagName==="SELECT"?"change":"input",()=>{
+    S[k]= kieu==="check"?el.checked : kieu==="num"?Number(el.value) : el.value;
+    if(nh) $(nh).textContent=S[k];
+    if(k==="badgeText" && S.badgeText.trim() && !S.badge){ S.badge=true; $("coNhan").checked=true; }
+    capNhatNut(); luuCaiDat(); ve();
+  });
+}
+["viTriX","viTriY"].forEach(id=>$(id).addEventListener("input",()=>{
+  if(S.pos!=="tuy-chinh"){ // lấy vị trí hiện tại làm gốc
+    const t=L_hien.block; S.tx=(t.x+t.w/2)/cv.width; S.ty=(t.y+t.h/2)/cv.height; S.pos="tuy-chinh"; capNhatNut();
+  }
+  if(id==="viTriX") S.tx=Number($("viTriX").value)/100; else S.ty=Number($("viTriY").value)/100;
+  luuCaiDat(); ve();
+}));
+document.querySelectorAll(".mau-nhanh").forEach(box=>{
+  const cho=box.dataset.cho;
+  for(const c of ["#FFFFFF","#FFD23F","#276CF3","#3C83FF","#FF5C8A","#FF7A1A","#22C55E","#0A0A0A"]){
+    const b=document.createElement("button"); b.type="button"; b.style.background=c; b.title=c; b.setAttribute("aria-label","Chọn màu "+c);
+    b.onclick=()=>{ $(cho).value=c; $(cho).dispatchEvent(new Event("input")); }; box.appendChild(b);
+  }
+});
+$("nutDatLai").onclick=()=>{ S=Object.assign({},MAC_DINH); A.fileNameEdited=false; if(A.img){A.rot=0;A.flipH=false;A.flipV=false;A.oriented=null;A.crop=khungLonNhat();} try{localStorage.removeItem(KHOA_CAI_DAT);}catch(e){} dienGiaTri(); ve(); };
+
+/* ---------- Ngăn kéo Cài đặt ---------- */
+let nutTruocCaiDat=null;
+function moCaiDat(muc){
+  nutTruocCaiDat=document.activeElement; $("nganCaiDat").hidden=false; document.body.style.overflow="hidden";
+  const el=muc&&$(muc);
+  if(el){ el.scrollIntoView({block:"start"}); el.classList.add("nhan-mo"); setTimeout(()=>el.classList.remove("nhan-mo"),1600); }
+  else $("nutDongCaiDat").focus();
+}
+function dongCaiDat(){ $("nganCaiDat").hidden=true; document.body.style.overflow=""; if(nutTruocCaiDat&&nutTruocCaiDat.focus) nutTruocCaiDat.focus(); }
+$("nutCaiDat").onclick=()=>moCaiDat();
+$("nutMoNhan").onclick=()=>moCaiDat("mucNhan");
+$("nutDongCaiDat").onclick=dongCaiDat; $("nutXongCaiDat").onclick=dongCaiDat; $("nganNen").onclick=dongCaiDat;
+document.addEventListener("keydown",e=>{ if(e.key==="Escape" && !$("nganCaiDat").hidden) dongCaiDat(); });
+$("nutGhiChu").onclick=()=>{ const k=$("khuGhiChu"), mo=k.classList.toggle("an")===false; $("nutGhiChu").setAttribute("aria-expanded",mo); $("nutGhiChu").textContent=mo?"Ẩn ghi chú cho AI":"Thêm ghi chú cho AI"; if(mo) $("moTaAI").focus(); };
+
+/* ---------- Kho mẫu ----------
+   Mỗi mẫu là một bộ cài đặt kiểu chữ, màu, vị trí và các thành phần trang trí (không gồm ảnh, tiêu đề, chữ nhãn của người dùng).
+   Mẫu "Mặc định" dùng tự do; 20 mẫu còn lại mở khi khách đăng nhập tài khoản sancongcu.com (khoá ở phía trình duyệt). */
+const KHOA_MAU=["font","size","bold","italic","align","lineGap","upper","color","accent","stroke","strokeColor","strokeW","shadow","shadowColor","shadowBlur","pos","tx","ty","grad","gradStrength","badge","badgePos","bx","by","badgeBg","badgeColor","badgeSize",
+  "tint","tintColor","tintColor2","tintAlpha","box","boxFull","boxColor","boxAlpha","boxRadius","lineBox","accentBox","accentBoxText",
+  "frame","frameColor","frameW","frameInset","sub","subPos","subStyle","subColor","subBg","subSize","subUpper",
+  "ribbon","ribbonPos","ribbonStyle","ribbonBg","ribbonColor","side","sidePos","sideColor","sideSize","quote"];
+function layCaiDatMau(nguon){ const o={}; for(const k of KHOA_MAU) o[k]=nguon[k]; return o; }
+const taoMau=(id,ten,doi,mau)=>({id,ten,caiDat:Object.assign(layCaiDatMau(MAC_DINH),doi),mau});
+const MAU=[
+  taoMau("mac-dinh","Mặc định",{},{title:MAC_DINH.title}),
+  taoMau("tieu-de-lon","Tiêu đề lớn",{font:"mont",size:118,upper:true,lineGap:6,accent:"#FFD23F",pos:"duoi",gradStrength:88,shadow:true,shadowBlur:24},{title:"Bùng nổ **ưu đãi** cuối năm"}),
+  taoMau("trich-dan","Trích dẫn",{font:"playfair",size:80,bold:false,italic:true,lineGap:18,pos:"giua",grad:false,tint:true,tintColor:"#0A0A0A",tintAlpha:48,quote:true,accent:"#FFD23F",sub:true,subStyle:"chu",subColor:"#E5E7EB",subSize:34,badgePos:"br"},{title:"Có công mài sắt, có ngày **nên kim**",subText:"— Tục ngữ Việt Nam"}),
+  taoMau("gia-khuyen-mai","Giá khuyến mãi",{font:"mont",size:92,upper:true,align:"left",lineGap:6,pos:"duoi",gradStrength:86,accent:"#FFD23F",sub:true,subStyle:"hop",subBg:"#FFD23F",subColor:"#0A0A0A",subSize:46,ribbon:true,ribbonStyle:"cheo",ribbonPos:"tr",ribbonBg:"#E11D48",badgePos:"tl"},{title:"Áo len **mùa đông**",subText:"Chỉ còn 199.000đ",ribbonText:"GIẢM 30%"}),
+  taoMau("tin-nong","Tin nóng",{font:"roboto",size:72,align:"left",lineGap:10,pos:"duoi",grad:false,boxFull:true,boxColor:"#0A0A0A",boxAlpha:84,accent:"#FFD23F",sub:true,subPos:"tren",subStyle:"hop",subBg:"#E11D48",subColor:"#FFFFFF",subSize:30,subUpper:true,badgePos:"tr"},{title:"Khai trương chi nhánh mới **tại Đà Nẵng**",subText:"Tin nóng"}),
+  taoMau("thumbnail-youtube","Ảnh bìa YouTube",{font:"mont",size:132,upper:true,align:"left",lineGap:0,pos:"giua",grad:false,stroke:true,strokeColor:"#0A0A0A",strokeW:9,shadow:true,shadowBlur:30,accent:"#FFD23F",badgePos:"br"},{title:"Làm video **5 phút** xong ngay"}),
+  taoMau("slide-bai-dang","Slide bài đăng",{font:"bvp",size:70,align:"left",lineGap:12,pos:"tren",grad:false,box:true,boxColor:"#FFFFFF",boxAlpha:95,boxRadius:28,color:"#0A0A0A",accent:"#276CF3",sub:true,subPos:"tren",subStyle:"hop",subBg:"#276CF3",subColor:"#FFFFFF",subSize:28,subUpper:true,badgePos:"br"},{title:"Đăng bài vào **khung giờ vàng** 20h–22h",subText:"Mẹo 1/5"}),
+  taoMau("su-kien","Sự kiện, lịch hẹn",{font:"bvp",size:88,upper:true,lineGap:8,pos:"giua",grad:false,tint:true,tintColor:"#0A0A0A",tintAlpha:42,frame:true,frameColor:"#FFFFFF",frameW:6,frameInset:40,accent:"#FFD23F",sub:true,subStyle:"hop",subBg:"#FFFFFF",subColor:"#0A0A0A",subSize:34,badgePos:"bl"},{title:"Đêm nhạc **cuối năm**",subText:"20.12 · 19:00 · Hà Nội"}),
+  taoMau("gioi-thieu-san-pham","Giới thiệu sản phẩm",{font:"bvp",size:68,align:"left",lineGap:10,pos:"duoi",grad:false,box:true,boxColor:"#FFFFFF",boxAlpha:96,boxRadius:30,color:"#0A0A0A",accent:"#276CF3",sub:true,subStyle:"chu",subColor:"#52525B",subSize:32,badgePos:"tl",badgeBg:"#276CF3",badgeColor:"#FFFFFF"},{title:"Bình giữ nhiệt **giữ ấm 12 giờ**",subText:"Giao nhanh trong 2 giờ, đổi trả 7 ngày"}),
+  taoMau("toi-gian","Tối giản",{font:"inter",size:60,bold:false,align:"left",lineGap:10,pos:"tren",gradStrength:55,shadow:true,shadowBlur:14,accent:"#FFE8A3",badgePos:"bl"},{title:"Ít mà **chất**"}),
+  taoMau("gradient-xanh","Phủ màu chuyển sắc",{font:"bvp",size:96,lineGap:10,pos:"giua",grad:false,tint:true,tintColor:"#1C5FE8",tintColor2:"#3C83FF",tintAlpha:64,accent:"#FFD23F",badgePos:"br",badgeBg:"#FFFFFF",badgeColor:"#276CF3"},{title:"Tự động hoá công việc **bằng AI**"}),
+  taoMau("khung-vien","Khung viền",{font:"lato",size:92,lineGap:12,pos:"duoi",gradStrength:72,frame:true,frameColor:"#FFFFFF",frameW:10,frameInset:44,accent:"#FFD23F",badgePos:"tr"},{title:"Kỷ niệm **mùa thu** Hà Nội"}),
+  taoMau("ruy-bang","Ruy băng góc ảnh",{font:"lato",size:96,lineGap:12,pos:"duoi",gradStrength:82,accent:"#FFD23F",ribbon:true,ribbonStyle:"cheo",ribbonPos:"tr",ribbonBg:"#276CF3",badgePos:"bl"},{title:"Bộ sưu tập **vừa ra mắt**",ribbonText:"MỚI"}),
+  taoMau("hai-dong-tuong-phan","Hai dòng tương phản",{font:"mont",size:100,upper:true,align:"left",lineGap:4,pos:"duoi",gradStrength:80,accentBox:true,accent:"#FFD23F",accentBoxText:"#0A0A0A",badgePos:"tr"},{title:"Bán hàng online\n**không cần kho**"}),
+  taoMau("chu-trong-hop","Chữ trong hộp màu",{font:"bvp",size:70,align:"left",lineGap:6,pos:"tren",grad:false,lineBox:true,boxColor:"#276CF3",boxAlpha:100,accent:"#FFD23F",badgePos:"br"},{title:"5 cách giữ khách **quay lại**"}),
+  taoMau("chu-doc","Chữ dọc bên cạnh",{font:"playfair",size:84,align:"left",lineGap:12,pos:"duoi",gradStrength:80,accent:"#F5C26B",side:true,sidePos:"l",sideColor:"#FFFFFF",sideSize:34,shadow:true,shadowBlur:16,badgePos:"tr"},{title:"Thanh lịch **mỗi ngày**",sideText:"BỘ SƯU TẬP 2026"}),
+  taoMau("ban-tin","Bản tin",{font:"roboto",size:64,align:"left",lineGap:8,pos:"tren",grad:false,boxFull:true,boxColor:"#FFFFFF",boxAlpha:96,color:"#0A0A0A",accent:"#E11D48",sub:true,subPos:"tren",subStyle:"hop",subBg:"#E11D48",subColor:"#FFFFFF",subSize:26,subUpper:true,badgePos:"br"},{title:"Giá vàng hôm nay **tăng nhẹ**",subText:"Bản tin sáng"}),
+  taoMau("anh-den-dem","Ánh đèn đêm",{font:"mont",size:100,lineGap:8,pos:"giua",grad:false,tint:true,tintColor:"#0A0A0A",tintAlpha:50,color:"#FFFFFF",accent:"#FF4FD8",shadow:true,shadowColor:"#FF4FD8",shadowBlur:40,sub:true,subStyle:"chu",subColor:"#7CF3FF",subSize:32,subUpper:true,badgePos:"br",badgeBg:"#FF4FD8",badgeColor:"#FFFFFF"},{title:"Quán mới **lên đèn**",subText:"Mở cửa đến 2 giờ sáng"}),
+  taoMau("flash-sale","Giảm giá chớp nhoáng",{font:"mont",size:104,upper:true,lineGap:4,pos:"giua",grad:false,boxFull:true,boxColor:"#FFD23F",boxAlpha:100,color:"#0A0A0A",accent:"#E11D48",sub:true,subStyle:"chu",subColor:"#0A0A0A",subSize:34,ribbon:true,ribbonStyle:"the",ribbonPos:"tl",ribbonBg:"#E11D48",badgePos:"br"},{title:"Flash sale **50%**",subText:"Mua 2 tặng 1, số lượng có hạn",ribbonText:"Chỉ hôm nay"}),
+  taoMau("meo-hay","Mẹo hay",{font:"bvp",size:82,align:"left",lineGap:10,pos:"tren",gradStrength:86,accent:"#86EFAC",sub:true,subPos:"tren",subStyle:"hop",subBg:"#16A34A",subColor:"#FFFFFF",subSize:28,subUpper:true,badgePos:"br"},{title:"Chụp ảnh sản phẩm **bằng điện thoại**",subText:"Mẹo hay"}),
+  taoMau("sang-trong","Sang trọng",{font:"playfair",size:86,bold:false,lineGap:14,pos:"giua",grad:false,tint:true,tintColor:"#0A0A0A",tintAlpha:44,frame:true,frameColor:"#E6C47A",frameW:3,frameInset:34,accent:"#E6C47A",sub:true,subPos:"tren",subStyle:"chu",subColor:"#E6C47A",subSize:30,subUpper:true,badgePos:"br",badgeBg:"#E6C47A",badgeColor:"#0A0A0A"},{title:"Vẻ đẹp **vượt thời gian**",subText:"Bộ sưu tập mới"}),
+];
+const CHU_MAU=new Set(MAU.flatMap(m=>[m.mau.subText,m.mau.ribbonText,m.mau.sideText]).filter(Boolean));
+const CO_CHU_THEM=[["sub","subText"],["ribbon","ribbonText"],["side","sideText"]];
+function apDungMau(mau){
+  if(!mau||!mau.caiDat) return false;
+  for(const k of KHOA_MAU) if(k in mau.caiDat && typeof mau.caiDat[k]===typeof MAC_DINH[k]) S[k]=mau.caiDat[k];
+  // chữ phụ của mẫu: chỉ điền chữ gợi ý khi ô đang trống hoặc vẫn là chữ gợi ý của mẫu khác
+  for(const [co,k] of CO_CHU_THEM) if(S[co] && (!S[k].trim() || CHU_MAU.has(S[k]))) S[k]=mau.mau[k]||"";
+  S.mauId=mau.id; A.fileNameEdited=false;
+  dienGiaTri(); luuCaiDat(); ve(); return true;
+}
+
+/* ---------- Khoá mẫu theo tài khoản (chỉ đọc trạng thái đăng nhập do trang web gửi vào) ---------- */
+let daDangNhap=false, daBietTK=false;
+const DUONG_TK=BAN_WEB?"/tai-khoan":"https://sancongcu.com/tai-khoan", TRANG_NAY="/cong-cu/chen-chu-len-anh";
+const biKhoa=m=>m.id!=="mac-dinh" && !daDangNhap;
+function baoMau(msg){ const el=$("tbMau"); el.textContent=msg; el.classList.remove("an"); }
+function dungLuoiMau(){
+  const luoi=$("luoiMau"); luoi.innerHTML="";
+  for(const m of MAU){
+    const b=document.createElement("button"); b.type="button"; b.className="o-mau-chon"; b.dataset.id=m.id; b.setAttribute("role","listitem");
+    const c=document.createElement("canvas"); c.width=216; c.height=270; c.setAttribute("aria-hidden","true");
+    const ten=document.createElement("span"); ten.textContent=m.ten;
+    const khoa=document.createElement("span"); khoa.className="o-khoa";
+    khoa.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+    b.append(c,ten,khoa);
+    if(m.id==="mac-dinh"){ const t=document.createElement("span"); t.className="o-mien-phi"; t.textContent="Miễn phí"; b.appendChild(t); }
+    b.onclick=()=>{
+      if(biKhoa(m)){
+        const h=$("hopKhoa"); h.classList.remove("nhay"); void h.offsetWidth; h.classList.add("nhay"); h.scrollIntoView({block:"nearest",behavior:"smooth"});
+        baoMau(`Mẫu “${m.ten}” dành cho thành viên. Bạn đăng ký tài khoản miễn phí hoặc đăng nhập là dùng được ngay.`); return;
+      }
+      apDungMau(m); baoMau(`Đã áp mẫu “${m.ten}”. Bạn vẫn có thể đổi phông chữ, màu và vị trí tuỳ ý.`);
+    };
+    luoi.appendChild(b);
+  }
+  $("nutXemThemMau").textContent=`Xem thêm ${MAU.length-8} mẫu`;
+}
+$("nutXemThemMau").onclick=()=>{ const gon=$("luoiMau").classList.toggle("thu-gon"); $("nutXemThemMau").textContent=gon?`Xem thêm ${MAU.length-8} mẫu`:"Thu gọn danh sách mẫu"; };
+function capNhatKhoa(){
+  document.querySelectorAll(".o-mau-chon").forEach(b=>{
+    const m=MAU.find(x=>x.id===b.dataset.id), k=biKhoa(m);
+    b.classList.toggle("khoa",k); b.classList.toggle("on",m.id===S.mauId);
+    b.setAttribute("aria-label",m.ten+(k?" (cần đăng nhập)":"")+(m.id===S.mauId?" (đang dùng)":""));
+  });
+  $("hopKhoa").classList.toggle("an",daDangNhap);
+  const n=$("nhanTK"); n.classList.toggle("mo",daDangNhap);
+  n.textContent=daDangNhap?`Đã đăng nhập: dùng được cả ${MAU.length} mẫu`:"Chưa đăng nhập: dùng mẫu Mặc định";
+}
+function datDangNhap(v){
+  daDangNhap=v===true; daBietTK=true;
+  if(!daDangNhap){ const m=MAU.find(x=>x.id===S.mauId); if(m && biKhoa(m)){ apDungMau(MAU[0]); baoMau("Bạn chưa đăng nhập nên ứng dụng đang dùng mẫu Mặc định."); } }
+  capNhatKhoa();
+}
+(function(){
+  const q=(mode)=>`${DUONG_TK}?mode=${mode}&quay-lai=${encodeURIComponent(TRANG_NAY)}`;
+  $("nutDangKy").href=q("signup"); $("nutDangNhap").href=q("login");
+  if(!BAN_WEB) for(const id of ["nutDangKy","nutDangNhap"]){ $(id).target="_blank"; $(id).rel="noopener noreferrer"; }
+})();
+window.addEventListener("message",e=>{
+  if(e.source!==window.parent || e.origin!==location.origin) return; // chỉ nhận tin từ chính trang sancongcu.com bọc bên ngoài
+  const d=e.data; if(d && d.loai==="scc-dang-nhap") datDangNhap(d.daDangNhap===true);
+});
+
+/* ---------- Ảnh xem trước của từng mẫu ---------- */
+let henXT=null, khoaXT="";
+function veXemTruocMau(){
+  const cu=S;
+  try{
+    document.querySelectorAll(".o-mau-chon").forEach(b=>{
+      const m=MAU.find(x=>x.id===b.dataset.id), c=b.querySelector("canvas");
+      S=Object.assign({},cu,m.caiDat,{title:m.mau.title,accentWord:"",subText:m.mau.subText||"",ribbonText:m.mau.ribbonText||"",sideText:m.mau.sideText||"",badgeText:"tenban.vn"});
+      const [W,H]=kichThuocXuat(216); if(c.width!==W||c.height!==H){ c.width=W; c.height=H; }
+      veAnh(c.getContext("2d"),W,H,{nenMau:true});
+    });
+  } finally { S=cu; }
+}
+function henVeXemTruoc(){
+  const c=A.crop, k=[A.img?A.imgName+A.img.naturalWidth:"", S.ratio, A.rot, A.flipH, A.flipV, c?[c.x,c.y,c.w,c.h].map(Math.round).join(","):"", S.badge].join("|");
+  if(k===khoaXT) return; khoaXT=k; clearTimeout(henXT); henXT=setTimeout(veXemTruocMau,150);
+}
+khoSan=true;
+
+/* ---------- Khởi động ---------- */
+(async function(){
+  const sel=$("phong");
+  for(const f of FONTS){ const o=document.createElement("option"); o.value=f.id; o.textContent=f.label; sel.appendChild(o); }
+  const ds=$("dsFont"), gp=$("giayPhep");
+  for(const f of FONTS){ const d=document.createElement("div"); d.textContent=`• ${f.lic} — tác giả: ${f.credit}. Giấy phép SIL Open Font License 1.1.`; ds.appendChild(d); }
+  for(const [ten,txt] of Object.entries(LICENSES)){ const det=document.createElement("details"); const sm=document.createElement("summary"); sm.textContent=`Toàn văn giấy phép phông ${ten}`; const pre=document.createElement("pre"); pre.textContent=txt; det.append(sm,pre); gp.appendChild(det); }
+  dungLuoiMau(); dienGiaTri(); hienAI();
+  if(BAN_WEB && window.parent!==window){ window.parent.postMessage({loai:"scc-hoi-dang-nhap"},location.origin); setTimeout(()=>{ if(!daBietTK) datDangNhap(false); },4000); }
+  else datDangNhap(false);
+  await napPhong();
+  document.body.dataset.sanSang="1";
+  veXemTruocMau(); ve();
+})();
+</script>
+</body>
+</html>

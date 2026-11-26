@@ -6,12 +6,14 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  useRouterState,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SancongcuSupportChat } from "../components/SancongcuSupportChat";
+import { isToolPath, toolPageCspMeta } from "../lib/tool-page-security";
 
 function NotFoundComponent() {
   return (
@@ -74,7 +76,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
@@ -100,12 +102,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "icon", href: "/sancongcu-icon.png", type: "image/png" },
       { rel: "apple-touch-icon", href: "/sancongcu-icon.png" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap",
-      },
+      // Trang công cụ tự phục vụ phông Be Vietnam Pro từ chính web, không tải phông từ Google.
+      ...(matches.some((match) => isToolPath(match.pathname))
+        ? []
+        : [
+            { rel: "preconnect", href: "https://fonts.googleapis.com" },
+            {
+              rel: "preconnect",
+              href: "https://fonts.gstatic.com",
+              crossOrigin: "anonymous" as const,
+            },
+            {
+              rel: "stylesheet",
+              href: "https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap",
+            },
+          ]),
     ],
   }),
   shellComponent: RootShell,
@@ -115,15 +126,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  // Ghi nhớ trang được tải đầu tiên: CSP và việc bỏ beacon chỉ áp khi khách mở thẳng trang công cụ.
+  const [loadedOnToolPage] = useState(() => isToolPath(pathname));
   return (
     <html lang="en">
       <head>
+        {loadedOnToolPage && <meta httpEquiv="Content-Security-Policy" content={toolPageCspMeta} />}
         <HeadContent />
-        <script
-          type="module"
-          src="https://static.cloudflareinsights.com/beacon.min.js"
-          data-cf-beacon='{"token":"c60555fadffd4d1eb3ea9a2e7bed740d"}'
-        />
+        {!loadedOnToolPage && (
+          <script
+            type="module"
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon='{"token":"c60555fadffd4d1eb3ea9a2e7bed740d"}'
+          />
+        )}
       </head>
       <body>
         {children}
@@ -135,12 +152,13 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const onToolPage = useRouterState({ select: (state) => isToolPath(state.location.pathname) });
 
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
-      <SancongcuSupportChat />
+      {!onToolPage && <SancongcuSupportChat />}
     </QueryClientProvider>
   );
 }

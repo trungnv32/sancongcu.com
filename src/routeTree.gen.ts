@@ -16,6 +16,7 @@ import { Route as TaiKhoanRouteImport } from './routes/tai-khoan'
 import { Route as TaiNguyenMienPhiRouteImport } from './routes/tai-nguyen-mien-phi'
 import { Route as AppSkillIdRouteImport } from './routes/app.$skillId'
 import { Route as ComboComboIdRouteImport } from './routes/combo.$comboId'
+import { Route as CongCuChenChuLenAnhRouteImport } from './routes/cong-cu.chen-chu-len-anh'
 import { Route as SkillSkillIdRouteImport } from './routes/skill.$skillId'
 import { Route as TaiNguyenGameNguoiQueRouteImport } from './routes/tai-nguyen.game-nguoi-que'
 import { Route as TaiNguyenTroLyHocTapRouteImport } from './routes/tai-nguyen.tro-ly-hoc-tap'
@@ -55,6 +56,11 @@ const ComboComboIdRoute = ComboComboIdRouteImport.update({
   path: '/combo/$comboId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CongCuChenChuLenAnhRoute = CongCuChenChuLenAnhRouteImport.update({
+  id: '/cong-cu/chen-chu-len-anh',
+  path: '/cong-cu/chen-chu-len-anh',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SkillSkillIdRoute = SkillSkillIdRouteImport.update({
   id: '/skill/$skillId',
   path: '/skill/$skillId',
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/tai-nguyen-mien-phi': typeof TaiNguyenMienPhiRoute
   '/app/$skillId': typeof AppSkillIdRoute
   '/combo/$comboId': typeof ComboComboIdRoute
+  '/cong-cu/chen-chu-len-anh': typeof CongCuChenChuLenAnhRoute
   '/skill/$skillId': typeof SkillSkillIdRoute
   '/tai-nguyen/game-nguoi-que': typeof TaiNguyenGameNguoiQueRoute
   '/tai-nguyen/tro-ly-hoc-tap': typeof TaiNguyenTroLyHocTapRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/tai-nguyen-mien-phi': typeof TaiNguyenMienPhiRoute
   '/app/$skillId': typeof AppSkillIdRoute
   '/combo/$comboId': typeof ComboComboIdRoute
+  '/cong-cu/chen-chu-len-anh': typeof CongCuChenChuLenAnhRoute
   '/skill/$skillId': typeof SkillSkillIdRoute
   '/tai-nguyen/game-nguoi-que': typeof TaiNguyenGameNguoiQueRoute
   '/tai-nguyen/tro-ly-hoc-tap': typeof TaiNguyenTroLyHocTapRoute
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/tai-nguyen-mien-phi': typeof TaiNguyenMienPhiRoute
   '/app/$skillId': typeof AppSkillIdRoute
   '/combo/$comboId': typeof ComboComboIdRoute
+  '/cong-cu/chen-chu-len-anh': typeof CongCuChenChuLenAnhRoute
   '/skill/$skillId': typeof SkillSkillIdRoute
   '/tai-nguyen/game-nguoi-que': typeof TaiNguyenGameNguoiQueRoute
   '/tai-nguyen/tro-ly-hoc-tap': typeof TaiNguyenTroLyHocTapRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/tai-nguyen-mien-phi'
     | '/app/$skillId'
     | '/combo/$comboId'
+    | '/cong-cu/chen-chu-len-anh'
     | '/skill/$skillId'
     | '/tai-nguyen/game-nguoi-que'
     | '/tai-nguyen/tro-ly-hoc-tap'
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/tai-nguyen-mien-phi'
     | '/app/$skillId'
     | '/combo/$comboId'
+    | '/cong-cu/chen-chu-len-anh'
     | '/skill/$skillId'
     | '/tai-nguyen/game-nguoi-que'
     | '/tai-nguyen/tro-ly-hoc-tap'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/tai-nguyen-mien-phi'
     | '/app/$skillId'
     | '/combo/$comboId'
+    | '/cong-cu/chen-chu-len-anh'
     | '/skill/$skillId'
     | '/tai-nguyen/game-nguoi-que'
     | '/tai-nguyen/tro-ly-hoc-tap'
@@ -155,6 +167,7 @@ export interface RootRouteChildren {
   TaiNguyenMienPhiRoute: typeof TaiNguyenMienPhiRoute
   AppSkillIdRoute: typeof AppSkillIdRoute
   ComboComboIdRoute: typeof ComboComboIdRoute
+  CongCuChenChuLenAnhRoute: typeof CongCuChenChuLenAnhRoute
   SkillSkillIdRoute: typeof SkillSkillIdRoute
   TaiNguyenGameNguoiQueRoute: typeof TaiNguyenGameNguoiQueRoute
   TaiNguyenTroLyHocTapRoute: typeof TaiNguyenTroLyHocTapRoute
@@ -211,6 +224,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ComboComboIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cong-cu/chen-chu-len-anh': {
+      id: '/cong-cu/chen-chu-len-anh'
+      path: '/cong-cu/chen-chu-len-anh'
+      fullPath: '/cong-cu/chen-chu-len-anh'
+      preLoaderRoute: typeof CongCuChenChuLenAnhRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/skill/$skillId': {
       id: '/skill/$skillId'
       path: '/skill/$skillId'
@@ -243,6 +263,7 @@ const rootRouteChildren: RootRouteChildren = {
   TaiNguyenMienPhiRoute: TaiNguyenMienPhiRoute,
   AppSkillIdRoute: AppSkillIdRoute,
   ComboComboIdRoute: ComboComboIdRoute,
+  CongCuChenChuLenAnhRoute: CongCuChenChuLenAnhRoute,
   SkillSkillIdRoute: SkillSkillIdRoute,
   TaiNguyenGameNguoiQueRoute: TaiNguyenGameNguoiQueRoute,
   TaiNguyenTroLyHocTapRoute: TaiNguyenTroLyHocTapRoute,

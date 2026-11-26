@@ -80,6 +80,11 @@ function translateAuthError(message: string) {
   return "Không thể hoàn tất yêu cầu. Vui lòng kiểm tra thông tin và thử lại.";
 }
 
+/** Trang công cụ gửi khách sang đây kèm ?quay-lai=/cong-cu/... để đăng nhập xong thì quay lại. */
+const RETURN_PATH_KEY = "scc-quay-lai-sau-dang-nhap";
+const isSafeReturnPath = (value: string | null): value is string =>
+  Boolean(value && /^\/cong-cu\/[a-z0-9-]+$/.test(value));
+
 const ledgerLabels: Record<WalletLedgerItem["entry_type"], string> = {
   topup: "Nạp tiền",
   hold: "Tạm giữ chi phí",
@@ -111,11 +116,38 @@ function AccountPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [returnPath, setReturnPath] = useState<string | null>(null);
   const accountSettingsDirty = displayName.trim() !== (profile?.display_name ?? "");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("mode") === "signup") setMode("signup");
+    const next = params.get("quay-lai");
+    try {
+      if (isSafeReturnPath(next)) sessionStorage.setItem(RETURN_PATH_KEY, next);
+      const saved = sessionStorage.getItem(RETURN_PATH_KEY);
+      setReturnPath(isSafeReturnPath(saved) ? saved : null);
+    } catch {
+      setReturnPath(isSafeReturnPath(next) ? next : null);
+    }
+  }, []);
 
   useEffect(() => {
     if (!supabase) return;
     const load = async (id: string | null) => {
+      if (id) {
+        let saved: string | null = null;
+        try {
+          saved = sessionStorage.getItem(RETURN_PATH_KEY);
+          sessionStorage.removeItem(RETURN_PATH_KEY);
+        } catch {
+          saved = null;
+        }
+        if (isSafeReturnPath(saved)) {
+          window.location.assign(saved);
+          return;
+        }
+      }
       setUserId(id);
       if (!id) {
         setProfile(null);
@@ -545,6 +577,11 @@ function AccountPage() {
         <p className="mt-2 leading-7 text-muted-foreground">
           Một tài khoản dùng cho mọi Webapp Skill.
         </p>
+        {returnPath && (
+          <p className="mt-3 rounded-xl bg-secondary px-4 py-3 text-sm leading-6 text-muted-foreground">
+            Đăng nhập hoặc tạo tài khoản xong, bạn sẽ được đưa về lại trang công cụ để dùng tiếp.
+          </p>
+        )}
         <button
           type="button"
           onClick={() => void signInWithGoogle()}

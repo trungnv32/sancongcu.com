@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Download, FileText } from "lucide-react";
+import { ArrowLeft, ArrowRight, Download, FileText, Type } from "lucide-react";
 import { useEffect, useState } from "react";
 import sanCongCuLogo from "@/assets/sancongcu-logo-transparent.png";
 import { FreeResourceDownloadDialog } from "@/components/FreeResourceDownloadDialog";
@@ -97,6 +97,32 @@ function FreeResourcesPage() {
             </p>
           ))}
         </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-6 pb-8">
+        {/* Công cụ dùng ngay trên web: mở bằng liên kết thường để trang công cụ tải đầy đủ (có chính sách bảo mật riêng). */}
+        <a
+          href="/cong-cu/chen-chu-len-anh"
+          className="flex flex-col gap-4 rounded-3xl border border-primary/15 bg-card p-6 shadow-card transition hover:border-primary sm:flex-row sm:items-center"
+        >
+          <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-brand-gradient text-primary-foreground">
+            <Type className="size-7" />
+          </span>
+          <span className="flex-1">
+            <span className="block text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              Công cụ dùng ngay trên web
+            </span>
+            <span className="mt-1 block text-xl font-bold">Chèn chữ lên ảnh</span>
+            <span className="mt-1 block text-sm leading-6 text-muted-foreground">
+              Thêm tiêu đề, cụm chữ nổi bật và nhãn thương hiệu lên ảnh của bạn, chọn từ 21 mẫu đẹp
+              rồi lưu ảnh về máy. Không cần cài đặt, ảnh được xử lý ngay trên máy của bạn.
+            </span>
+          </span>
+          <span className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-brand-gradient px-5 text-sm font-bold text-primary-foreground shadow-brand">
+            Mở công cụ
+            <ArrowRight className="size-4" />
+          </span>
+        </a>
       </section>
 
       <section className="mx-auto max-w-6xl px-6 pb-24">
