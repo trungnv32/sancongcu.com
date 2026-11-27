@@ -8,6 +8,29 @@ const json = (request: Request, body: Record<string, unknown>, status = 200) => 
 
 const roleLabel = (role: string) => role === "customer" ? "Khách" : role === "hint" ? "Anh nhắc" : role === "human" ? "Tuệ Lâm (lời anh)" : "Tuệ Lâm";
 
+// Nhận biết khách cần người thật. Khách hay viết tắt: "a" = anh, "e" = em, "ad" = admin.
+const XUNG = "(?:a|anh|e|em|c|chị|chi|mình|minh|tôi|toi|t)";
+const HANDOFF_PATTERN = new RegExp([
+  "tư vấn riêng", "người thật", "nhân viên tư vấn", "tư vấn viên", "muốn gặp", "cần gặp", "gặp quản lý",
+  `gặp (?:${XUNG} )?(?:trung|admin|ad|sếp|chủ|founder|quản lý|nhân viên|người phụ trách)(?![\\p{L}])`,
+  `gặp (?:a|anh)(?![\\p{L}])`,
+  `(?:nói chuyện|chat|gọi|liên hệ) (?:với |trực tiếp (?:với )?)?(?:${XUNG} )?(?:trung|admin|ad|người thật)(?![\\p{L}])`,
+  "nói chuyện trực tiếp",
+  `chuyển (?:cho )?(?:anh|a|người|nhân viên|admin|ad)(?![\\p{L}])`,
+  `cho ${XUNG} gặp`,
+].join("|"), "iu");
+const COMPLAINT_PATTERN = /(khiếu nại|hoàn tiền|đổi skill|chưa nhận|đã thanh toán|gặp quản lý|người thật|không hài lòng|thất vọng|phàn nàn|phản ánh)/iu;
+// AI tự nói "đã/sẽ chuyển cho bộ phận…" thì phải chuyển thật, không để khách tưởng đã chuyển.
+const AI_HUA_CHUYEN = /((?:đã|sẽ|để) (?:chuyển|báo|gửi)[^.\n]{0,40}(?:bộ phận|người phụ trách|anh trung|admin|nhân viên))|(bộ phận (?:hỗ trợ|phụ trách)[^.\n]{0,30}liên hệ)|(người phụ trách[^.\n]{0,30}liên hệ)/iu;
+
+export function canChuyenNguoiThat(content: string, history: ChatRow[], reply: string, coSdtMoi: boolean): boolean {
+  const khach = history.filter((item) => item.role === "customer").map((item) => item.content).join("\n");
+  const daXinSdt = history.some((item) => item.role === "assistant" && /xin (?:số điện thoại|sđt|số đt)/iu.test(item.content));
+  if (HANDOFF_PATTERN.test(content) || COMPLAINT_PATTERN.test(content)) return true;
+  if (coSdtMoi && daXinSdt && (HANDOFF_PATTERN.test(khach) || COMPLAINT_PATTERN.test(khach))) return true;
+  return AI_HUA_CHUYEN.test(reply);
+}
+
 type SessionRow = { customer_phone?: string; page_url?: string; anh_vao_cuoc_den?: string | null; telegram_message_id?: number | null; nhap_tra_loi?: string | null; nhap_cho_tin_id?: number | null };
 
 async function sendHandoff(sessionId: string, session: SessionRow, phutVaoCuocDen: string) {
@@ -115,15 +138,7 @@ export async function handler(request: Request): Promise<Response> {
       return json(request, { reply, handoff: false, vao_cuoc: true });
     }
 
-    const customerContext = history
-      .filter((item) => item.role === "customer")
-      .map((item) => item.content)
-      .join("\n");
-    const handoffPattern = /(tư vấn riêng|gặp anh|gặp anh trung|nói chuyện với anh|nói chuyện trực tiếp|người thật|nhân viên tư vấn|gặp tư vấn viên|chuyển (?:anh|người|nhân viên)|cho (?:anh|em) gặp|muốn gặp|cần gặp)/i;
-    const complaintPattern = /(khiếu nại|hoàn tiền|đổi skill|chưa nhận|đã thanh toán|gặp quản lý|người thật|không hài lòng|thất vọng|phàn nàn|phản ánh)/i;
-    const phoneRequestWasPending = history.some((item) => item.role === "assistant" && /cho em xin số điện thoại/i.test(item.content));
-    const phoneCompletesPendingHandoff = Boolean(phoneInMessage) && phoneRequestWasPending && (handoffPattern.test(customerContext) || complaintPattern.test(customerContext));
-    const needsHuman = handoffPattern.test(content) || complaintPattern.test(content) || phoneCompletesPendingHandoff;
+    const needsHuman = canChuyenNguoiThat(content, history, reply, Boolean(phoneInMessage));
     const [savedSession] = phoneInMessage ? await dbRows<SessionRow>(`tue_lam_chat_sessions?id=eq.${sessionId}&select=customer_phone,page_url,telegram_message_id`) : [session];
     const phone = savedSession?.customer_phone;
     let handoffSent = false;
