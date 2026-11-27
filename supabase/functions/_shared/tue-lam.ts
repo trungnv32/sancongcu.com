@@ -65,15 +65,21 @@ export async function telegramSend(text: string, options: { replyTo?: number } =
   const chatId = Deno.env.get("TELEGRAM_CHAT_ID");
   if (!token || !chatId) throw new Error("Telegram chưa được cấu hình.");
   // Gửi chữ thường (không parse_mode) để ký tự đặc biệt của khách không làm hỏng tin.
-  const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: chatId, text: text.slice(0, 4000), disable_web_page_preview: true,
-      ...(options.replyTo ? { reply_parameters: { message_id: options.replyTo, allow_sending_without_reply: true } } : {}),
-    }),
-  });
+  // Lỗi mạng của fetch có thể chứa URL (kèm token bot) → chỉ ném lỗi chung, không giữ lỗi gốc.
+  let response: Response;
+  try {
+    response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId, text: text.slice(0, 4000), disable_web_page_preview: true,
+        ...(options.replyTo ? { reply_parameters: { message_id: options.replyTo, allow_sending_without_reply: true } } : {}),
+      }),
+    });
+  } catch {
+    throw new Error("Telegram không kết nối được.");
+  }
   const result = await response.json().catch(() => null);
-  if (!response.ok || !result?.ok) throw new Error("Telegram chưa nhận được tin.");
+  if (!response.ok || !result?.ok) throw new Error(`Telegram chưa nhận được tin (${response.status}).`);
   return result.result as { message_id: number };
 }
 
@@ -157,10 +163,15 @@ export async function callGemini(system: string, contents: GeminiContent[]) {
   const apiKey = Deno.env.get("GEMINI_API_KEY");
   if (!apiKey) throw new Error("Chưa cấu hình Gemini API key.");
   const model = Deno.env.get("TUE_LAM_MODEL") ?? "gemini-3.5-flash-lite";
-  const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-    method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-    body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { temperature: 0.4, maxOutputTokens: 500 } }),
-  });
+  let aiResponse: Response;
+  try {
+    aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+      method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+      body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { temperature: 0.4, maxOutputTokens: 500 } }),
+    });
+  } catch {
+    throw new Error("Gemini không kết nối được.");
+  }
   if (!aiResponse.ok) {
     const providerError = await aiResponse.text().catch(() => "");
     console.error("Gemini API rejected the chat request", aiResponse.status, providerError.slice(0, 1200));
@@ -177,9 +188,16 @@ export async function callGemini(system: string, contents: GeminiContent[]) {
 }
 
 /** Tuệ Lâm trả lời tin khách mới nhất (đã lưu trong lịch sử). */
-export async function answerCustomer(sessionId: string) {
+export async function answerCustomer(sessionId: string, options: { unansweredSince?: number } = {}) {
   const [{ history, hints }, base] = await Promise.all([loadConversation(sessionId), loadBaseSystem()]);
-  const reply = await callGemini(buildSystem(base, hints), toContents(history));
+  // Khách nhắn nhiều câu liên tiếp khi nháp còn chờ: soạn 1 câu trả lời đủ mọi câu chưa được trả lời.
+  const pending = options.unansweredSince
+    ? history.filter((row) => row.role === "customer" && Number(row.id) >= options.unansweredSince!)
+    : [];
+  const extra = pending.length > 1
+    ? `[CHỈ DẪN NỘI BỘ — đây KHÔNG phải lời khách] Khách đã nhắn ${pending.length} câu liên tiếp chưa được trả lời:\n${pending.map((row, index) => `${index + 1}. ${row.content}`).join("\n")}\nHãy trả lời gộp, đủ ý cho tất cả các câu trên, không bỏ sót câu nào.`
+    : undefined;
+  const reply = await callGemini(buildSystem(base, hints), toContents(history, extra));
   return { reply, history };
 }
 

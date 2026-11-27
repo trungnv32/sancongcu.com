@@ -8,7 +8,7 @@ const json = (request: Request, body: Record<string, unknown>, status = 200) => 
 
 const roleLabel = (role: string) => role === "customer" ? "Khách" : role === "hint" ? "Anh nhắc" : role === "human" ? "Tuệ Lâm (lời anh)" : "Tuệ Lâm";
 
-type SessionRow = { customer_phone?: string; page_url?: string; anh_vao_cuoc_den?: string | null; telegram_message_id?: number | null };
+type SessionRow = { customer_phone?: string; page_url?: string; anh_vao_cuoc_den?: string | null; telegram_message_id?: number | null; nhap_tra_loi?: string | null; nhap_cho_tin_id?: number | null };
 
 async function sendHandoff(sessionId: string, session: SessionRow, phutVaoCuocDen: string) {
   const rows = await dbRows<ChatRow>(`tue_lam_chat_messages?session_id=eq.${sessionId}&select=role,content,created_at&order=id.desc&limit=18`);
@@ -54,7 +54,7 @@ async function handleNewOrder(request: Request, payload: Record<string, unknown>
     }
     return json(request, { ok: true });
   } catch (error) {
-    console.error("Telegram new order notification failed", error);
+    console.error("Telegram new order notification failed", error instanceof Error ? error.message : "unknown");
     return json(request, { error: "Chưa gửi được thông báo đơn hàng." }, 503);
   }
 }
@@ -83,15 +83,18 @@ export async function handler(request: Request): Promise<Response> {
     customerMessageId = Number(customerRow.id) || 0;
 
     const [[session], config] = await Promise.all([
-      dbRows<SessionRow>(`tue_lam_chat_sessions?id=eq.${sessionId}&select=customer_phone,page_url,anh_vao_cuoc_den,telegram_message_id`),
+      dbRows<SessionRow>(`tue_lam_chat_sessions?id=eq.${sessionId}&select=customer_phone,page_url,anh_vao_cuoc_den,telegram_message_id,nhap_tra_loi,nhap_cho_tin_id`),
       loadConfig().catch(() => ({})),
     ]);
     inCall = dangVaoCuoc(session);
+    const wait = giayCho(config);
+    // Đang có nháp chờ (chưa gửi khách) → câu khách trước đó chưa được trả lời: nháp mới phải trả lời cả câu đó.
+    const unansweredSince = inCall && wait > 0 && session?.nhap_tra_loi && session?.nhap_cho_tin_id ? Number(session.nhap_cho_tin_id) : undefined;
 
     let reply: string;
     let history: ChatRow[];
     try {
-      ({ reply, history } = await answerCustomer(sessionId));
+      ({ reply, history } = await answerCustomer(sessionId, { unansweredSince }));
     } catch (error) {
       if (inCall) await telegramAboutSession(sessionId, `#${sessionCode(sessionId)} Khách: ${content}\nTuệ Lâm chưa trả lời được (lỗi AI). Anh Reply với ! ở đầu để gửi nguyên văn nhé.`);
       throw error;
@@ -100,10 +103,10 @@ export async function handler(request: Request): Promise<Response> {
     // Anh đang vào cuộc: chuyển tin sang Telegram, không xét chuyển người thật lần nữa.
     if (inCall) {
       const code = sessionCode(sessionId);
-      const wait = giayCho(config);
       if (wait > 0) {
-        await dbPatch(`tue_lam_chat_sessions?id=eq.${sessionId}`, { nhap_tra_loi: reply, nhap_cho_tin_id: customerMessageId, nhap_luc: nowIso(), updated_at: nowIso() });
-        await telegramAboutSession(sessionId, `#${code} Khách: ${content}\nTuệ Lâm định trả lời (tự gửi sau ${wait} giây): ${reply}\n\nReply để nhắc lại, hoặc gõ ! ở đầu để gửi câu khác.`);
+        // nhap_cho_tin_id giữ id câu khách CŨ NHẤT chưa được trả lời.
+        await dbPatch(`tue_lam_chat_sessions?id=eq.${sessionId}`, { nhap_tra_loi: reply, nhap_cho_tin_id: unansweredSince ?? customerMessageId, nhap_luc: nowIso(), updated_at: nowIso() });
+        await telegramAboutSession(sessionId, `#${code} Khách: ${content}\nTuệ Lâm định trả lời${unansweredSince ? " (gộp cả câu khách nhắn trước, thay nháp cũ)" : ""} (tự gửi sau ${wait} giây): ${reply}\n\nReply để nhắc lại, hoặc gõ ! ở đầu để gửi câu khác.`);
         return json(request, { dang_soan: true, cho: wait, handoff: false });
       }
       const saved = await dbInsert("tue_lam_chat_messages", { session_id: sessionId, role: "assistant", content: reply });

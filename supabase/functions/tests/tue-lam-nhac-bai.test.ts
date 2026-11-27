@@ -133,6 +133,8 @@ let fake: FakeDb;
 let telegram: TgSent[];
 let gemini: GeminiRequest[];
 let geminiFails = false;
+let telegramNetworkFails = false;
+let dbThrowOnMessageInsert = false;
 let nextTgId = 1000;
 let externalCalls: string[];
 
@@ -142,8 +144,11 @@ const NORMAL_REPLY = "Dạ, em Tuệ Lâm đây, em hỗ trợ mình ngay ạ.";
 globalThis.fetch = (async (input: string | URL | Request, init: RequestInit = {}) => {
   const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url);
   externalCalls.push(url.host);
+  if (dbThrowOnMessageInsert && url.pathname.endsWith("/tue_lam_chat_messages") && (init.method ?? "GET") === "POST") throw new TypeError("mạng Supabase giả bị đứt");
   if (url.host === "fake.supabase.test") return handleRest(fake, url, init);
   if (url.host === "api.telegram.org") {
+    // Giống lỗi thật của Deno: thông báo lỗi chứa nguyên URL (có token bot).
+    if (telegramNetworkFails) throw new TypeError(`error sending request for url (${url.href})`);
     const body = JSON.parse(String(init.body));
     assertEquals(body.chat_id, "777");
     assert(!("parse_mode" in body), "Telegram phải gửi chữ thường");
@@ -165,7 +170,7 @@ globalThis.fetch = (async (input: string | URL | Request, init: RequestInit = {}
 function setup() {
   fake = new FakeDb();
   fake.tables.tue_lam_telegram_config.push(fake.defaults("tue_lam_telegram_config", { webhook_secret: SECRET }));
-  telegram = []; gemini = []; externalCalls = []; geminiFails = false;
+  telegram = []; gemini = []; externalCalls = []; geminiFails = false; telegramNetworkFails = false; dbThrowOnMessageInsert = false;
   clock.now = () => T0;
   resetPollLimiter();
 }
@@ -538,6 +543,102 @@ Deno.test("25 so secret constant-time đúng/sai", () => {
   assert(!safeEqual("abc", "abd"));
   assert(!safeEqual("abc", "abcd"));
   assert(!safeEqual("", "x"));
+});
+
+async function captureLogs<T>(work: () => Promise<T>) {
+  const logs: string[] = [];
+  const original = { error: console.error, log: console.log, warn: console.warn };
+  const sink = (...args: unknown[]) => { logs.push(args.map((arg) => arg instanceof Error ? `${arg.message} ${arg.stack}` : typeof arg === "string" ? arg : JSON.stringify(arg)).join(" ")); };
+  console.error = sink; console.log = sink; console.warn = sink;
+  try { return { result: await work(), logs }; } finally { Object.assign(console, original); }
+}
+
+Deno.test("27 Telegram đứt mạng: lỗi và log không bao giờ chứa URL/token bot", async () => {
+  setup();
+  const { telegramSend } = await import("../_shared/tue-lam.ts");
+  telegramNetworkFails = true;
+  let message = "";
+  try { await telegramSend("thử"); } catch (error) { message = (error as Error).message + String((error as Error).stack) + String((error as Error & { cause?: unknown }).cause ?? ""); }
+  assert(message.length > 0, "phải ném lỗi");
+  assert(!message.includes("fake-bot-token") && !message.includes("api.telegram.org"), `lỗi lộ URL: ${message}`);
+  const { result, logs } = await captureLogs(() => chat(S1, "Em muốn gặp người thật, số em 0912345678"));
+  assertStringIncludes(result.body.reply, "zalo.me");
+  const { logs: logs2 } = await captureLogs(async () => {
+    telegramNetworkFails = false;
+    const alertBody = await chat(S2, "Em muốn gặp người thật, số em 0987654321");
+    telegramNetworkFails = true;
+    await tg({ text: "!Dạ em đây" });
+    return alertBody;
+  });
+  const all = [...logs, ...logs2].join(" | ");
+  assert(logs.length + logs2.length > 0, "phải có log lỗi để kiểm");
+  assert(!all.includes("fake-bot-token") && !all.includes("api.telegram.org/bot"), `log lộ token: ${all}`);
+});
+
+Deno.test("28 lỗi bất ngờ sau khi đã giành update_id → vẫn 200 và báo anh gửi lại", async () => {
+  setup();
+  await handoff(S1);
+  dbThrowOnMessageInsert = true;
+  const { result } = await captureLogs(() => tg({ text: "!Dạ em đây" }, { updateId: 7001 }));
+  assertEquals(result.status, 200);
+  assertEquals(lastTg().text, "Em gặp lỗi khi xử lý tin này, anh gửi lại giúp em.");
+  assertEquals(lastTg().reply_to, nextTgId - 2); // trả lời đúng tin của anh (id cấp trước tin báo lỗi)
+  assertEquals(fake.config().update_id_cuoi, 7001);
+  // Lỗi khi Telegram cũng đứt: không ném tiếp, vẫn 200.
+  telegramNetworkFails = true;
+  const again = await captureLogs(() => tg({ text: "!Dạ em đây" }, { updateId: 7002 }));
+  assertEquals(again.result.status, 200);
+  // Sai secret (chưa giành update_id) → không báo gì.
+  telegramNetworkFails = false;
+  const count = telegram.length;
+  await tg({ text: "!x" }, { secret: "sai", updateId: 7003 });
+  assertEquals(telegram.length, count);
+});
+
+Deno.test("29 #mã chỉ nhận ở đầu tin, '#' giữa câu không chọn khách", async () => {
+  setup();
+  await handoff(S1);
+  await handoff(S2, "0987654321");
+  const count = fake.messages().length;
+  await tg({ text: "!Dạ mã giảm giá của chị là #DEF456 nhé" });
+  assertEquals(fake.messages().length, count);
+  assertStringIncludes(lastTg().text, "Đang có 2 khách anh vào cuộc");
+  await tg({ text: "  #DEF456 !Dạ em chào chị" });
+  assertEquals(fake.messages(S2).at(-1)!.content, "Dạ em chào chị");
+  await tg({ text: "#abc123: !Dạ em chào anh, mã #DEF456 là của khách khác" });
+  assertEquals(fake.messages(S1).at(-1)!.content, "Dạ em chào anh, mã #DEF456 là của khách khác");
+  // Đúng 1 khách vào cuộc + '#' giữa câu → vẫn gửi nguyên câu (kể cả '#') cho khách đó.
+  await tg({ text: "/xong #DEF456" });
+  await tg({ text: "!Chị nhập mã #SALE10 khi thanh toán nhé" });
+  assertEquals(fake.messages(S1).at(-1)!.content, "Chị nhập mã #SALE10 khi thanh toán nhé");
+});
+
+Deno.test("30 /cho 60 + khách nhắn 2 câu khi đang có nháp → nháp mới trả lời cả 2 câu, đăng 1 lần", async () => {
+  setup();
+  await handoff(S1);
+  await tg({ text: "/cho 60" });
+  await chat(S1, "Combo 5 skill giá bao nhiêu?");
+  const firstId = fake.messages(S1).filter((row) => row.role === "customer").at(-1)!.id;
+  advance(10_000);
+  const second = await chat(S1, "À cho chị hỏi thêm có xuất hoá đơn không?");
+  assertEquals(second.body.dang_soan, true);
+  const request = gemini.at(-1)!;
+  const lastUser = request.contents.at(-1)!;
+  const lastText = lastUser.parts.map((part) => part.text).join(" | ");
+  assertEquals(lastUser.role, "user");
+  assertStringIncludes(lastText, "Combo 5 skill giá bao nhiêu?");
+  assertStringIncludes(lastText, "có xuất hoá đơn không?");
+  assertStringIncludes(lastText, "Khách đã nhắn 2 câu liên tiếp chưa được trả lời");
+  assertEquals(fake.session(S1).nhap_cho_tin_id, firstId);
+  assertStringIncludes(lastTg().text, "gộp cả câu khách nhắn trước");
+  advance(61_000);
+  const poll = await browser("poll", S1, 0);
+  assertEquals(poll.body.messages.length, 1);
+  assertEquals(poll.body.dang_soan, false);
+  // Không còn nháp: câu tiếp theo không bị coi là gộp.
+  await chat(S1, "Cảm ơn em");
+  const plain = gemini.at(-1)!.contents.at(-1)!.parts.map((part) => part.text).join(" | ");
+  assert(!plain.includes("câu liên tiếp"));
 });
 
 Deno.test("26 test không gọi dịch vụ thật nào", () => {

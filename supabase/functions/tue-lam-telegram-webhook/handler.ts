@@ -71,7 +71,8 @@ const HELP = [
   "- /dang: xem khách đang trong chế độ anh vào cuộc.",
 ].join("\n");
 
-const CODE_PATTERN = /(^|\s)#([0-9a-z]{6})(?=\s|$|[:,.])/i;
+// #mã chỉ nhận ở ĐẦU tin (sau khoảng trắng đầu), không bắt "#" giữa câu.
+const CODE_PATTERN = /^\s*#([0-9a-z]{6})(?=\s|$|[:,.])[:,.]?/i;
 
 async function sessionsByCode(code: string) {
   if (!/^[0-9a-f]{6}$/i.test(code)) return [];
@@ -157,7 +158,9 @@ async function handleCommand(command: string, argument: string, messageId: numbe
   await reply(`Em chưa hiểu lệnh ${command}.\n\n${HELP}`, messageId);
 }
 
-async function handleTelegramUpdate(request: Request, update: Record<string, unknown>) {
+type UpdateState = { claimed: boolean; messageId: number };
+
+async function handleTelegramUpdate(request: Request, update: Record<string, unknown>, state: UpdateState) {
   const config = await loadConfig();
   const suppliedSecret = request.headers.get("x-telegram-bot-api-secret-token") ?? "";
   if (!config?.webhook_secret || !safeEqual(suppliedSecret, config.webhook_secret)) return response({ error: "Unauthorized" }, 401);
@@ -169,6 +172,7 @@ async function handleTelegramUpdate(request: Request, update: Record<string, unk
     const claimed = await dbPatch(`tue_lam_telegram_config?id=eq.1&or=(update_id_cuoi.is.null,update_id_cuoi.lt.${updateId})`, { update_id_cuoi: updateId }, true);
     if (!claimed?.length) return skip("update_id đã xử lý");
   }
+  state.claimed = true;
 
   const message = update.message as Record<string, unknown> | undefined;
   if (!message) return skip("không phải tin nhắn");
@@ -177,6 +181,7 @@ async function handleTelegramUpdate(request: Request, update: Record<string, unk
   const targetChatId = Deno.env.get("TELEGRAM_CHAT_ID");
   if (!targetChatId || String(chat?.id) !== targetChatId) return skip("sai chat_id");
   const messageId = Number(message.message_id) || 0;
+  state.messageId = messageId;
   const replyTo = message.reply_to_message as Record<string, unknown> | undefined;
   const replyToId = Number(replyTo?.message_id) || null;
   const rawText = typeof message.text === "string" ? message.text.trim().slice(0, 3500) : "";
@@ -187,12 +192,15 @@ async function handleTelegramUpdate(request: Request, update: Record<string, unk
   }
 
   const codeMatch = rawText.match(CODE_PATTERN);
-  const code = codeMatch ? codeMatch[2] : null;
-  const text = codeMatch ? rawText.replace(CODE_PATTERN, "$1").trim() : rawText;
+  const code = codeMatch ? codeMatch[1] : null;
+  const text = codeMatch ? rawText.replace(CODE_PATTERN, "").trim() : rawText;
 
   if (text.startsWith("/")) {
     const [head, ...rest] = text.split(/\s+/);
-    await handleCommand(head.toLowerCase().replace(/@\w+$/, ""), rest.join(" ").trim(), messageId, replyToId, code, config);
+    const argument = rest.join(" ").trim();
+    // Lệnh cho phép ghi mã ngay sau lệnh: "/xong #ABC123".
+    const commandCode = code ?? argument.match(/^#([0-9a-z]{6})$/i)?.[1] ?? null;
+    await handleCommand(head.toLowerCase().replace(/@\w+$/, ""), argument, messageId, replyToId, commandCode, config);
     return response({ ok: true });
   }
   if (!text) { await reply("Sau mã khách chưa có nội dung. Anh gõ thêm lời nhắc hoặc ! kèm câu gửi khách nhé.", messageId); return response({ ok: true }); }
@@ -238,9 +246,14 @@ export async function handler(request: Request): Promise<Response> {
     if (origin && !allowedOrigins.has(origin)) return response({ error: "Origin not allowed" }, 403, request);
     try { return await handleBrowserAction(request, payload); } catch { return response({ error: "Poll failed" }, 503, request); }
   }
-  try { return await handleTelegramUpdate(request, payload); } catch (error) {
+  const state: UpdateState = { claimed: false, messageId: 0 };
+  try { return await handleTelegramUpdate(request, payload, state); } catch (error) {
     console.error("Telegram webhook failed", error instanceof Error ? error.message : "unknown");
-    // Đã qua kiểm secret; trả 200 để Telegram không gửi lặp mãi.
+    // Đã giành update_id (Telegram sẽ không gửi lại): báo anh gửi lại, không ném tiếp.
+    if (state.claimed && state.messageId) {
+      try { await telegramSend("Em gặp lỗi khi xử lý tin này, anh gửi lại giúp em.", { replyTo: state.messageId }); } catch { /* bỏ qua */ }
+    }
+    // Trả 200 để Telegram không gửi lặp mãi.
     return response({ ok: true, error: "Webhook processing failed" });
   }
 }
