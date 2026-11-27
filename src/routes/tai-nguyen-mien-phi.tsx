@@ -114,7 +114,7 @@ function FreeResourcesPage() {
             </span>
             <span className="mt-1 block text-xl font-bold">Chèn chữ lên ảnh</span>
             <span className="mt-1 block text-sm leading-6 text-muted-foreground">
-              Thêm tiêu đề, cụm chữ nổi bật và nhãn thương hiệu lên ảnh của bạn, chọn từ 21 mẫu đẹp
+              Thêm tiêu đề, cụm chữ nổi bật và nhãn thương hiệu lên ảnh của bạn, chọn từ 30 mẫu đẹp
               rồi lưu ảnh về máy. Không cần cài đặt, ảnh được xử lý ngay trên máy của bạn.
             </span>
           </span>

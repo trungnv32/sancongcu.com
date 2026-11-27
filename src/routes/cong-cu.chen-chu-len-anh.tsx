@@ -19,7 +19,7 @@ const SELF_HOSTED_FONT_CSS = [400, 500, 800]
 const PAGE_TITLE =
   "Chèn chữ lên ảnh online miễn phí — thêm tiêu đề, nhãn thương hiệu | sancongcu.com";
 const PAGE_DESCRIPTION =
-  "Công cụ chèn chữ lên ảnh miễn phí bằng tiếng Việt: thêm tiêu đề, cụm chữ nổi bật, nhãn thương hiệu, chọn từ 21 mẫu đẹp rồi lưu ảnh về máy. Ảnh được xử lý ngay trên máy của bạn, không cần cài đặt.";
+  "Công cụ chèn chữ lên ảnh miễn phí bằng tiếng Việt: thêm tiêu đề, cụm chữ nổi bật, nhãn thương hiệu, chọn từ 30 mẫu đẹp rồi lưu ảnh về máy. Ảnh được xử lý ngay trên máy của bạn, không cần cài đặt.";
 
 export const Route = createFileRoute("/cong-cu/chen-chu-len-anh")({
   headers: () => ({
@@ -63,7 +63,7 @@ const steps = [
 const faqs = [
   {
     q: "Công cụ này có mất phí không?",
-    a: "Không. Bạn dùng miễn phí 5 mẫu mà không cần tài khoản. Khi đăng ký tài khoản miễn phí trên sancongcu.com, bạn mở được thêm 16 mẫu đẹp khác.",
+    a: "Không. Bạn dùng miễn phí 5 mẫu mà không cần tài khoản. Khi đăng ký tài khoản miễn phí trên sancongcu.com, bạn mở được thêm 25 mẫu đẹp khác.",
   },
   {
     q: "Ảnh của tôi có bị gửi lên mạng không?",
