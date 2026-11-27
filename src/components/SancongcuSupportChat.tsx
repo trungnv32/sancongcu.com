@@ -39,6 +39,15 @@ const initialMessages: ChatMessage[] = [
 
 const quickReplies = ["Tư vấn skill phù hợp", "Hướng dẫn mua hàng", "Hỗ trợ đơn hàng"];
 
+type PollMessage = { id: number; content: string };
+type PollResponse = { messages?: PollMessage[]; dang_soan?: boolean; da_chuyen?: boolean; afterId?: number };
+type HistoryMessage = { id: number; from: "customer" | "tue-lam"; content: string };
+
+const SESSION_KEY = "tue-lam-chat-session";
+const afterIdKey = (sessionId: string) => `tue-lam-chat-after:${sessionId}`;
+const OPEN_POLL_MS = 4000;
+const CLOSED_POLL_MS = 20000;
+
 export function SancongcuSupportChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
@@ -46,8 +55,19 @@ export function SancongcuSupportChat() {
   const [customerMessageCount, setCustomerMessageCount] = useState(0);
   const [isSending, setIsSending] = useState(false);
   const [chatSessionId, setChatSessionId] = useState("");
-  const [lastHumanMessageId, setLastHumanMessageId] = useState(0);
+  // Đã chuyển người thật: hỏi tin mới kể cả khi khách đóng khung chat.
+  const [handedOff, setHandedOff] = useState(false);
+  // Tuệ Lâm đang soạn câu trả lời (chế độ chờ duyệt).
+  const [isDrafting, setIsDrafting] = useState(false);
+  const [hasUnread, setHasUnread] = useState(false);
+  const afterIdRef = useRef(0);
+  const isOpenRef = useRef(isOpen);
   const messageListRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    isOpenRef.current = isOpen;
+    if (isOpen) setHasUnread(false);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -57,35 +77,69 @@ export function SancongcuSupportChat() {
       messageList.scrollTo({ top: messageList.scrollHeight, behavior: "smooth" });
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [isOpen, isSending, messages]);
+  }, [isOpen, isSending, isDrafting, messages]);
+
+  const rememberAfterId = (sessionId: string, id: number) => {
+    if (id <= afterIdRef.current) return;
+    afterIdRef.current = id;
+    window.sessionStorage.setItem(afterIdKey(sessionId), String(id));
+  };
 
   useEffect(() => {
-    let sessionId = window.sessionStorage.getItem("tue-lam-chat-session");
+    let sessionId = window.sessionStorage.getItem(SESSION_KEY);
+    const isReturning = Boolean(sessionId);
     if (!sessionId) {
       sessionId = crypto.randomUUID();
-      window.sessionStorage.setItem("tue-lam-chat-session", sessionId);
+      window.sessionStorage.setItem(SESSION_KEY, sessionId);
     }
-    setChatSessionId(sessionId);
+    const activeSessionId = sessionId;
+    afterIdRef.current = Number(window.sessionStorage.getItem(afterIdKey(activeSessionId))) || 0;
+    setChatSessionId(activeSessionId);
+    if (!isReturning || !supabase) return;
+    // Tải lại trang: khôi phục cuộc chat của phiên này (không bao giờ có ghi chú nội bộ).
+    void supabase.functions.invoke("tue-lam-telegram-webhook", {
+      body: { action: "lich-su", sessionId: activeSessionId },
+    }).then(({ data, error }) => {
+      if (error || !Array.isArray(data?.messages)) return;
+      const history = data.messages as HistoryMessage[];
+      if (history.length) {
+        setMessages([...initialMessages, ...history.map((message) => ({
+          id: message.id,
+          role: message.from === "customer" ? ("customer" as const) : ("agent" as const),
+          content: message.content,
+        }))]);
+        setCustomerMessageCount(history.filter((message) => message.from === "customer").length);
+      }
+      rememberAfterId(activeSessionId, Number(data.afterId) || 0);
+      if (data.da_chuyen) setHandedOff(true);
+      setIsDrafting(Boolean(data.dang_soan));
+    });
   }, []);
 
+  const shouldPoll = handedOff || isDrafting;
   useEffect(() => {
-    if (!isOpen || !chatSessionId || !supabase) return;
+    if (!shouldPoll || !chatSessionId || !supabase) return;
+    const client = supabase;
     const timer = window.setInterval(() => {
-      void supabase.functions.invoke("tue-lam-telegram-webhook", {
-        body: { action: "poll", sessionId: chatSessionId, afterId: lastHumanMessageId },
+      void client.functions.invoke("tue-lam-telegram-webhook", {
+        body: { action: "poll", sessionId: chatSessionId, afterId: afterIdRef.current },
       }).then(({ data, error }) => {
-        if (error || !Array.isArray(data?.messages) || !data.messages.length) return;
-        const incoming = data.messages as Array<{ id: number; content: string }>;
+        if (error || !data) return;
+        const result = data as PollResponse;
+        setIsDrafting(Boolean(result.dang_soan));
+        if (!Array.isArray(result.messages) || !result.messages.length) return;
+        const incoming = result.messages;
         setMessages((current) => {
           const currentIds = new Set(current.map((message) => message.id));
           const unseen = incoming.filter((message) => !currentIds.has(message.id));
-          return unseen.length ? [...current, ...unseen.map((message) => ({ id: message.id, role: "agent" as const, content: `Anh Trung: ${message.content}` }))] : current;
+          return unseen.length ? [...current, ...unseen.map((message) => ({ id: message.id, role: "agent" as const, content: message.content }))] : current;
         });
-        setLastHumanMessageId((current) => Math.max(current, ...incoming.map((message) => message.id)));
+        rememberAfterId(chatSessionId, Math.max(...incoming.map((message) => message.id)));
+        if (!isOpenRef.current) setHasUnread(true);
       });
-    }, 3500);
+    }, isOpen ? OPEN_POLL_MS : CLOSED_POLL_MS);
     return () => window.clearInterval(timer);
-  }, [chatSessionId, isOpen, lastHumanMessageId]);
+  }, [chatSessionId, isOpen, shouldPoll]);
 
   const sendMessage = async (content: string) => {
     const trimmedContent = content.trim();
@@ -98,8 +152,7 @@ export function SancongcuSupportChat() {
     const customerMessage: ChatMessage = {
       id: Date.now(), role: "customer", content: trimmedContent,
     };
-    const withCustomerMessage = [...messages, customerMessage];
-    setMessages(withCustomerMessage);
+    setMessages((current) => [...current, customerMessage]);
     setCustomerMessageCount(nextCustomerMessageCount);
     setDraft("");
     setIsSending(true);
@@ -113,10 +166,17 @@ export function SancongcuSupportChat() {
           pageUrl: window.location.href,
         },
       });
-      if (error || !data?.reply) throw error ?? new Error(data?.error ?? "Chưa nhận được phản hồi.");
+      if (error) throw error;
+      if (data?.handoff || data?.vao_cuoc) setHandedOff(true);
+      if (data?.dang_soan) {
+        // Anh Trung đang xem: câu trả lời sẽ đến qua lượt hỏi tin.
+        setHandedOff(true);
+        setIsDrafting(true);
+        return;
+      }
+      if (!data?.reply) throw new Error(data?.error ?? "Chưa nhận được phản hồi.");
       const agentMessage: ChatMessage = { id: Date.now() + 1, role: "agent", content: data.reply };
-      const updatedMessages = [...withCustomerMessage, agentMessage];
-      setMessages(updatedMessages);
+      setMessages((current) => [...current, agentMessage]);
     } catch (error) {
       console.error("Không gửi được tin nhắn Tuệ Lâm:", error);
       setMessages((current) => [...current, {
@@ -223,6 +283,9 @@ export function SancongcuSupportChat() {
                 </button>
               ))}
               {isSending && <p className="px-2 text-xs text-slate-300">Tuệ Lâm đang trả lời…</p>}
+              {!isSending && isDrafting && (
+                <p role="status" className="w-full px-2 pt-1 text-xs text-slate-300">Tuệ Lâm đang soạn câu trả lời…</p>
+              )}
             </div>
           </div>
 
@@ -252,7 +315,7 @@ export function SancongcuSupportChat() {
 
       <button
         type="button"
-        aria-label={isOpen ? "Ẩn chat hỗ trợ Tuệ Lâm" : "Mở chat hỗ trợ Tuệ Lâm"}
+        aria-label={isOpen ? "Ẩn chat hỗ trợ Tuệ Lâm" : hasUnread ? "Mở chat hỗ trợ Tuệ Lâm, có tin nhắn mới" : "Mở chat hỗ trợ Tuệ Lâm"}
         onClick={() => setIsOpen((current) => !current)}
         className="group relative flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 text-white shadow-[0_18px_45px_-15px_rgba(37,99,235,0.65)] ring-4 ring-white transition hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-600"
       >
@@ -275,7 +338,14 @@ export function SancongcuSupportChat() {
           )}
         </span>
         {!isOpen && (
-          <span className="absolute right-0 top-0 h-4 w-4 rounded-full border-2 border-white bg-emerald-400" />
+          hasUnread ? (
+            <span
+              data-testid="tue-lam-unread-dot"
+              className="absolute right-0 top-0 h-4 w-4 rounded-full border-2 border-white bg-red-500"
+            />
+          ) : (
+            <span className="absolute right-0 top-0 h-4 w-4 rounded-full border-2 border-white bg-emerald-400" />
+          )
         )}
       </button>
     </div>
