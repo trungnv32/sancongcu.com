@@ -27,3 +27,10 @@ Deno.test("34 câu thường không bị chuyển nhầm", () => {
     assertFalse(canChuyenNguoiThat(c, H(), "Dạ, bên em có combo đào tạo ạ.", false), c);
   }
 });
+
+Deno.test("35 câu khách thấy không nhắc tên nhân sự nội bộ", async () => {
+  const { HANDOFF_REPLY } = await import("../_shared/tue-lam.ts");
+  assertFalse(/trung/i.test(HANDOFF_REPLY));
+  const src = await Deno.readTextFile(new URL("../tue-lam-chat/handler.ts", import.meta.url));
+  for (const m of src.matchAll(/reply = "([^"]+)"/g)) assertFalse(/trung/i.test(m[1]), m[1]);
+});

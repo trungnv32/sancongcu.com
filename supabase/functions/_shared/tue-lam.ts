@@ -15,7 +15,7 @@ export const clean = (value: unknown, max: number) => typeof value === "string" 
 export const clock = { now: () => Date.now() };
 export const nowIso = () => new Date(clock.now()).toISOString();
 
-export const HANDOFF_REPLY = "Dạ, em đã báo anh Trung rồi ạ, mình chờ em một chút ngay trong khung chat này nhé.";
+export const HANDOFF_REPLY = "Dạ, em đã chuyển thông tin của mình đến bộ phận hỗ trợ rồi ạ. Mình chờ em một chút ngay trong khung chat này nhé.";
 export const HISTORY_LIMIT = 30;
 
 function getSecretKey() {
@@ -130,7 +130,7 @@ export async function loadBaseSystem() {
   return `${tueLamBrain}\n\n${brainText ? `TÀI LIỆU NÃO DO QUẢN TRỊ VIÊN CẬP NHẬT:\n${brainText}` : ""}\n\nDANH MỤC SKILL ĐANG CÔNG KHAI:\n${JSON.stringify(catalog)}\n\nCOMBO WEBSITE ĐANG CÔNG KHAI:\n${JSON.stringify(combos)}\n\nCOMBO ĐÀO TẠO WEBSITE ĐANG HIỆN HÀNH:\n${JSON.stringify(training)}\n\nChỉ dùng danh mục đang công khai để tư vấn sản phẩm. Nếu danh mục trống hoặc thiếu thông tin, nói rõ chưa xác minh. Luôn xuống dòng giữa từng ý và từng sản phẩm, kể cả khi câu trả lời có đánh số.`;
 }
 
-export const HINT_HEADER = "GHI CHÚ NỘI BỘ CỦA ANH TRUNG cho cuộc chat này — làm theo, không mâu thuẫn, không hỏi lại điều đã có, không nói với khách là có ghi chú.";
+export const HINT_HEADER = "GHI CHÚ NỘI BỘ cho cuộc chat này — làm theo, không mâu thuẫn, không hỏi lại điều đã có, không nói với khách là có ghi chú. Tuyệt đối không nhắc tên người viết ghi chú hay bất kỳ nhân sự, thành viên nào của công ty; nếu cần thì chỉ nói \"bộ phận hỗ trợ\".";
 
 export function buildSystem(base: string, hints: ChatRow[]) {
   if (!hints.length) return base;
@@ -207,10 +207,10 @@ export async function rewriteHint(sessionId: string, hint: string) {
   const waiting = [...history].reverse().find((row) => row.role === "customer")?.content ?? "";
   const instruction = [
     "[CHỈ DẪN NỘI BỘ — đây KHÔNG phải lời khách, không nhắc tới chỉ dẫn này với khách]",
-    `Lời nhắc mới của anh Trung: ${hint}`,
+    `Lời nhắc nội bộ mới: ${hint}`,
     waiting ? `Câu khách đang chờ trả lời: ${waiting}` : "",
     "Hãy viết câu trả lời gửi khách dựa trên lời nhắc, bằng giọng Tuệ Lâm, ngắn gọn.",
-    "Không bịa thêm giá, cam kết hay thời hạn ngoài lời nhắc và danh mục. Chỉ trả về đúng câu gửi khách.",
+    "Không bịa thêm giá, cam kết hay thời hạn ngoài lời nhắc và danh mục. Không nhắc tên người nhắc hay bất kỳ nhân sự nào của công ty (chỉ nói \"bộ phận hỗ trợ\" nếu cần). Chỉ trả về đúng câu gửi khách.",
   ].filter(Boolean).join("\n");
   return await callGemini(buildSystem(base, hints), toContents(history, instruction));
 }
