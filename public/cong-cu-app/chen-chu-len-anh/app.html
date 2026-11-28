@@ -1267,53 +1267,60 @@ function tenTepTuDong(){
 }
 function baoTai(msg,loi){ const el=$("tbTai"); el.textContent=msg; el.classList.remove("an"); el.classList.toggle("loi",!!loi); }
 $("tenTep").addEventListener("input",()=>{ if(khoaTuyChinh()){ $("tenTep").value=tenTepTuDong(); return; } A.fileNameEdited=$("tenTep").value.trim()!==""; });
-let dangLuu=false;
 $("nutTai").onclick=async()=>{
-  if(dangLuu) return; dangLuu=true; $("nutTai").disabled=true;
-  try{ await luuAnh(); } finally{ dangLuu=false; $("nutTai").disabled=false; }
-};
-async function luuAnh(){
+  if(BAN_WEB){ luuAnhWeb(); return; } // bản web: tải ngay trong lượt bấm (Safari iPhone chặn tải nếu chờ máy chủ trước)
   if(!A.img){ baoTai("Bạn chưa chọn ảnh. Hãy chọn hoặc kéo một tấm ảnh vào khung xem trước trước khi tải về.",true); return; }
   if(A.cropMode) batCat(false);
   await document.fonts.ready;
+  const [c,type,W,H]=veAnhXuat();
+  xuat(c,type,W,H);
+};
+function veAnhXuat(){ // vẽ ảnh xuất (đồng bộ), JPG thì lót nền trắng phòng ảnh trong suốt
   const [W,H]=kichThuocXuat(S.outShort);
   const c=document.createElement("canvas"); c.width=W; c.height=H;
-  const g=c.getContext("2d");
-  veAnh(g,W,H,{huongDan:false});
+  veAnh(c.getContext("2d"),W,H,{huongDan:false});
   const type=S.fmt==="png"?"image/png":"image/jpeg";
-  if(type==="image/jpeg"){ // nền trắng phòng ảnh trong suốt
-    const t=document.createElement("canvas"); t.width=W; t.height=H; const tg=t.getContext("2d"); tg.fillStyle="#fff"; tg.fillRect(0,0,W,H); tg.drawImage(c,0,0); c.width=0; return xuat(t,type,W,H);
-  }
-  return xuat(c,type,W,H);
+  if(type!=="image/jpeg") return [c,type,W,H];
+  const t=document.createElement("canvas"); t.width=W; t.height=H; const tg=t.getContext("2d"); tg.fillStyle="#fff"; tg.fillRect(0,0,W,H); tg.drawImage(c,0,0); c.width=0;
+  return [t,type,W,H];
 }
-async function duocLuu(){ // bản web, đã đăng nhập: xin máy chủ trừ 1 lượt trước khi lưu
-  if(!(BAN_WEB && daDangNhap)) return true;
-  const d=await xinLuot(false);
-  if(d.loi){
-    baoTai(d.loi==="chua-dang-nhap"?"Phiên đăng nhập của bạn đã hết hạn. Bạn đăng nhập lại rồi bấm lưu ảnh nhé."
-      :"Chưa kiểm tra được số ảnh bạn còn lưu được hôm nay. Bạn kiểm tra kết nối mạng rồi bấm lưu lại nhé.",true);
-    return false;
-  }
-  nhanLuot(d);
-  if(d.ok!==true){ // hết lượt: báo nhẹ nhàng ở ô lượt ngay dưới nút Lưu (không báo lỗi đỏ)
-    $("tbTai").classList.add("an"); const el=$("tbLuot"); el.classList.remove("nhay-luot"); void el.offsetWidth; el.classList.add("nhay-luot"); return false; }
-  return true;
+function tenTepLuu(){
+  let ten=($("tenTep").value.trim()||tenTepTuDong()).replace(/[\\/:*?"<>|]+/g,"-");
+  const duoi="."+S.fmt; if(!ten.toLowerCase().endsWith(duoi)) ten=ten.replace(/\.(png|jpe?g)$/i,"")+duoi;
+  return ten;
 }
+function taiVe(href,ten){ const a=document.createElement("a"); a.href=href; a.download=ten; document.body.appendChild(a); a.click(); a.remove(); }
 function xuat(c,type,W,H){
-  return new Promise(xong=>c.toBlob(async blob=>{
-    try{ await xuatTiep(blob,type,W,H); } finally{ xong(); }
-  }, type, S.quality/100));
-}
-async function xuatTiep(blob,type,W,H){
-  {
+  c.toBlob(blob=>{
     if(!blob){ baoTai("Không tạo được ảnh. Bạn thử chọn độ lớn ảnh nhỏ hơn rồi bấm lại nhé.",true); return; }
-    if(!(await duocLuu())) return;
-    let ten=($("tenTep").value.trim()||tenTepTuDong()).replace(/[\\/:*?"<>|]+/g,"-");
-    const duoi="."+S.fmt; if(!ten.toLowerCase().endsWith(duoi)) ten=ten.replace(/\.(png|jpe?g)$/i,"")+duoi;
-    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=ten; document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-    baoTai(`Đã lưu ảnh "${ten}" (${W} × ${H}, khoảng ${Math.max(1,Math.round(blob.size/1024))} KB). Bạn xem trong thư mục Tải về (Downloads) của máy nhé.`+(BAN_WEB&&daDangNhap&&LUOT.conLai!==null?` Hôm nay bạn còn lưu được ${LUOT.conLai} ảnh.`:""));
+    const ten=tenTepLuu(), url=URL.createObjectURL(blob); taiVe(url,ten);
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+    baoTai(`Đã lưu ảnh "${ten}" (${W} × ${H}, khoảng ${Math.max(1,Math.round(blob.size/1024))} KB). Bạn xem trong thư mục Tải về (Downloads) của máy nhé.`);
+  }, type, S.quality/100);
+}
+/* Bản web: mọi việc từ vẽ ảnh tới bấm tải đều chạy liền trong lượt bấm của khách (không chờ máy chủ, không chờ toBlob).
+   Số lượt đã được hỏi sẵn lúc vào trang và cập nhật sau mỗi lần lưu; trừ lượt ở máy chủ chạy ngầm sau khi tải.
+   Rủi ro chấp nhận: mở 2 thẻ cùng lúc có thể lố 1 ảnh (mỗi thẻ còn giữ số cũ). */
+let dangLuu=false;
+function luuAnhWeb(){
+  if(dangLuu) return; // chống bấm 2 lần liền khi đang trừ lượt
+  if(!A.img){ baoTai("Bạn chưa chọn ảnh. Hãy chọn hoặc kéo một tấm ảnh vào khung xem trước trước khi tải về.",true); return; }
+  if(daDangNhap){
+    if(LUOT.conLai===null){ baoTai("Đang kiểm lượt lưu ảnh hôm nay của bạn… Bạn bấm “Lưu ảnh” lại sau giây lát nhé."); xemLuot(); return; }
+    if(LUOT.conLai<=0){ $("tbTai").classList.add("an"); hienLuot(); const el=$("tbLuot"); el.classList.remove("nhay-luot"); void el.offsetWidth; el.classList.add("nhay-luot"); return; }
   }
+  if(A.cropMode) batCat(false);
+  const [c,type,W,H]=veAnhXuat();
+  let url; try{ url=c.toDataURL(type,S.quality/100); }catch(e){ url=""; }
+  c.width=0;
+  if(!url || url.length<32){ baoTai("Không tạo được ảnh. Bạn thử chọn độ lớn ảnh nhỏ hơn rồi bấm lại nhé.",true); return; }
+  const ten=tenTepLuu(); taiVe(url,ten);
+  const kb=Math.max(1,Math.round((url.length-url.indexOf(",")-1)*3/4/1024));
+  const bao=()=>baoTai(`Đã lưu ảnh "${ten}" (${W} × ${H}, khoảng ${kb} KB). Bạn xem trong thư mục Tải về (Downloads) của máy nhé.`+(daDangNhap&&LUOT.conLai!==null?` Hôm nay bạn còn lưu được ${LUOT.conLai} ảnh.`:""));
+  if(!daDangNhap){ bao(); return; }
+  dangLuu=true; $("nutTai").disabled=true;
+  LUOT.conLai=Math.max(0,LUOT.conLai-1); hienLuot(); bao(); // hiện ngay, máy chủ trả lời thì chỉnh lại cho đúng
+  xinLuot(false).then(d=>{ if(!d.loi) nhanLuot(d); else xemLuot(); bao(); }).finally(()=>{ dangLuu=false; $("nutTai").disabled=false; });
 }
 
 /* ---------- Trợ lý AI (tuỳ chọn) ---------- */
