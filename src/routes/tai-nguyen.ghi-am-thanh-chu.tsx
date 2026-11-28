@@ -56,7 +56,7 @@ const features = [
   {
     icon: ShieldCheck,
     title: "Máy tắt đột ngột vẫn còn bản ghi",
-    text: "Trong lúc ghi, tiếng được lưu dần xuống ổ đĩa vài giây một lần. Nếu máy mất điện hoặc bạn lỡ đóng cửa sổ giữa buổi họp, lần sau mở lại ứng dụng bạn vẫn nghe lại và chuyển thành chữ được phần đã ghi.",
+    text: "Trong lúc ghi, tiếng được lưu dần xuống ổ đĩa vài giây một lần. Nếu máy mất điện hoặc bạn lỡ đóng cửa sổ giữa buổi họp, lần sau mở lại ứng dụng bạn vẫn nghe lại và chuyển thành chữ được gần như toàn bộ phần đã ghi, thường chỉ thiếu vài giây cuối.",
   },
   {
     icon: Clock,
@@ -114,7 +114,7 @@ const steps = [
 const requirements = [
   { icon: Monitor, label: "Windows 10 hoặc Windows 11, bản 64-bit" },
   { icon: Laptop, label: "Máy tính thông thường, không cần card đồ hoạ rời" },
-  { icon: HardDrive, label: "4 GB RAM trở lên và khoảng 600 MB chỗ trống trong ổ đĩa" },
+  { icon: HardDrive, label: "4 GB RAM trở lên và khoảng 1 GB chỗ trống trong ổ đĩa" },
   { icon: Timer, label: "Cuộc họp 1 tiếng mất khoảng 5 đến 8 phút để chuyển thành chữ" },
 ];
 
@@ -161,7 +161,7 @@ const faqs = [
   },
   {
     q: "Máy tôi dùng macOS có chạy được không?",
-    a: "Bản hiện tại chỉ chạy trên máy tính Windows 10 và Windows 11, bản 64-bit. Nếu bạn dùng máy Mac, bạn cứ để lại email, khi nào có bản cho máy Mac chúng tôi sẽ báo bạn.",
+    a: "Bản hiện tại chỉ chạy trên máy tính Windows 10 và Windows 11, bản 64-bit. Hiện chưa có bản cho máy Mac.",
   },
   {
     q: "File ghi âm dạng nào thì dùng được?",
