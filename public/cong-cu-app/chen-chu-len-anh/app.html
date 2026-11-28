@@ -153,6 +153,18 @@ details.the summary .tag{font-size:11.5px;font-weight:600;background:#F1F3F8;col
 .dau .nut{white-space:nowrap}
 @media (max-width:980px){ body.dang-chon-mau .san{position:relative} }
 @media (max-width:520px){ .nhan-tk{font-size:11.5px;white-space:normal;line-height:1.3} }
+/* Bản web, khách chưa đăng nhập: khoá các nút đổi kiểu (chỉ sửa chữ) */
+.nhan-khoa-tc{display:none}
+.khoa-tc .nhan-khoa-tc{display:flex;gap:8px;align-items:flex-start;margin:0 0 10px;padding:9px 11px;border:1.5px solid #BFD3FB;background:linear-gradient(135deg,#EEF4FF,#F8FBFF);border-radius:12px;font-size:13px;line-height:1.45;color:#173F8F;cursor:default}
+.nhan-khoa-tc svg{flex:none;margin-top:1px}
+.nhan-khoa-tc a{color:var(--xanh);font-weight:700}
+.nhan-khoa-tc.nhay{animation:nhay .9s ease 2}
+.khoa-tc [data-khoa-tc]{cursor:not-allowed}
+.khoa-tc [data-khoa-tc] > :not(.nhan-khoa-tc){opacity:.45;pointer-events:none}
+.khoa-tc label[data-khoa-tc]{opacity:.5}
+.luot-con{margin-top:10px;font-size:13.5px;padding:8px 12px;border-radius:10px;background:#E7F8EE;color:#166534;font-weight:500}
+.luot-con.het{background:#FFF6E5;color:#8A4B00}
+.luot-con.nhay-luot{animation:nhay .9s ease 2}
 .canh-bao-khoa{margin:6px 0 0 28px;font-size:12.5px;color:#8A4B00;background:#FFF6E5;border-radius:8px;padding:6px 9px}
 @media (max-width:980px){
   .khung{grid-template-columns:1fr;padding:14px}
@@ -205,6 +217,7 @@ details.the summary .tag{font-size:11.5px;font-weight:600;background:#F1F3F8;col
       <div class="thong-bao an" id="tbAnh" role="status"></div>
       <details class="mo-rong" id="khuSuaAnh">
         <summary>Sửa ảnh: đổi khung, cắt, xoay, lật</summary>
+        <div data-khoa-tc="đổi khung ảnh, cắt, xoay và lật ảnh">
         <div class="nhom">
           <div class="ten">Khung ảnh (tỷ lệ)</div>
           <div class="chon" id="chonTyLe">
@@ -221,6 +234,7 @@ details.the summary .tag{font-size:11.5px;font-weight:600;background:#F1F3F8;col
           <button class="nut" id="nutLatNgang" type="button">Lật ngang</button>
           <button class="nut" id="nutLatDoc" type="button">Lật dọc</button>
         </div>
+        </div>
       </details>
     </div>
 
@@ -229,7 +243,7 @@ details.the summary .tag{font-size:11.5px;font-weight:600;background:#F1F3F8;col
       <h2><span class="so so-to">2</span>Chọn mẫu chữ</h2>
       <p class="goi-y" style="margin:0" id="goiYMau">Bấm vào một mẫu để áp kiểu chữ, màu và bố cục lên ảnh. Chọn mẫu xong, bạn vẫn đổi được phông chữ, màu và vị trí như bình thường.</p>
       <div class="hop-khoa an" id="hopKhoa" role="region" aria-label="Mở khoá mẫu">
-        <b><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#276CF3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Đăng ký tài khoản MIỄN PHÍ để dùng thêm <span class="so-mau-khoa">25</span> mẫu</b>
+        <b><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#276CF3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Đăng ký tài khoản MIỄN PHÍ để dùng thêm <span class="so-mau-khoa">25</span> mẫu</span></b>
         <p id="chuKhoa">Bạn đang dùng được <span class="so-mau-mp">5</span> mẫu miễn phí. Chỉ cần tạo tài khoản miễn phí trên sancongcu.com là mở được <span class="so-mau-khoa">25</span> mẫu còn lại, không mất phí.</p>
         <div class="hang">
           <a class="nut nut-chinh" id="nutDangKy" href="#" target="_top">Đăng ký miễn phí</a>
@@ -269,7 +283,7 @@ details.the summary .tag{font-size:11.5px;font-weight:600;background:#F1F3F8;col
         <button class="nut rong" id="nutApNhanh" type="button" style="margin-top:8px">Tự động áp phương án 1</button>
       </div>
 
-      <div class="cai-nhanh">
+      <div class="cai-nhanh" data-khoa-tc="đổi vị trí chữ, màu chữ và cỡ chữ">
         <div class="nhom">
           <div class="ten">Vị trí chữ</div>
           <div class="chon" id="chonViTri">
@@ -296,6 +310,7 @@ details.the summary .tag{font-size:11.5px;font-weight:600;background:#F1F3F8;col
 
       <details class="mo-rong" id="khuTuyChinh">
         <summary>Tuỳ chỉnh thêm</summary>
+        <div data-khoa-tc="đổi phông chữ, kiểu chữ, căn chữ, viền, bóng đổ, lớp tối, vị trí và màu các thành phần">
         <div class="nhom">
           <div class="ten">Phông chữ</div>
           <select id="phong"></select>
@@ -365,6 +380,7 @@ details.the summary .tag{font-size:11.5px;font-weight:600;background:#F1F3F8;col
           </div>
           <div class="nhom an" id="oDoDucHop"><div class="ten">Độ đậm của hộp sau chữ <em id="gtHop">55</em></div><input type="range" id="doDucHop" min="10" max="100" step="1"></div>
         </div>
+        </div>
       </details>
       <p class="goi-y goi-y-nhan">Nhãn thương hiệu ở góc ảnh đang là chữ mẫu. <button class="nut-chu" id="nutMoNhan" type="button">Đổi nhãn thương hiệu trong Cài đặt</button></p>
     </div>
@@ -374,9 +390,11 @@ details.the summary .tag{font-size:11.5px;font-weight:600;background:#F1F3F8;col
       <h2><span class="so so-to">4</span>Lưu ảnh về máy</h2>
       <button class="nut nut-chinh nut-luu rong" id="nutTai" type="button">Lưu ảnh</button>
       <div class="thong-bao an" id="tbTai"></div>
+      <div class="luot-con an" id="tbLuot" role="status"></div>
       <p class="goi-y">Mặc định ảnh được lưu dạng JPG nét đẹp, cạnh ngắn 1080 điểm ảnh, hợp để đăng mạng xã hội. Lựa chọn hiện tại: <b id="kichThuocLuu">1080 × 1350, JPG</b>.</p>
       <details class="mo-rong" id="khuTuyChonLuu">
         <summary>Tuỳ chọn lưu</summary>
+        <div data-khoa-tc="chọn định dạng, chất lượng, độ lớn ảnh và đặt tên tệp">
         <div class="nhom">
           <div class="chon" id="chonDinhDang">
             <button type="button" data-v="jpg">JPG<small>Nhẹ, hợp đăng mạng xã hội</small></button>
@@ -401,6 +419,7 @@ details.the summary .tag{font-size:11.5px;font-weight:600;background:#F1F3F8;col
           <input type="text" id="tenTep">
           <p class="goi-y">Tên được đặt tự động theo tiêu đề. Bạn có thể sửa lại nếu muốn.</p>
         </div>
+        </div>
       </details>
     </div>
 
@@ -420,13 +439,14 @@ details.the summary .tag{font-size:11.5px;font-weight:600;background:#F1F3F8;col
 
     <section class="muc" id="mucNhan">
       <h3>Nhãn thương hiệu</h3>
-      <label class="dong" style="margin-top:0"><input type="checkbox" id="coNhan"> Hiện nhãn thương hiệu trên ảnh</label>
+      <label class="dong" style="margin-top:0" data-khoa-tc=""><input type="checkbox" id="coNhan"> Hiện nhãn thương hiệu trên ảnh</label>
       <div id="khuNhan">
         <div class="nhom">
           <div class="ten">Chữ trên nhãn</div>
           <input type="text" id="chuNhan" placeholder="Ví dụ: tencuaban.com">
           <p class="goi-y">Thường là tên miền, tên trang hoặc tên thương hiệu của bạn.</p>
         </div>
+        <div data-khoa-tc="bật tắt nhãn, đổi vị trí, màu và cỡ chữ của nhãn">
         <div class="nhom">
           <div class="ten">Vị trí nhãn</div>
           <div class="chon goc" id="chonGoc">
@@ -443,6 +463,7 @@ details.the summary .tag{font-size:11.5px;font-weight:600;background:#F1F3F8;col
         <div class="nhom">
           <div class="ten">Cỡ chữ của nhãn <em id="gtCoNhan">34</em></div>
           <input type="range" id="coNhanChu" min="18" max="72" step="1">
+        </div>
         </div>
       </div>
     </section>
@@ -509,6 +530,9 @@ details.the summary .tag{font-size:11.5px;font-weight:600;background:#F1F3F8;col
 const FONT_DATA = {"lato-900": "fonts/lato-900.ttf", "playfair-vf": "fonts/playfair-vf.ttf", "bvp-400": "fonts/bvp-400.woff2", "bvp-500": "fonts/bvp-500.woff2", "bvp-800": "fonts/bvp-800.woff2", "mont-600": "fonts/mont-600.woff2", "mont-900": "fonts/mont-900.woff2", "roboto-500": "fonts/roboto-500.woff2", "roboto-900": "fonts/roboto-900.woff2", "inter-600": "fonts/inter-600.woff2", "inter-900": "fonts/inter-900.woff2", "bvp-500i": "fonts/bvp-500i.woff2", "oswald-500": "fonts/oswald-500.woff2", "oswald-700": "fonts/oswald-700.woff2", "news-400": "fonts/news-400.woff2", "news-700": "fonts/news-700.woff2", "news-400i": "fonts/news-400i.woff2", "barlow-600": "fonts/barlow-600.woff2", "barlow-700": "fonts/barlow-700.woff2", "vibes-400": "fonts/vibes-400.woff2", "hurr-400": "fonts/hurr-400.woff2"};
 const BAN_WEB = true; // bản đặt trên sancongcu.com (trong khung của trang công cụ)
 document.body.classList.toggle("ban-web",BAN_WEB);
+let daDangNhap=false, daBietTK=false; // trạng thái đăng nhập do trang web bọc ngoài gửi vào (chỉ bản web)
+// Bản web, khách chưa đăng nhập: chỉ sửa nội dung chữ, ảnh lưu về có dòng chữ nhỏ "Làm bằng sancongcu.com". Bản offline không áp.
+const khoaTuyChinh=()=>BAN_WEB && !daDangNhap;
 const LICENSES = {"Lato": "Copyright (c) 2010-2014 by tyPoland Lukasz Dziedzic (team@latofonts.com) with Reserved Font Name \"Lato\"\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license is copied below, and is also available with a FAQ at:\nhttp://scripts.sil.org/OFL\n\n\n-----------------------------------------------------------\nSIL OPEN FONT LICENSE Version 1.1 - 26 February 2007\n-----------------------------------------------------------\n\nPREAMBLE\nThe goals of the Open Font License (OFL) are to stimulate worldwide\ndevelopment of collaborative font projects, to support the font creation\nefforts of academic and linguistic communities, and to provide a free and\nopen framework in which fonts may be shared and improved in partnership\nwith others.\n\nThe OFL allows the licensed fonts to be used, studied, modified and\nredistributed freely as long as they are not sold by themselves. The\nfonts, including any derivative works, can be bundled, embedded, \nredistributed and/or sold with any software provided that any reserved\nnames are not used by derivative works. The fonts and derivatives,\nhowever, cannot be released under any other type of license. The\nrequirement for fonts to remain under this license does not apply\nto any document created using the fonts or their derivatives.\n\nDEFINITIONS\n\"Font Software\" refers to the set of files released by the Copyright\nHolder(s) under this license and clearly marked as such. This may\ninclude source files, build scripts and documentation.\n\n\"Reserved Font Name\" refers to any names specified as such after the\ncopyright statement(s).\n\n\"Original Version\" refers to the collection of Font Software components as\ndistributed by the Copyright Holder(s).\n\n\"Modified Version\" refers to any derivative made by adding to, deleting,\nor substituting -- in part or in whole -- any of the components of the\nOriginal Version, by changing formats or by porting the Font Software to a\nnew environment.\n\n\"Author\" refers to any designer, engineer, programmer, technical\nwriter or other person who contributed to the Font Software.\n\nPERMISSION & CONDITIONS\nPermission is hereby granted, free of charge, to any person obtaining\na copy of the Font Software, to use, study, copy, merge, embed, modify,\nredistribute, and sell modified and unmodified copies of the Font\nSoftware, subject to the following conditions:\n\n1) Neither the Font Software nor any of its individual components,\nin Original or Modified Versions, may be sold by itself.\n\n2) Original or Modified Versions of the Font Software may be bundled,\nredistributed and/or sold with any software, provided that each copy\ncontains the above copyright notice and this license. These can be\nincluded either as stand-alone text files, human-readable headers or\nin the appropriate machine-readable metadata fields within text or\nbinary files as long as those fields can be easily viewed by the user.\n\n3) No Modified Version of the Font Software may use the Reserved Font\nName(s) unless explicit written permission is granted by the corresponding\nCopyright Holder. This restriction only applies to the primary font name as\npresented to the users.\n\n4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font\nSoftware shall not be used to promote, endorse or advertise any\nModified Version, except to acknowledge the contribution(s) of the\nCopyright Holder(s) and the Author(s) or with their explicit written\npermission.\n\n5) The Font Software, modified or unmodified, in part or in whole,\nmust be distributed entirely under this license, and must not be\ndistributed under any other license. The requirement for fonts to\nremain under this license does not apply to any document created\nusing the Font Software.\n\nTERMINATION\nThis license becomes null and void if any of the above conditions are\nnot met.\n\nDISCLAIMER\nTHE FONT SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT\nOF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE\nCOPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\nINCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL\nDAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\nFROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\nOTHER DEALINGS IN THE FONT SOFTWARE.\n", "Be Vietnam Pro": "Copyright 2021 The Be Vietnam Pro Project Authors (https://github.com/bettergui/BeVietnamPro),\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license is copied below, and is also available with a FAQ at:\nhttp://scripts.sil.org/OFL\n\n\n-----------------------------------------------------------\nSIL OPEN FONT LICENSE Version 1.1 - 26 February 2007\n-----------------------------------------------------------\n\nPREAMBLE\nThe goals of the Open Font License (OFL) are to stimulate worldwide\ndevelopment of collaborative font projects, to support the font creation\nefforts of academic and linguistic communities, and to provide a free and\nopen framework in which fonts may be shared and improved in partnership\nwith others.\n\nThe OFL allows the licensed fonts to be used, studied, modified and\nredistributed freely as long as they are not sold by themselves. The\nfonts, including any derivative works, can be bundled, embedded,\nredistributed and/or sold with any software provided that any reserved\nnames are not used by derivative works. The fonts and derivatives,\nhowever, cannot be released under any other type of license. The\nrequirement for fonts to remain under this license does not apply\nto any document created using the fonts or their derivatives.\n\nDEFINITIONS\n\"Font Software\" refers to the set of files released by the Copyright\nHolder(s) under this license and clearly marked as such. This may\ninclude source files, build scripts and documentation.\n\n\"Reserved Font Name\" refers to any names specified as such after the\ncopyright statement(s).\n\n\"Original Version\" refers to the collection of Font Software components as\ndistributed by the Copyright Holder(s).\n\n\"Modified Version\" refers to any derivative made by adding to, deleting,\nor substituting -- in part or in whole -- any of the components of the\nOriginal Version, by changing formats or by porting the Font Software to a\nnew environment.\n\n\"Author\" refers to any designer, engineer, programmer, technical\nwriter or other person who contributed to the Font Software.\n\nPERMISSION & CONDITIONS\nPermission is hereby granted, free of charge, to any person obtaining\na copy of the Font Software, to use, study, copy, merge, embed, modify,\nredistribute, and sell modified and unmodified copies of the Font\nSoftware, subject to the following conditions:\n\n1) Neither the Font Software nor any of its individual components,\nin Original or Modified Versions, may be sold by itself.\n\n2) Original or Modified Versions of the Font Software may be bundled,\nredistributed and/or sold with any software, provided that each copy\ncontains the above copyright notice and this license. These can be\nincluded either as stand-alone text files, human-readable headers or\nin the appropriate machine-readable metadata fields within text or\nbinary files as long as those fields can be easily viewed by the user.\n\n3) No Modified Version of the Font Software may use the Reserved Font\nName(s) unless explicit written permission is granted by the corresponding\nCopyright Holder. This restriction only applies to the primary font name as\npresented to the users.\n\n4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font\nSoftware shall not be used to promote, endorse or advertise any\nModified Version, except to acknowledge the contribution(s) of the\nCopyright Holder(s) and the Author(s) or with their explicit written\npermission.\n\n5) The Font Software, modified or unmodified, in part or in whole,\nmust be distributed entirely under this license, and must not be\ndistributed under any other license. The requirement for fonts to\nremain under this license does not apply to any document created\nusing the Font Software.\n\nTERMINATION\nThis license becomes null and void if any of the above conditions are\nnot met.\n\nDISCLAIMER\nTHE FONT SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT\nOF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE\nCOPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\nINCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL\nDAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\nFROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\nOTHER DEALINGS IN THE FONT SOFTWARE.\n", "Montserrat": "Copyright 2024 The Montserrat.Git Project Authors (https://github.com/JulietaUla/Montserrat.git)\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license is copied below, and is also available with a FAQ at:\nhttps://openfontlicense.org\n\n\n-----------------------------------------------------------\nSIL OPEN FONT LICENSE Version 1.1 - 26 February 2007\n-----------------------------------------------------------\n\nPREAMBLE\nThe goals of the Open Font License (OFL) are to stimulate worldwide\ndevelopment of collaborative font projects, to support the font creation\nefforts of academic and linguistic communities, and to provide a free and\nopen framework in which fonts may be shared and improved in partnership\nwith others.\n\nThe OFL allows the licensed fonts to be used, studied, modified and\nredistributed freely as long as they are not sold by themselves. The\nfonts, including any derivative works, can be bundled, embedded, \nredistributed and/or sold with any software provided that any reserved\nnames are not used by derivative works. The fonts and derivatives,\nhowever, cannot be released under any other type of license. The\nrequirement for fonts to remain under this license does not apply\nto any document created using the fonts or their derivatives.\n\nDEFINITIONS\n\"Font Software\" refers to the set of files released by the Copyright\nHolder(s) under this license and clearly marked as such. This may\ninclude source files, build scripts and documentation.\n\n\"Reserved Font Name\" refers to any names specified as such after the\ncopyright statement(s).\n\n\"Original Version\" refers to the collection of Font Software components as\ndistributed by the Copyright Holder(s).\n\n\"Modified Version\" refers to any derivative made by adding to, deleting,\nor substituting -- in part or in whole -- any of the components of the\nOriginal Version, by changing formats or by porting the Font Software to a\nnew environment.\n\n\"Author\" refers to any designer, engineer, programmer, technical\nwriter or other person who contributed to the Font Software.\n\nPERMISSION & CONDITIONS\nPermission is hereby granted, free of charge, to any person obtaining\na copy of the Font Software, to use, study, copy, merge, embed, modify,\nredistribute, and sell modified and unmodified copies of the Font\nSoftware, subject to the following conditions:\n\n1) Neither the Font Software nor any of its individual components,\nin Original or Modified Versions, may be sold by itself.\n\n2) Original or Modified Versions of the Font Software may be bundled,\nredistributed and/or sold with any software, provided that each copy\ncontains the above copyright notice and this license. These can be\nincluded either as stand-alone text files, human-readable headers or\nin the appropriate machine-readable metadata fields within text or\nbinary files as long as those fields can be easily viewed by the user.\n\n3) No Modified Version of the Font Software may use the Reserved Font\nName(s) unless explicit written permission is granted by the corresponding\nCopyright Holder. This restriction only applies to the primary font name as\npresented to the users.\n\n4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font\nSoftware shall not be used to promote, endorse or advertise any\nModified Version, except to acknowledge the contribution(s) of the\nCopyright Holder(s) and the Author(s) or with their explicit written\npermission.\n\n5) The Font Software, modified or unmodified, in part or in whole,\nmust be distributed entirely under this license, and must not be\ndistributed under any other license. The requirement for fonts to\nremain under this license does not apply to any document created\nusing the Font Software.\n\nTERMINATION\nThis license becomes null and void if any of the above conditions are\nnot met.\n\nDISCLAIMER\nTHE FONT SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT\nOF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE\nCOPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\nINCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL\nDAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\nFROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\nOTHER DEALINGS IN THE FONT SOFTWARE.", "Roboto": "Copyright 2011 The Roboto Project Authors (https://github.com/googlefonts/roboto-classic)\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license is copied below, and is also available with a FAQ at:\nhttps://openfontlicense.org\n\n\n-----------------------------------------------------------\nSIL OPEN FONT LICENSE Version 1.1 - 26 February 2007\n-----------------------------------------------------------\n\nPREAMBLE\nThe goals of the Open Font License (OFL) are to stimulate worldwide\ndevelopment of collaborative font projects, to support the font creation\nefforts of academic and linguistic communities, and to provide a free and\nopen framework in which fonts may be shared and improved in partnership\nwith others.\n\nThe OFL allows the licensed fonts to be used, studied, modified and\nredistributed freely as long as they are not sold by themselves. The\nfonts, including any derivative works, can be bundled, embedded, \nredistributed and/or sold with any software provided that any reserved\nnames are not used by derivative works. The fonts and derivatives,\nhowever, cannot be released under any other type of license. The\nrequirement for fonts to remain under this license does not apply\nto any document created using the fonts or their derivatives.\n\nDEFINITIONS\n\"Font Software\" refers to the set of files released by the Copyright\nHolder(s) under this license and clearly marked as such. This may\ninclude source files, build scripts and documentation.\n\n\"Reserved Font Name\" refers to any names specified as such after the\ncopyright statement(s).\n\n\"Original Version\" refers to the collection of Font Software components as\ndistributed by the Copyright Holder(s).\n\n\"Modified Version\" refers to any derivative made by adding to, deleting,\nor substituting -- in part or in whole -- any of the components of the\nOriginal Version, by changing formats or by porting the Font Software to a\nnew environment.\n\n\"Author\" refers to any designer, engineer, programmer, technical\nwriter or other person who contributed to the Font Software.\n\nPERMISSION & CONDITIONS\nPermission is hereby granted, free of charge, to any person obtaining\na copy of the Font Software, to use, study, copy, merge, embed, modify,\nredistribute, and sell modified and unmodified copies of the Font\nSoftware, subject to the following conditions:\n\n1) Neither the Font Software nor any of its individual components,\nin Original or Modified Versions, may be sold by itself.\n\n2) Original or Modified Versions of the Font Software may be bundled,\nredistributed and/or sold with any software, provided that each copy\ncontains the above copyright notice and this license. These can be\nincluded either as stand-alone text files, human-readable headers or\nin the appropriate machine-readable metadata fields within text or\nbinary files as long as those fields can be easily viewed by the user.\n\n3) No Modified Version of the Font Software may use the Reserved Font\nName(s) unless explicit written permission is granted by the corresponding\nCopyright Holder. This restriction only applies to the primary font name as\npresented to the users.\n\n4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font\nSoftware shall not be used to promote, endorse or advertise any\nModified Version, except to acknowledge the contribution(s) of the\nCopyright Holder(s) and the Author(s) or with their explicit written\npermission.\n\n5) The Font Software, modified or unmodified, in part or in whole,\nmust be distributed entirely under this license, and must not be\ndistributed under any other license. The requirement for fonts to\nremain under this license does not apply to any document created\nusing the Font Software.\n\nTERMINATION\nThis license becomes null and void if any of the above conditions are\nnot met.\n\nDISCLAIMER\nTHE FONT SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT\nOF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE\nCOPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\nINCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL\nDAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\nFROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\nOTHER DEALINGS IN THE FONT SOFTWARE.\n", "Inter": "Copyright 2020 The Inter Project Authors (https://github.com/rsms/inter)\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license is copied below, and is also available with a FAQ at:\nhttps://scripts.sil.org/OFL\n\n\n-----------------------------------------------------------\nSIL OPEN FONT LICENSE Version 1.1 - 26 February 2007\n-----------------------------------------------------------\n\nPREAMBLE\nThe goals of the Open Font License (OFL) are to stimulate worldwide\ndevelopment of collaborative font projects, to support the font creation\nefforts of academic and linguistic communities, and to provide a free and\nopen framework in which fonts may be shared and improved in partnership\nwith others.\n\nThe OFL allows the licensed fonts to be used, studied, modified and\nredistributed freely as long as they are not sold by themselves. The\nfonts, including any derivative works, can be bundled, embedded, \nredistributed and/or sold with any software provided that any reserved\nnames are not used by derivative works. The fonts and derivatives,\nhowever, cannot be released under any other type of license. The\nrequirement for fonts to remain under this license does not apply\nto any document created using the fonts or their derivatives.\n\nDEFINITIONS\n\"Font Software\" refers to the set of files released by the Copyright\nHolder(s) under this license and clearly marked as such. This may\ninclude source files, build scripts and documentation.\n\n\"Reserved Font Name\" refers to any names specified as such after the\ncopyright statement(s).\n\n\"Original Version\" refers to the collection of Font Software components as\ndistributed by the Copyright Holder(s).\n\n\"Modified Version\" refers to any derivative made by adding to, deleting,\nor substituting -- in part or in whole -- any of the components of the\nOriginal Version, by changing formats or by porting the Font Software to a\nnew environment.\n\n\"Author\" refers to any designer, engineer, programmer, technical\nwriter or other person who contributed to the Font Software.\n\nPERMISSION & CONDITIONS\nPermission is hereby granted, free of charge, to any person obtaining\na copy of the Font Software, to use, study, copy, merge, embed, modify,\nredistribute, and sell modified and unmodified copies of the Font\nSoftware, subject to the following conditions:\n\n1) Neither the Font Software nor any of its individual components,\nin Original or Modified Versions, may be sold by itself.\n\n2) Original or Modified Versions of the Font Software may be bundled,\nredistributed and/or sold with any software, provided that each copy\ncontains the above copyright notice and this license. These can be\nincluded either as stand-alone text files, human-readable headers or\nin the appropriate machine-readable metadata fields within text or\nbinary files as long as those fields can be easily viewed by the user.\n\n3) No Modified Version of the Font Software may use the Reserved Font\nName(s) unless explicit written permission is granted by the corresponding\nCopyright Holder. This restriction only applies to the primary font name as\npresented to the users.\n\n4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font\nSoftware shall not be used to promote, endorse or advertise any\nModified Version, except to acknowledge the contribution(s) of the\nCopyright Holder(s) and the Author(s) or with their explicit written\npermission.\n\n5) The Font Software, modified or unmodified, in part or in whole,\nmust be distributed entirely under this license, and must not be\ndistributed under any other license. The requirement for fonts to\nremain under this license does not apply to any document created\nusing the Font Software.\n\nTERMINATION\nThis license becomes null and void if any of the above conditions are\nnot met.\n\nDISCLAIMER\nTHE FONT SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT\nOF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE\nCOPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\nINCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL\nDAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\nFROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\nOTHER DEALINGS IN THE FONT SOFTWARE.\n", "Playfair Display": "Copyright 2017 The Playfair Display Project Authors (https://github.com/clauseggers/Playfair-Display), with Reserved Font Name \"Playfair Display\"\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license is copied below, and is also available with a FAQ at:\nhttp://scripts.sil.org/OFL\n\n\n-----------------------------------------------------------\nSIL OPEN FONT LICENSE Version 1.1 - 26 February 2007\n-----------------------------------------------------------\n\nPREAMBLE\nThe goals of the Open Font License (OFL) are to stimulate worldwide\ndevelopment of collaborative font projects, to support the font creation\nefforts of academic and linguistic communities, and to provide a free and\nopen framework in which fonts may be shared and improved in partnership\nwith others.\n\nThe OFL allows the licensed fonts to be used, studied, modified and\nredistributed freely as long as they are not sold by themselves. The\nfonts, including any derivative works, can be bundled, embedded, \nredistributed and/or sold with any software provided that any reserved\nnames are not used by derivative works. The fonts and derivatives,\nhowever, cannot be released under any other type of license. The\nrequirement for fonts to remain under this license does not apply\nto any document created using the fonts or their derivatives.\n\nDEFINITIONS\n\"Font Software\" refers to the set of files released by the Copyright\nHolder(s) under this license and clearly marked as such. This may\ninclude source files, build scripts and documentation.\n\n\"Reserved Font Name\" refers to any names specified as such after the\ncopyright statement(s).\n\n\"Original Version\" refers to the collection of Font Software components as\ndistributed by the Copyright Holder(s).\n\n\"Modified Version\" refers to any derivative made by adding to, deleting,\nor substituting -- in part or in whole -- any of the components of the\nOriginal Version, by changing formats or by porting the Font Software to a\nnew environment.\n\n\"Author\" refers to any designer, engineer, programmer, technical\nwriter or other person who contributed to the Font Software.\n\nPERMISSION & CONDITIONS\nPermission is hereby granted, free of charge, to any person obtaining\na copy of the Font Software, to use, study, copy, merge, embed, modify,\nredistribute, and sell modified and unmodified copies of the Font\nSoftware, subject to the following conditions:\n\n1) Neither the Font Software nor any of its individual components,\nin Original or Modified Versions, may be sold by itself.\n\n2) Original or Modified Versions of the Font Software may be bundled,\nredistributed and/or sold with any software, provided that each copy\ncontains the above copyright notice and this license. These can be\nincluded either as stand-alone text files, human-readable headers or\nin the appropriate machine-readable metadata fields within text or\nbinary files as long as those fields can be easily viewed by the user.\n\n3) No Modified Version of the Font Software may use the Reserved Font\nName(s) unless explicit written permission is granted by the corresponding\nCopyright Holder. This restriction only applies to the primary font name as\npresented to the users.\n\n4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font\nSoftware shall not be used to promote, endorse or advertise any\nModified Version, except to acknowledge the contribution(s) of the\nCopyright Holder(s) and the Author(s) or with their explicit written\npermission.\n\n5) The Font Software, modified or unmodified, in part or in whole,\nmust be distributed entirely under this license, and must not be\ndistributed under any other license. The requirement for fonts to\nremain under this license does not apply to any document created\nusing the Font Software.\n\nTERMINATION\nThis license becomes null and void if any of the above conditions are\nnot met.\n\nDISCLAIMER\nTHE FONT SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT\nOF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE\nCOPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\nINCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL\nDAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\nFROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\nOTHER DEALINGS IN THE FONT SOFTWARE.\n", "Oswald": "Copyright 2016 The Oswald Project Authors (https://github.com/googlefonts/OswaldFont)\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license is copied below, and is also available with a FAQ at:\nhttps://scripts.sil.org/OFL\n\n\n-----------------------------------------------------------\nSIL OPEN FONT LICENSE Version 1.1 - 26 February 2007\n-----------------------------------------------------------\n\nPREAMBLE\nThe goals of the Open Font License (OFL) are to stimulate worldwide\ndevelopment of collaborative font projects, to support the font creation\nefforts of academic and linguistic communities, and to provide a free and\nopen framework in which fonts may be shared and improved in partnership\nwith others.\n\nThe OFL allows the licensed fonts to be used, studied, modified and\nredistributed freely as long as they are not sold by themselves. The\nfonts, including any derivative works, can be bundled, embedded, \nredistributed and/or sold with any software provided that any reserved\nnames are not used by derivative works. The fonts and derivatives,\nhowever, cannot be released under any other type of license. The\nrequirement for fonts to remain under this license does not apply\nto any document created using the fonts or their derivatives.\n\nDEFINITIONS\n\"Font Software\" refers to the set of files released by the Copyright\nHolder(s) under this license and clearly marked as such. This may\ninclude source files, build scripts and documentation.\n\n\"Reserved Font Name\" refers to any names specified as such after the\ncopyright statement(s).\n\n\"Original Version\" refers to the collection of Font Software components as\ndistributed by the Copyright Holder(s).\n\n\"Modified Version\" refers to any derivative made by adding to, deleting,\nor substituting -- in part or in whole -- any of the components of the\nOriginal Version, by changing formats or by porting the Font Software to a\nnew environment.\n\n\"Author\" refers to any designer, engineer, programmer, technical\nwriter or other person who contributed to the Font Software.\n\nPERMISSION & CONDITIONS\nPermission is hereby granted, free of charge, to any person obtaining\na copy of the Font Software, to use, study, copy, merge, embed, modify,\nredistribute, and sell modified and unmodified copies of the Font\nSoftware, subject to the following conditions:\n\n1) Neither the Font Software nor any of its individual components,\nin Original or Modified Versions, may be sold by itself.\n\n2) Original or Modified Versions of the Font Software may be bundled,\nredistributed and/or sold with any software, provided that each copy\ncontains the above copyright notice and this license. These can be\nincluded either as stand-alone text files, human-readable headers or\nin the appropriate machine-readable metadata fields within text or\nbinary files as long as those fields can be easily viewed by the user.\n\n3) No Modified Version of the Font Software may use the Reserved Font\nName(s) unless explicit written permission is granted by the corresponding\nCopyright Holder. This restriction only applies to the primary font name as\npresented to the users.\n\n4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font\nSoftware shall not be used to promote, endorse or advertise any\nModified Version, except to acknowledge the contribution(s) of the\nCopyright Holder(s) and the Author(s) or with their explicit written\npermission.\n\n5) The Font Software, modified or unmodified, in part or in whole,\nmust be distributed entirely under this license, and must not be\ndistributed under any other license. The requirement for fonts to\nremain under this license does not apply to any document created\nusing the Font Software.\n\nTERMINATION\nThis license becomes null and void if any of the above conditions are\nnot met.\n\nDISCLAIMER\nTHE FONT SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT\nOF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE\nCOPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\nINCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL\nDAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\nFROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\nOTHER DEALINGS IN THE FONT SOFTWARE.\n", "Newsreader": "Copyright 2020 The Newsreader Project Authors (http://github.com/productiontype/Newsreader)\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license is copied below, and is also available with a FAQ at:\nhttp://scripts.sil.org/OFL\n\n\n-----------------------------------------------------------\nSIL OPEN FONT LICENSE Version 1.1 - 26 February 2007\n-----------------------------------------------------------\n\nPREAMBLE\nThe goals of the Open Font License (OFL) are to stimulate worldwide\ndevelopment of collaborative font projects, to support the font creation\nefforts of academic and linguistic communities, and to provide a free and\nopen framework in which fonts may be shared and improved in partnership\nwith others.\n\nThe OFL allows the licensed fonts to be used, studied, modified and\nredistributed freely as long as they are not sold by themselves. The\nfonts, including any derivative works, can be bundled, embedded, \nredistributed and/or sold with any software provided that any reserved\nnames are not used by derivative works. The fonts and derivatives,\nhowever, cannot be released under any other type of license. The\nrequirement for fonts to remain under this license does not apply\nto any document created using the fonts or their derivatives.\n\nDEFINITIONS\n\"Font Software\" refers to the set of files released by the Copyright\nHolder(s) under this license and clearly marked as such. This may\ninclude source files, build scripts and documentation.\n\n\"Reserved Font Name\" refers to any names specified as such after the\ncopyright statement(s).\n\n\"Original Version\" refers to the collection of Font Software components as\ndistributed by the Copyright Holder(s).\n\n\"Modified Version\" refers to any derivative made by adding to, deleting,\nor substituting -- in part or in whole -- any of the components of the\nOriginal Version, by changing formats or by porting the Font Software to a\nnew environment.\n\n\"Author\" refers to any designer, engineer, programmer, technical\nwriter or other person who contributed to the Font Software.\n\nPERMISSION & CONDITIONS\nPermission is hereby granted, free of charge, to any person obtaining\na copy of the Font Software, to use, study, copy, merge, embed, modify,\nredistribute, and sell modified and unmodified copies of the Font\nSoftware, subject to the following conditions:\n\n1) Neither the Font Software nor any of its individual components,\nin Original or Modified Versions, may be sold by itself.\n\n2) Original or Modified Versions of the Font Software may be bundled,\nredistributed and/or sold with any software, provided that each copy\ncontains the above copyright notice and this license. These can be\nincluded either as stand-alone text files, human-readable headers or\nin the appropriate machine-readable metadata fields within text or\nbinary files as long as those fields can be easily viewed by the user.\n\n3) No Modified Version of the Font Software may use the Reserved Font\nName(s) unless explicit written permission is granted by the corresponding\nCopyright Holder. This restriction only applies to the primary font name as\npresented to the users.\n\n4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font\nSoftware shall not be used to promote, endorse or advertise any\nModified Version, except to acknowledge the contribution(s) of the\nCopyright Holder(s) and the Author(s) or with their explicit written\npermission.\n\n5) The Font Software, modified or unmodified, in part or in whole,\nmust be distributed entirely under this license, and must not be\ndistributed under any other license. The requirement for fonts to\nremain under this license does not apply to any document created\nusing the Font Software.\n\nTERMINATION\nThis license becomes null and void if any of the above conditions are\nnot met.\n\nDISCLAIMER\nTHE FONT SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT\nOF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE\nCOPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\nINCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL\nDAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\nFROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\nOTHER DEALINGS IN THE FONT SOFTWARE.", "Great Vibes": "Copyright 2015 The Great Vibes Pro Project Authors (https://github.com/googlefonts/great-vibes)\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license is copied below, and is also available with a FAQ at:\nhttps://openfontlicense.org\n\n\n-----------------------------------------------------------\nSIL OPEN FONT LICENSE Version 1.1 - 26 February 2007\n-----------------------------------------------------------\n\nPREAMBLE\nThe goals of the Open Font License (OFL) are to stimulate worldwide\ndevelopment of collaborative font projects, to support the font creation\nefforts of academic and linguistic communities, and to provide a free and\nopen framework in which fonts may be shared and improved in partnership\nwith others.\n\nThe OFL allows the licensed fonts to be used, studied, modified and\nredistributed freely as long as they are not sold by themselves. The\nfonts, including any derivative works, can be bundled, embedded, \nredistributed and/or sold with any software provided that any reserved\nnames are not used by derivative works. The fonts and derivatives,\nhowever, cannot be released under any other type of license. The\nrequirement for fonts to remain under this license does not apply\nto any document created using the fonts or their derivatives.\n\nDEFINITIONS\n\"Font Software\" refers to the set of files released by the Copyright\nHolder(s) under this license and clearly marked as such. This may\ninclude source files, build scripts and documentation.\n\n\"Reserved Font Name\" refers to any names specified as such after the\ncopyright statement(s).\n\n\"Original Version\" refers to the collection of Font Software components as\ndistributed by the Copyright Holder(s).\n\n\"Modified Version\" refers to any derivative made by adding to, deleting,\nor substituting -- in part or in whole -- any of the components of the\nOriginal Version, by changing formats or by porting the Font Software to a\nnew environment.\n\n\"Author\" refers to any designer, engineer, programmer, technical\nwriter or other person who contributed to the Font Software.\n\nPERMISSION & CONDITIONS\nPermission is hereby granted, free of charge, to any person obtaining\na copy of the Font Software, to use, study, copy, merge, embed, modify,\nredistribute, and sell modified and unmodified copies of the Font\nSoftware, subject to the following conditions:\n\n1) Neither the Font Software nor any of its individual components,\nin Original or Modified Versions, may be sold by itself.\n\n2) Original or Modified Versions of the Font Software may be bundled,\nredistributed and/or sold with any software, provided that each copy\ncontains the above copyright notice and this license. These can be\nincluded either as stand-alone text files, human-readable headers or\nin the appropriate machine-readable metadata fields within text or\nbinary files as long as those fields can be easily viewed by the user.\n\n3) No Modified Version of the Font Software may use the Reserved Font\nName(s) unless explicit written permission is granted by the corresponding\nCopyright Holder. This restriction only applies to the primary font name as\npresented to the users.\n\n4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font\nSoftware shall not be used to promote, endorse or advertise any\nModified Version, except to acknowledge the contribution(s) of the\nCopyright Holder(s) and the Author(s) or with their explicit written\npermission.\n\n5) The Font Software, modified or unmodified, in part or in whole,\nmust be distributed entirely under this license, and must not be\ndistributed under any other license. The requirement for fonts to\nremain under this license does not apply to any document created\nusing the Font Software.\n\nTERMINATION\nThis license becomes null and void if any of the above conditions are\nnot met.\n\nDISCLAIMER\nTHE FONT SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT\nOF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE\nCOPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\nINCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL\nDAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\nFROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\nOTHER DEALINGS IN THE FONT SOFTWARE.", "Hurricane": "Copyright 2016-2021 The Hurricane Project Authors (https://github.com/googlefonts/hurricane)\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license is copied below, and is also available with a FAQ at:\nhttp://scripts.sil.org/OFL\n\n\n-----------------------------------------------------------\nSIL OPEN FONT LICENSE Version 1.1 - 26 February 2007\n-----------------------------------------------------------\n\nPREAMBLE\nThe goals of the Open Font License (OFL) are to stimulate worldwide\ndevelopment of collaborative font projects, to support the font creation\nefforts of academic and linguistic communities, and to provide a free and\nopen framework in which fonts may be shared and improved in partnership\nwith others.\n\nThe OFL allows the licensed fonts to be used, studied, modified and\nredistributed freely as long as they are not sold by themselves. The\nfonts, including any derivative works, can be bundled, embedded, \nredistributed and/or sold with any software provided that any reserved\nnames are not used by derivative works. The fonts and derivatives,\nhowever, cannot be released under any other type of license. The\nrequirement for fonts to remain under this license does not apply\nto any document created using the fonts or their derivatives.\n\nDEFINITIONS\n\"Font Software\" refers to the set of files released by the Copyright\nHolder(s) under this license and clearly marked as such. This may\ninclude source files, build scripts and documentation.\n\n\"Reserved Font Name\" refers to any names specified as such after the\ncopyright statement(s).\n\n\"Original Version\" refers to the collection of Font Software components as\ndistributed by the Copyright Holder(s).\n\n\"Modified Version\" refers to any derivative made by adding to, deleting,\nor substituting -- in part or in whole -- any of the components of the\nOriginal Version, by changing formats or by porting the Font Software to a\nnew environment.\n\n\"Author\" refers to any designer, engineer, programmer, technical\nwriter or other person who contributed to the Font Software.\n\nPERMISSION & CONDITIONS\nPermission is hereby granted, free of charge, to any person obtaining\na copy of the Font Software, to use, study, copy, merge, embed, modify,\nredistribute, and sell modified and unmodified copies of the Font\nSoftware, subject to the following conditions:\n\n1) Neither the Font Software nor any of its individual components,\nin Original or Modified Versions, may be sold by itself.\n\n2) Original or Modified Versions of the Font Software may be bundled,\nredistributed and/or sold with any software, provided that each copy\ncontains the above copyright notice and this license. These can be\nincluded either as stand-alone text files, human-readable headers or\nin the appropriate machine-readable metadata fields within text or\nbinary files as long as those fields can be easily viewed by the user.\n\n3) No Modified Version of the Font Software may use the Reserved Font\nName(s) unless explicit written permission is granted by the corresponding\nCopyright Holder. This restriction only applies to the primary font name as\npresented to the users.\n\n4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font\nSoftware shall not be used to promote, endorse or advertise any\nModified Version, except to acknowledge the contribution(s) of the\nCopyright Holder(s) and the Author(s) or with their explicit written\npermission.\n\n5) The Font Software, modified or unmodified, in part or in whole,\nmust be distributed entirely under this license, and must not be\ndistributed under any other license. The requirement for fonts to\nremain under this license does not apply to any document created\nusing the Font Software.\n\nTERMINATION\nThis license becomes null and void if any of the above conditions are\nnot met.\n\nDISCLAIMER\nTHE FONT SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT\nOF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE\nCOPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\nINCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL\nDAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\nFROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\nOTHER DEALINGS IN THE FONT SOFTWARE.\n", "Barlow Semi Condensed": "Copyright 2017 The Barlow Project Authors (https://github.com/jpt/barlow)\n\nThis Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis license is copied below, and is also available with a FAQ at:\nhttp://scripts.sil.org/OFL\n\n\n-----------------------------------------------------------\nSIL OPEN FONT LICENSE Version 1.1 - 26 February 2007\n-----------------------------------------------------------\n\nPREAMBLE\nThe goals of the Open Font License (OFL) are to stimulate worldwide\ndevelopment of collaborative font projects, to support the font creation\nefforts of academic and linguistic communities, and to provide a free and\nopen framework in which fonts may be shared and improved in partnership\nwith others.\n\nThe OFL allows the licensed fonts to be used, studied, modified and\nredistributed freely as long as they are not sold by themselves. The\nfonts, including any derivative works, can be bundled, embedded, \nredistributed and/or sold with any software provided that any reserved\nnames are not used by derivative works. The fonts and derivatives,\nhowever, cannot be released under any other type of license. The\nrequirement for fonts to remain under this license does not apply\nto any document created using the fonts or their derivatives.\n\nDEFINITIONS\n\"Font Software\" refers to the set of files released by the Copyright\nHolder(s) under this license and clearly marked as such. This may\ninclude source files, build scripts and documentation.\n\n\"Reserved Font Name\" refers to any names specified as such after the\ncopyright statement(s).\n\n\"Original Version\" refers to the collection of Font Software components as\ndistributed by the Copyright Holder(s).\n\n\"Modified Version\" refers to any derivative made by adding to, deleting,\nor substituting -- in part or in whole -- any of the components of the\nOriginal Version, by changing formats or by porting the Font Software to a\nnew environment.\n\n\"Author\" refers to any designer, engineer, programmer, technical\nwriter or other person who contributed to the Font Software.\n\nPERMISSION & CONDITIONS\nPermission is hereby granted, free of charge, to any person obtaining\na copy of the Font Software, to use, study, copy, merge, embed, modify,\nredistribute, and sell modified and unmodified copies of the Font\nSoftware, subject to the following conditions:\n\n1) Neither the Font Software nor any of its individual components,\nin Original or Modified Versions, may be sold by itself.\n\n2) Original or Modified Versions of the Font Software may be bundled,\nredistributed and/or sold with any software, provided that each copy\ncontains the above copyright notice and this license. These can be\nincluded either as stand-alone text files, human-readable headers or\nin the appropriate machine-readable metadata fields within text or\nbinary files as long as those fields can be easily viewed by the user.\n\n3) No Modified Version of the Font Software may use the Reserved Font\nName(s) unless explicit written permission is granted by the corresponding\nCopyright Holder. This restriction only applies to the primary font name as\npresented to the users.\n\n4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font\nSoftware shall not be used to promote, endorse or advertise any\nModified Version, except to acknowledge the contribution(s) of the\nCopyright Holder(s) and the Author(s) or with their explicit written\npermission.\n\n5) The Font Software, modified or unmodified, in part or in whole,\nmust be distributed entirely under this license, and must not be\ndistributed under any other license. The requirement for fonts to\nremain under this license does not apply to any document created\nusing the Font Software.\n\nTERMINATION\nThis license becomes null and void if any of the above conditions are\nnot met.\n\nDISCLAIMER\nTHE FONT SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT\nOF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE\nCOPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\nINCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL\nDAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\nFROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\nOTHER DEALINGS IN THE FONT SOFTWARE.\n"};
 
 /* ---------- Phông chữ ---------- */
@@ -1028,6 +1052,28 @@ function veNhan(g,L){
   g.save(); g.fillStyle=S.badgeBg; duongBo(g,b.x,b.y,b.w,b.h,b.h/2);
   g.fill(); g.font=b.font; g.fillStyle=S.badgeColor; g.textBaseline="alphabetic"; g.textAlign="left"; g.fillText(b.text,b.tx,b.ty); g.restore();
 }
+/* Dòng chữ nhỏ "Làm bằng sancongcu.com" (chỉ bản web, khách chưa đăng nhập): chọn góc trống, né nhãn, chữ ký, khối chữ */
+const CHU_MOC="Làm bằng sancongcu.com";
+function veChuMoc(g,W,H,L,alpha){
+  const s=Math.min(W,H)/1080, fs=Math.max(11,19*s), pad=16*s;
+  g.save(); g.font=`500 ${fs}px "ccla-bvp", "Segoe UI", sans-serif`;
+  const w=g.measureText(CHU_MOC).width, h=fs*1.3;
+  const vung=[L.badge,L.ky,L.block,L.sub,L.note,L.box].filter(Boolean);
+  if(S.ribbon) vung.push({x:S.ribbonPos.includes("l")?0:W*0.62,y:S.ribbonPos.startsWith("t")?0:H*0.8,w:W*0.38,h:H*0.2});
+  const chong=(a,b)=>Math.max(0,Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x))*Math.max(0,Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y));
+  let tot=null;
+  for(const goc of ["br","bl","tr","tl"]){
+    const r={goc,x:goc.endsWith("r")?W-pad-w:pad,y:goc.startsWith("b")?H-pad-h:pad,w,h};
+    const ra={x:r.x-8*s,y:r.y-6*s,w:r.w+16*s,h:r.h+12*s}; // chừa thêm khoảng thở
+    r.de=vung.reduce((t,v)=>t+chong(ra,v),0);
+    if(!tot || r.de<tot.de) tot=r; if(r.de===0) break;
+  }
+  g.globalAlpha=alpha; g.textBaseline="middle"; g.textAlign="left"; g.lineJoin="round";
+  g.shadowColor="rgba(0,0,0,.55)"; g.shadowBlur=5*s;
+  g.strokeStyle="rgba(0,0,0,.62)"; g.lineWidth=Math.max(2,3.4*s); g.strokeText(CHU_MOC,tot.x,tot.y+h/2);
+  g.fillStyle="rgba(255,255,255,.96)"; g.fillText(CHU_MOC,tot.x,tot.y+h/2);
+  g.restore(); L.chuMoc=tot;
+}
 function veAnh(g,W,H,opt){
   g.clearRect(0,0,W,H);
   const o=anhDaXoay();
@@ -1046,6 +1092,7 @@ function veAnh(g,W,H,opt){
   veChuPhu(g,L);
   veDongNhac(g,L);
   veChuKy(g,L);
+  if(khoaTuyChinh() && opt && !opt.nenMau) veChuMoc(g,W,H,L,opt.huongDan?0.6:1); // xem trước hiện mờ, ảnh lưu về hiện rõ
   if(opt && opt.huongDan){
     g.save(); g.setLineDash([10,8]); g.lineWidth=2.5; g.strokeStyle="rgba(39,108,243,.95)";
     const pad=12;
@@ -1128,6 +1175,7 @@ cv.addEventListener("pointerdown",e=>{
     cv.setPointerCapture(e.pointerId); e.preventDefault(); return;
   }
   const hit=trungVao(px,py,k); if(!hit) return;
+  if(khoaTuyChinh()){ nhayKhoaTC(document.querySelector(".cai-nhanh")); return; } // chưa đăng nhập: không kéo chữ, nhãn
   const W=cv.width,H=cv.height;
   if(hit==="text"){ const t=L_hien.block; S.tx=(t.x+t.w/2)/W; S.ty=(t.y+t.h/2)/H; S.pos="tuy-chinh"; capNhatNut(); }
   else { const b=L_hien.badge; S.bx=(b.x+b.w/2)/W; S.by=(b.y+b.h/2)/H; S.badgePos="tuy-chinh"; capNhatNut(); }
@@ -1153,7 +1201,7 @@ cv.addEventListener("pointermove",e=>{
     }
     ve(); return;
   }
-  if(!keo.loai){ const h=trungVao(px,py,k); if(h!==keo.hover){ keo.hover=h; cv.style.cursor=h?"move":"default"; ve(); } return; }
+  if(!keo.loai){ const h=khoaTuyChinh()?null:trungVao(px,py,k); if(h!==keo.hover){ keo.hover=h; cv.style.cursor=h?"move":"default"; ve(); } return; }
   const W=cv.width,H=cv.height; let nx=keo.v0[0]+(px-keo.p0[0])/W, ny=keo.v0[1]+(py-keo.p0[1])/H;
   nx=Math.max(0,Math.min(1,nx)); ny=Math.max(0,Math.min(1,ny));
   if(keo.loai==="text"){ keo.snapX=Math.abs(nx-0.5)<0.012; if(keo.snapX) nx=0.5; S.tx=nx; S.ty=ny; }
@@ -1195,18 +1243,18 @@ window.addEventListener("drop",e=>{ e.preventDefault(); demKeo=0; document.query
 window.addEventListener("paste",e=>{ const it=[...(e.clipboardData?.items||[])].find(i=>i.type.startsWith("image/")); if(it) napAnh(it.getAsFile()); });
 
 /* ---------- Xoay / lật / cắt ---------- */
-function doiHuong(fn){ if(!A.img) return; fn(); A.oriented=null; A.crop=khungLonNhat(); ve(); }
+function doiHuong(fn){ if(!A.img || khoaTuyChinh()) return; fn(); A.oriented=null; A.crop=khungLonNhat(); ve(); }
 $("nutXoay").onclick=()=>doiHuong(()=>{A.rot=(A.rot+90)%360;});
 function lat(truc){ // lật ảnh nhưng giữ nguyên khung cắt (lật theo)
-  if(!A.img) return; const o=anhDaXoay(), c=A.crop;
+  if(!A.img || khoaTuyChinh()) return; const o=anhDaXoay(), c=A.crop;
   if(truc==="ngang"){ A.flipH=!A.flipH; if(c) c.x=o.width-c.x-c.w; } else { A.flipV=!A.flipV; if(c) c.y=o.height-c.y-c.h; }
   A.oriented=null; ve();
 }
 $("nutLatNgang").onclick=()=>lat("ngang");
 $("nutLatDoc").onclick=()=>lat("doc");
-$("nutCat").onclick=()=>batCat(!A.cropMode);
+$("nutCat").onclick=()=>{ if(!khoaTuyChinh()) batCat(!A.cropMode); };
 $("nutXongCat").onclick=()=>batCat(false);
-$("nutKhungLai").onclick=()=>{ A.crop=khungLonNhat(); ve(); };
+$("nutKhungLai").onclick=()=>{ if(khoaTuyChinh()) return; A.crop=khungLonNhat(); ve(); };
 
 /* ---------- Tên tệp & xuất ---------- */
 function boDau(s){ return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d").replace(/Đ/g,"D"); }
@@ -1218,8 +1266,13 @@ function tenTepTuDong(){
   return `${base}-${W}x${H}.${S.fmt}`;
 }
 function baoTai(msg,loi){ const el=$("tbTai"); el.textContent=msg; el.classList.remove("an"); el.classList.toggle("loi",!!loi); }
-$("tenTep").addEventListener("input",()=>{ A.fileNameEdited=$("tenTep").value.trim()!==""; });
+$("tenTep").addEventListener("input",()=>{ if(khoaTuyChinh()){ $("tenTep").value=tenTepTuDong(); return; } A.fileNameEdited=$("tenTep").value.trim()!==""; });
+let dangLuu=false;
 $("nutTai").onclick=async()=>{
+  if(dangLuu) return; dangLuu=true; $("nutTai").disabled=true;
+  try{ await luuAnh(); } finally{ dangLuu=false; $("nutTai").disabled=false; }
+};
+async function luuAnh(){
   if(!A.img){ baoTai("Bạn chưa chọn ảnh. Hãy chọn hoặc kéo một tấm ảnh vào khung xem trước trước khi tải về.",true); return; }
   if(A.cropMode) batCat(false);
   await document.fonts.ready;
@@ -1231,17 +1284,36 @@ $("nutTai").onclick=async()=>{
   if(type==="image/jpeg"){ // nền trắng phòng ảnh trong suốt
     const t=document.createElement("canvas"); t.width=W; t.height=H; const tg=t.getContext("2d"); tg.fillStyle="#fff"; tg.fillRect(0,0,W,H); tg.drawImage(c,0,0); c.width=0; return xuat(t,type,W,H);
   }
-  xuat(c,type,W,H);
-};
+  return xuat(c,type,W,H);
+}
+async function duocLuu(){ // bản web, đã đăng nhập: xin máy chủ trừ 1 lượt trước khi lưu
+  if(!(BAN_WEB && daDangNhap)) return true;
+  const d=await xinLuot(false);
+  if(d.loi){
+    baoTai(d.loi==="chua-dang-nhap"?"Phiên đăng nhập của bạn đã hết hạn. Bạn đăng nhập lại rồi bấm lưu ảnh nhé."
+      :"Chưa kiểm tra được số ảnh bạn còn lưu được hôm nay. Bạn kiểm tra kết nối mạng rồi bấm lưu lại nhé.",true);
+    return false;
+  }
+  nhanLuot(d);
+  if(d.ok!==true){ // hết lượt: báo nhẹ nhàng ở ô lượt ngay dưới nút Lưu (không báo lỗi đỏ)
+    $("tbTai").classList.add("an"); const el=$("tbLuot"); el.classList.remove("nhay-luot"); void el.offsetWidth; el.classList.add("nhay-luot"); return false; }
+  return true;
+}
 function xuat(c,type,W,H){
-  c.toBlob(blob=>{
+  return new Promise(xong=>c.toBlob(async blob=>{
+    try{ await xuatTiep(blob,type,W,H); } finally{ xong(); }
+  }, type, S.quality/100));
+}
+async function xuatTiep(blob,type,W,H){
+  {
     if(!blob){ baoTai("Không tạo được ảnh. Bạn thử chọn độ lớn ảnh nhỏ hơn rồi bấm lại nhé.",true); return; }
+    if(!(await duocLuu())) return;
     let ten=($("tenTep").value.trim()||tenTepTuDong()).replace(/[\\/:*?"<>|]+/g,"-");
     const duoi="."+S.fmt; if(!ten.toLowerCase().endsWith(duoi)) ten=ten.replace(/\.(png|jpe?g)$/i,"")+duoi;
     const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=ten; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-    baoTai(`Đã lưu ảnh "${ten}" (${W} × ${H}, khoảng ${Math.max(1,Math.round(blob.size/1024))} KB). Bạn xem trong thư mục Tải về (Downloads) của máy nhé.`);
-  }, type, S.quality/100);
+    baoTai(`Đã lưu ảnh "${ten}" (${W} × ${H}, khoảng ${Math.max(1,Math.round(blob.size/1024))} KB). Bạn xem trong thư mục Tải về (Downloads) của máy nhé.`+(BAN_WEB&&daDangNhap&&LUOT.conLai!==null?` Hôm nay bạn còn lưu được ${LUOT.conLai} ảnh.`:""));
+  }
 }
 
 /* ---------- Trợ lý AI (tuỳ chọn) ---------- */
@@ -1403,7 +1475,9 @@ let KQ_AI=null, ghiChuChuyen="";
 const TEN_VT={tren:"phía trên",giua:"ở giữa",duoi:"phía dưới"};
 function apGoiY(tieuDe){
   const k=KQ_AI; if(!k) return;
-  S.title=tieuDe; $("tieuDe").value=tieuDe; S.accentWord=""; $("cumNhan").value="";
+  S.title=tieuDe; $("tieuDe").value=tieuDe;
+  if(khoaTuyChinh()){ A.fileNameEdited=false; capNhatNut(); luuCaiDat(); ve(); baoAI("Đã áp tiêu đề AI gợi ý vào ảnh. Bạn đăng nhập miễn phí để AI tự chọn luôn vị trí và màu chữ."); return; }
+  S.accentWord=""; $("cumNhan").value="";
   if(k.vt) S.pos=k.vt;
   if(k.mau){ S.accent=k.mau; $("mauNhan").value=k.mau; }
   if(k.nhan && (!S.badgeText.trim() || S.badgeText===MAC_DINH.badgeText)){ S.badgeText=k.nhan; $("chuNhan").value=k.nhan; S.badge=true; $("coNhan").checked=true; }
@@ -1497,7 +1571,7 @@ $("nutAI").onclick=async()=>{
 
 /* ---------- Gắn điều khiển ---------- */
 function ganChon(id,key,after){
-  $(id).addEventListener("click",e=>{ const b=e.target.closest("button[data-v]"); if(!b) return; S[key]=b.dataset.v; if(after) after(b.dataset.v); capNhatNut(); luuCaiDat(); ve(); });
+  $(id).addEventListener("click",e=>{ const b=e.target.closest("button[data-v]"); if(!b || khoaTuyChinh()) return; S[key]=b.dataset.v; if(after) after(b.dataset.v); capNhatNut(); luuCaiDat(); ve(); });
 }
 function capNhatNut(){
   const map={chonTyLe:"ratio",chonCan:"align",chonViTri:"pos",chonGoc:"badgePos",chonDinhDang:"fmt"};
@@ -1522,6 +1596,7 @@ ganChon("chonCan","align",()=>{ if(S.pos==="tuy-chinh"){} });
 ganChon("chonViTri","pos");
 ganChon("chonGoc","badgePos");
 ganChon("chonDinhDang","fmt");
+const CHU_TU_DO=new Set(["title","subText","ribbonText","sideText","noteText","kyText","badgeText"]); // các ô chữ khách chưa đăng nhập vẫn sửa được
 const DIEU_KHIEN=[ // [id, khoá, kiểu, nhãn hiển thị]
   ["tieuDe","title","text"],["cumNhan","accentWord","text"],["vietHoa","upper","check"],["phong","font","text"],
   ["coChu","size","num","gtCo"],["dam","bold","check"],["nghieng","italic","check"],["mauChu","color","text"],["mauNhan","accent","text"],
@@ -1542,13 +1617,15 @@ function dienGiaTri(){
 for(const [id,k,kieu,nh] of DIEU_KHIEN){
   const el=$(id);
   el.addEventListener(kieu==="check"||el.tagName==="SELECT"?"change":"input",()=>{
+    if(khoaTuyChinh() && !CHU_TU_DO.has(k)){ if(kieu==="check") el.checked=!!S[k]; else el.value=S[k]; return; } // chưa đăng nhập: chỉ sửa chữ
     S[k]= kieu==="check"?el.checked : kieu==="num"?Number(el.value) : el.value;
     if(nh) $(nh).textContent=S[k];
-    if(k==="badgeText" && S.badgeText.trim() && !S.badge){ S.badge=true; $("coNhan").checked=true; }
+    if(k==="badgeText" && S.badgeText.trim() && !S.badge && !khoaTuyChinh()){ S.badge=true; $("coNhan").checked=true; }
     capNhatNut(); luuCaiDat(); ve();
   });
 }
 ["viTriX","viTriY"].forEach(id=>$(id).addEventListener("input",()=>{
+  if(khoaTuyChinh()) return;
   if(S.pos!=="tuy-chinh"){ // lấy vị trí hiện tại làm gốc
     const t=L_hien.block; S.tx=(t.x+t.w/2)/cv.width; S.ty=(t.y+t.h/2)/cv.height; S.pos="tuy-chinh"; capNhatNut();
   }
@@ -1662,7 +1739,6 @@ function apDungMau(mau){
 }
 
 /* ---------- Khoá mẫu theo tài khoản (chỉ đọc trạng thái đăng nhập do trang web gửi vào) ---------- */
-let daDangNhap=false, daBietTK=false;
 const DUONG_TK=BAN_WEB?"/tai-khoan":"https://sancongcu.com/tai-khoan", TRANG_NAY="/cong-cu/chen-chu-len-anh";
 const SO_MAU_MIEN_PHI=5; // 5 mẫu đầu dùng tự do, không cần đăng nhập
 const laMienPhi=m=>MAU.indexOf(m)>-1 && MAU.indexOf(m)<SO_MAU_MIEN_PHI;
@@ -1683,7 +1759,7 @@ function dungLuoiMau(){
         const h=$("hopKhoa"); h.classList.remove("nhay"); void h.offsetWidth; h.classList.add("nhay"); h.scrollIntoView({block:"nearest",behavior:"smooth"});
         baoMau(`Mẫu “${m.ten}” dành cho thành viên. Bạn đăng ký tài khoản miễn phí hoặc đăng nhập là dùng được ngay.`); return;
       }
-      apDungMau(m); baoMau(`Đã áp mẫu “${m.ten}”. Bạn vẫn có thể đổi phông chữ, màu và vị trí tuỳ ý.`);
+      apDungMau(m); baoMau(khoaTuyChinh()?`Đã áp mẫu “${m.ten}”. Bạn sửa chữ ở bước 3 nhé.`:`Đã áp mẫu “${m.ten}”. Bạn vẫn có thể đổi phông chữ, màu và vị trí tuỳ ý.`);
     };
     luoi.appendChild(b);
   }
@@ -1701,11 +1777,107 @@ function capNhatKhoa(){
   $("hopKhoa").classList.toggle("an",daDangNhap);
   const n=$("nhanTK"); n.classList.toggle("mo",daDangNhap);
   n.textContent=daDangNhap?`Đã đăng nhập: dùng được cả ${MAU.length} mẫu`:`Chưa đăng nhập: dùng ${SO_MAU_MIEN_PHI} mẫu miễn phí`;
+  if(BAN_WEB) apKhoaTuyChinh();
 }
 function datDangNhap(v){
   daDangNhap=v===true; daBietTK=true;
-  if(!daDangNhap){ const m=MAU.find(x=>x.id===S.mauId); if(m && biKhoa(m)){ apMauDau(); baoMau("Bạn chưa đăng nhập nên ứng dụng đang dùng mẫu Trích dẫn."); } }
+  if(!daDangNhap){
+    if(BAN_WEB) datLaiKieuMienPhi();
+    else { const m=MAU.find(x=>x.id===S.mauId); if(m && biKhoa(m)){ apMauDau(); baoMau("Bạn chưa đăng nhập nên ứng dụng đang dùng mẫu Trích dẫn."); } }
+  }
   capNhatKhoa();
+  if(BAN_WEB){ if(daDangNhap) xemLuot(); else hienLuot(); ve(); }
+}
+
+/* ---------- Bản web: chưa đăng nhập thì chỉ sửa chữ; đã đăng nhập thì mỗi ngày lưu được một số ảnh (đếm trên máy chủ) ---------- */
+// Khách chưa đăng nhập: đưa kiểu chữ, khổ ảnh, cách lưu về đúng mẫu miễn phí đang chọn (giữ nguyên chữ khách đã gõ).
+function datLaiKieuMienPhi(){
+  const m=MAU.find(x=>x.id===S.mauId);
+  for(const k of ["ratio","fmt","quality","outShort","accentWord"]) S[k]=MAC_DINH[k];
+  if(A.cropMode) batCat(false);
+  if(A.img){ A.rot=0; A.flipH=false; A.flipV=false; A.oriented=null; A.crop=khungLonNhat(); }
+  A.fileNameEdited=false;
+  if(!m || biKhoa(m)){ apMauDau(); if(m) baoMau("Bạn chưa đăng nhập nên ứng dụng đang dùng mẫu Trích dẫn."); }
+  else apDungMau(m);
+}
+const KHONG_ANH_KHOA=["nutCat","nutXoay","nutLatNgang","nutLatDoc"]; // các nút này còn bị tắt khi chưa có ảnh
+const CHU_KHOA_GOC=$("chuKhoa").innerHTML;
+function apKhoaTuyChinh(){
+  const khoa=khoaTuyChinh();
+  document.body.classList.toggle("khoa-tc",khoa);
+  document.querySelectorAll("[data-khoa-tc]").forEach(vung=>{
+    vung.querySelectorAll("input,select,textarea,button").forEach(el=>{
+      if(el.closest(".nhan-khoa-tc")) return;
+      if(khoa){ if(!el.disabled){ el.disabled=true; el.dataset.khoaTc="1"; } }
+      else if(el.dataset.khoaTc){ delete el.dataset.khoaTc; el.disabled=KHONG_ANH_KHOA.includes(el.id)?!A.img:false; }
+    });
+    vung.title=khoa?"Đăng nhập hoặc tạo tài khoản miễn phí để mở khoá phần này":"";
+  });
+  if(khoa && keo.loai) keo.loai=null;
+  $("goiYMau").textContent=khoa
+    ?"Bấm vào một mẫu để áp kiểu chữ, màu và bố cục lên ảnh, rồi sửa chữ ở bước 3. Muốn tự đổi phông chữ, màu, cỡ chữ hay vị trí chữ, bạn đăng nhập tài khoản miễn phí nhé."
+    :"Bấm vào một mẫu để áp kiểu chữ, màu và bố cục lên ảnh. Chọn mẫu xong, bạn vẫn đổi được phông chữ, màu và vị trí như bình thường.";
+  $("chuKhoa").innerHTML=khoa
+    ?'Bạn đang dùng được <span class="so-mau-mp"></span> mẫu miễn phí và sửa được chữ trên ảnh. Chỉ cần tạo tài khoản miễn phí trên sancongcu.com là mở được <span class="so-mau-khoa"></span> mẫu còn lại, tự đổi được phông chữ, màu, cỡ chữ, vị trí chữ, khổ ảnh, và ảnh lưu về không còn dòng chữ nhỏ “Làm bằng sancongcu.com”.'
+    :CHU_KHOA_GOC;
+  document.querySelectorAll(".so-mau-khoa").forEach(el=>el.textContent=MAU.length-SO_MAU_MIEN_PHI);
+  document.querySelectorAll(".so-mau-mp").forEach(el=>el.textContent=SO_MAU_MIEN_PHI);
+  if(khoa) $("nhanTK").textContent=`Chưa đăng nhập: ${SO_MAU_MIEN_PHI} mẫu miễn phí, sửa được chữ`;
+  else if(daDangNhap) hienLuot();
+}
+function nhayKhoaTC(vung){
+  const n=vung && vung.querySelector(".nhan-khoa-tc"); if(!n) return;
+  n.classList.remove("nhay"); void n.offsetWidth; n.classList.add("nhay");
+  n.scrollIntoView({block:"nearest",behavior:"smooth"});
+}
+if(BAN_WEB){ // gắn câu mời đăng nhập vào từng vùng bị khoá
+  const hrefTK=mode=>`${DUONG_TK}?mode=${mode}&quay-lai=${encodeURIComponent(TRANG_NAY)}`;
+  document.querySelectorAll("[data-khoa-tc]").forEach(vung=>{
+    vung.addEventListener("click",e=>{
+      if(!khoaTuyChinh() || e.target.closest(".nhan-khoa-tc")) return;
+      e.preventDefault(); e.stopPropagation();
+      nhayKhoaTC(vung.dataset.khoaTc?vung:vung.closest(".muc"));
+    },true);
+    if(!vung.dataset.khoaTc) return;
+    const n=document.createElement("div"); n.className="nhan-khoa-tc"; n.setAttribute("role","note");
+    n.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#276CF3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+    const sp=document.createElement("span");
+    sp.append(`Phần này dành cho thành viên. Bạn đăng nhập hoặc tạo tài khoản miễn phí là tự ${vung.dataset.khoaTc} được ngay. `);
+    const a1=document.createElement("a"); a1.href=hrefTK("signup"); a1.target="_top"; a1.textContent="Đăng ký miễn phí";
+    const a2=document.createElement("a"); a2.href=hrefTK("login"); a2.target="_top"; a2.textContent="Đăng nhập";
+    sp.append(a1," · ",a2); n.appendChild(sp); vung.prepend(n);
+  });
+}
+
+// Lượt lưu ảnh: ứng dụng hỏi trang web bọc ngoài (cùng tên miền); trang đó gọi máy chủ bằng phiên đăng nhập của khách rồi trả lời.
+const LUOT={conLai:null, gioiHan:5};
+const choLuot=new Map();
+function maYeuCau(){ const u=new Uint8Array(12); crypto.getRandomValues(u); return [...u].map(x=>x.toString(16).padStart(2,"0")).join(""); }
+function xinLuot(chiXem){
+  return new Promise(res=>{
+    if(!(BAN_WEB && window.parent!==window)){ res({loi:"khong-co-trang-boc"}); return; }
+    const ma=maYeuCau();
+    const hen=setTimeout(()=>{ choLuot.delete(ma); res({loi:"het-gio"}); },15000);
+    choLuot.set(ma,d=>{ clearTimeout(hen); res(d); });
+    window.parent.postMessage({loai:"scc-xin-luot",ma,chiXem:!!chiXem},location.origin);
+  });
+}
+function hienLuot(){
+  const el=$("tbLuot");
+  if(!(BAN_WEB && daDangNhap)){ el.classList.add("an"); return; }
+  const c=LUOT.conLai, gh=LUOT.gioiHan;
+  el.classList.remove("an"); el.classList.toggle("het",c===0);
+  el.textContent=c===null?"Đang kiểm tra số ảnh bạn còn lưu được hôm nay…"
+    :c>0?`Hôm nay bạn còn lưu được ${c}/${gh} ảnh. Số lượt được làm mới lúc 0 giờ mỗi ngày.`
+    :`Hôm nay bạn đã dùng hết ${gh} ảnh, mai dùng tiếp nhé. Bạn vẫn chỉnh ảnh thoải mái, chỉ chưa lưu thêm được.`;
+  $("nhanTK").textContent=c===null?`Đã đăng nhập: dùng được cả ${MAU.length} mẫu`:`Đã đăng nhập: hôm nay còn ${c}/${gh} ảnh`;
+}
+function nhanLuot(d){ if(typeof d.conLai==="number") LUOT.conLai=Math.max(0,Math.floor(d.conLai)); if(typeof d.gioiHan==="number" && d.gioiHan>0) LUOT.gioiHan=Math.floor(d.gioiHan); hienLuot(); }
+async function xemLuot(){
+  LUOT.conLai=null; hienLuot();
+  const d=await xinLuot(true);
+  if(!d.loi) nhanLuot(d);
+  else if(daDangNhap) $("tbLuot").textContent="Chưa kiểm tra được số ảnh còn lại hôm nay. Bạn cứ chỉnh ảnh, khi bấm lưu ứng dụng sẽ kiểm tra lại.";
 }
 (function(){
   const q=(mode)=>`${DUONG_TK}?mode=${mode}&quay-lai=${encodeURIComponent(TRANG_NAY)}`;
@@ -1714,7 +1886,9 @@ function datDangNhap(v){
 })();
 window.addEventListener("message",e=>{
   if(e.source!==window.parent || e.origin!==location.origin) return; // chỉ nhận tin từ chính trang sancongcu.com bọc bên ngoài
-  const d=e.data; if(d && d.loai==="scc-dang-nhap") datDangNhap(d.daDangNhap===true);
+  const d=e.data; if(!d) return;
+  if(d.loai==="scc-dang-nhap") datDangNhap(d.daDangNhap===true);
+  else if(d.loai==="scc-luot" && typeof d.ma==="string" && choLuot.has(d.ma)){ const f=choLuot.get(d.ma); choLuot.delete(d.ma); f(d); }
 });
 
 /* ---------- Ảnh xem trước của từng mẫu ---------- */

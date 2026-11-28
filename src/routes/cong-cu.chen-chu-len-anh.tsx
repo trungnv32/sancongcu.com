@@ -6,6 +6,21 @@ import { supabase } from "@/lib/supabase";
 import { toolPageCspHeader } from "@/lib/tool-page-security";
 
 const PAGE_PATH = "/cong-cu/chen-chu-len-anh";
+/** Mã công cụ dùng để đếm lượt lưu ảnh mỗi ngày trên máy chủ (bảng public.cong_cu_luot_dung). */
+const TOOL_CODE = "chen-chu-len-anh";
+
+type QuotaRequest = { loai: "scc-xin-luot"; ma: string; chiXem?: boolean };
+type QuotaResult = { ok?: boolean; con_lai?: number; gioi_han?: number };
+
+const isQuotaRequest = (value: unknown): value is QuotaRequest => {
+  const data = value as Partial<QuotaRequest> | null;
+  return (
+    !!data &&
+    data.loai === "scc-xin-luot" &&
+    typeof data.ma === "string" &&
+    /^[0-9a-f]{8,64}$/.test(data.ma)
+  );
+};
 
 /** Ứng dụng vẽ ảnh chạy trong khung riêng (trang tĩnh trong public/, có chính sách bảo mật CSP riêng). */
 const APP_SRC = "/cong-cu-app/chen-chu-len-anh/app.html";
@@ -51,7 +66,7 @@ const steps = [
   {
     icon: LayoutTemplate,
     title: "Chọn mẫu và nhập chữ",
-    text: "Bạn chọn một mẫu chữ có sẵn rồi gõ tiêu đề của mình. Muốn tô màu một cụm chữ, bạn đặt cụm đó giữa hai cặp dấu sao. Phông chữ, màu và vị trí đều đổi được.",
+    text: "Bạn chọn một mẫu chữ có sẵn rồi gõ tiêu đề của mình. Muốn tô màu một cụm chữ, bạn đặt cụm đó giữa hai cặp dấu sao. Khi đăng nhập tài khoản miễn phí, bạn tự đổi được cả phông chữ, màu, cỡ chữ và vị trí chữ.",
   },
   {
     icon: Download,
@@ -63,7 +78,11 @@ const steps = [
 const faqs = [
   {
     q: "Công cụ này có mất phí không?",
-    a: "Không. Bạn dùng miễn phí 5 mẫu mà không cần tài khoản. Khi đăng ký tài khoản miễn phí trên sancongcu.com, bạn mở được thêm 25 mẫu đẹp khác.",
+    a: "Không. Chưa cần tài khoản, bạn vẫn dùng được 5 mẫu, sửa chữ trên ảnh và lưu ảnh thoải mái; ảnh lưu về có một dòng chữ nhỏ “Làm bằng sancongcu.com” ở góc. Khi đăng ký tài khoản miễn phí trên sancongcu.com, bạn mở được thêm 25 mẫu đẹp khác, tự đổi phông chữ, màu, cỡ chữ, vị trí chữ, khổ ảnh, và ảnh lưu về không còn dòng chữ nhỏ đó.",
+  },
+  {
+    q: "Đăng nhập rồi thì mỗi ngày lưu được bao nhiêu ảnh?",
+    a: "Mỗi tài khoản lưu được 5 ảnh mỗi ngày. Số lượt được làm mới lúc 0 giờ (giờ Việt Nam), và ứng dụng luôn hiện cho bạn biết hôm nay còn lưu được mấy ảnh. Hết lượt thì bạn vẫn chỉnh ảnh bình thường, hôm sau lưu tiếp.",
   },
   {
     q: "Ảnh của tôi có bị gửi lên mạng không?",
@@ -97,10 +116,42 @@ function ChenChuLenAnhPage() {
       setLoggedIn(value);
       sendState();
     };
+    // Ứng dụng xin xem hoặc trừ lượt lưu ảnh: trang này gọi máy chủ bằng phiên đăng nhập của khách
+    // rồi chỉ trả lại kết quả (được lưu không, còn mấy lượt), kèm đúng mã yêu cầu của ứng dụng.
+    const answerQuota = async (request: QuotaRequest) => {
+      const reply = (body: Record<string, unknown>) =>
+        frameRef.current?.contentWindow?.postMessage(
+          { loai: "scc-luot", ma: request.ma, ...body },
+          window.location.origin,
+        );
+      if (!supabase || !loggedInRef.current) return reply({ ok: false, loi: "chua-dang-nhap" });
+      let data: unknown = null;
+      let error: { message?: string } | null = null;
+      try {
+        ({ data, error } = await supabase.rpc(
+          request.chiXem ? "xem_luot_cong_cu" : "dung_luot_cong_cu",
+          { p_cong_cu: TOOL_CODE },
+        ));
+      } catch (caught) {
+        error = { message: caught instanceof Error ? caught.message : "network" };
+      }
+      if (error) {
+        const authError = /AUTH_REQUIRED|JWT|permission denied/i.test(error.message ?? "");
+        return reply({ ok: false, loi: authError ? "chua-dang-nhap" : "may-chu" });
+      }
+      const result = (data ?? {}) as QuotaResult;
+      reply({
+        ok: result.ok === true,
+        conLai: typeof result.con_lai === "number" ? result.con_lai : 0,
+        gioiHan: typeof result.gioi_han === "number" ? result.gioi_han : 5,
+      });
+    };
     const onMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
       if (event.source !== frameRef.current?.contentWindow) return;
-      if ((event.data as { loai?: string } | null)?.loai === "scc-hoi-dang-nhap") sendState();
+      const kind = (event.data as { loai?: string } | null)?.loai;
+      if (kind === "scc-hoi-dang-nhap") sendState();
+      else if (isQuotaRequest(event.data)) void answerQuota(event.data);
     };
     window.addEventListener("message", onMessage);
     if (!supabase) {
