@@ -19,6 +19,7 @@ import { Route as ComboComboIdRouteImport } from './routes/combo.$comboId'
 import { Route as CongCuChenChuLenAnhRouteImport } from './routes/cong-cu.chen-chu-len-anh'
 import { Route as SkillSkillIdRouteImport } from './routes/skill.$skillId'
 import { Route as TaiNguyenGameNguoiQueRouteImport } from './routes/tai-nguyen.game-nguoi-que'
+import { Route as TaiNguyenGhiAmThanhChuRouteImport } from './routes/tai-nguyen.ghi-am-thanh-chu'
 import { Route as TaiNguyenTroLyHocTapRouteImport } from './routes/tai-nguyen.tro-ly-hoc-tap'
 
 const IndexRoute = IndexRouteImport.update({
@@ -71,6 +72,11 @@ const TaiNguyenGameNguoiQueRoute = TaiNguyenGameNguoiQueRouteImport.update({
   path: '/tai-nguyen/game-nguoi-que',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TaiNguyenGhiAmThanhChuRoute = TaiNguyenGhiAmThanhChuRouteImport.update({
+  id: '/tai-nguyen/ghi-am-thanh-chu',
+  path: '/tai-nguyen/ghi-am-thanh-chu',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TaiNguyenTroLyHocTapRoute = TaiNguyenTroLyHocTapRouteImport.update({
   id: '/tai-nguyen/tro-ly-hoc-tap',
   path: '/tai-nguyen/tro-ly-hoc-tap',
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/cong-cu/chen-chu-len-anh': typeof CongCuChenChuLenAnhRoute
   '/skill/$skillId': typeof SkillSkillIdRoute
   '/tai-nguyen/game-nguoi-que': typeof TaiNguyenGameNguoiQueRoute
+  '/tai-nguyen/ghi-am-thanh-chu': typeof TaiNguyenGhiAmThanhChuRoute
   '/tai-nguyen/tro-ly-hoc-tap': typeof TaiNguyenTroLyHocTapRoute
 }
 export interface FileRoutesByTo {
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/cong-cu/chen-chu-len-anh': typeof CongCuChenChuLenAnhRoute
   '/skill/$skillId': typeof SkillSkillIdRoute
   '/tai-nguyen/game-nguoi-que': typeof TaiNguyenGameNguoiQueRoute
+  '/tai-nguyen/ghi-am-thanh-chu': typeof TaiNguyenGhiAmThanhChuRoute
   '/tai-nguyen/tro-ly-hoc-tap': typeof TaiNguyenTroLyHocTapRoute
 }
 export interface FileRoutesById {
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/cong-cu/chen-chu-len-anh': typeof CongCuChenChuLenAnhRoute
   '/skill/$skillId': typeof SkillSkillIdRoute
   '/tai-nguyen/game-nguoi-que': typeof TaiNguyenGameNguoiQueRoute
+  '/tai-nguyen/ghi-am-thanh-chu': typeof TaiNguyenGhiAmThanhChuRoute
   '/tai-nguyen/tro-ly-hoc-tap': typeof TaiNguyenTroLyHocTapRoute
 }
 export interface FileRouteTypes {
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
     | '/cong-cu/chen-chu-len-anh'
     | '/skill/$skillId'
     | '/tai-nguyen/game-nguoi-que'
+    | '/tai-nguyen/ghi-am-thanh-chu'
     | '/tai-nguyen/tro-ly-hoc-tap'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/cong-cu/chen-chu-len-anh'
     | '/skill/$skillId'
     | '/tai-nguyen/game-nguoi-que'
+    | '/tai-nguyen/ghi-am-thanh-chu'
     | '/tai-nguyen/tro-ly-hoc-tap'
   id:
     | '__root__'
@@ -156,6 +167,7 @@ export interface FileRouteTypes {
     | '/cong-cu/chen-chu-len-anh'
     | '/skill/$skillId'
     | '/tai-nguyen/game-nguoi-que'
+    | '/tai-nguyen/ghi-am-thanh-chu'
     | '/tai-nguyen/tro-ly-hoc-tap'
   fileRoutesById: FileRoutesById
 }
@@ -170,6 +182,7 @@ export interface RootRouteChildren {
   CongCuChenChuLenAnhRoute: typeof CongCuChenChuLenAnhRoute
   SkillSkillIdRoute: typeof SkillSkillIdRoute
   TaiNguyenGameNguoiQueRoute: typeof TaiNguyenGameNguoiQueRoute
+  TaiNguyenGhiAmThanhChuRoute: typeof TaiNguyenGhiAmThanhChuRoute
   TaiNguyenTroLyHocTapRoute: typeof TaiNguyenTroLyHocTapRoute
 }
 
@@ -245,6 +258,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TaiNguyenGameNguoiQueRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tai-nguyen/ghi-am-thanh-chu': {
+      id: '/tai-nguyen/ghi-am-thanh-chu'
+      path: '/tai-nguyen/ghi-am-thanh-chu'
+      fullPath: '/tai-nguyen/ghi-am-thanh-chu'
+      preLoaderRoute: typeof TaiNguyenGhiAmThanhChuRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tai-nguyen/tro-ly-hoc-tap': {
       id: '/tai-nguyen/tro-ly-hoc-tap'
       path: '/tai-nguyen/tro-ly-hoc-tap'
@@ -266,6 +286,7 @@ const rootRouteChildren: RootRouteChildren = {
   CongCuChenChuLenAnhRoute: CongCuChenChuLenAnhRoute,
   SkillSkillIdRoute: SkillSkillIdRoute,
   TaiNguyenGameNguoiQueRoute: TaiNguyenGameNguoiQueRoute,
+  TaiNguyenGhiAmThanhChuRoute: TaiNguyenGhiAmThanhChuRoute,
   TaiNguyenTroLyHocTapRoute: TaiNguyenTroLyHocTapRoute,
 }
 export const routeTree = rootRouteImport

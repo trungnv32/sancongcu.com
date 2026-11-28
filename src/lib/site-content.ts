@@ -40,6 +40,7 @@ export type FreeResource = {
 export const freeResourceDetailPages = [
   { fileNamePrefix: "tro-ly-hoc-tap", href: "/tai-nguyen/tro-ly-hoc-tap" },
   { fileNamePrefix: "skill-game-nguoi-que", href: "/tai-nguyen/game-nguoi-que" },
+  { fileNamePrefix: "ghi-am-thanh-chu", href: "/tai-nguyen/ghi-am-thanh-chu" },
 ] as const;
 
 export function findFreeResourceDetailPage(resource: Pick<FreeResource, "file_name">) {
